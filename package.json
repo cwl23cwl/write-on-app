@@ -1,0 +1,46 @@
+{
+    "name": "write-on-app-root",
+    "private": true,
+    "version": "1.0.0",
+    "packageManager": "pnpm@10.15.1",
+    "scripts": {
+        "dev": "pnpm --filter write-on-app dev",
+        "build:vendor": "pnpm -w -r --filter \"./vendor/excalidraw/packages/*\" run build",
+        "build:apps": "pnpm -w -r --filter \"./apps/*\" run build",
+        "build:app": "pnpm --filter \"./apps/write-on-app\" run build",
+        "start": "pnpm --filter write-on-app start"
+    },
+    "pnpm": {
+        "overrides": {
+            "@excalidraw/*": "workspace:*"
+        },
+        "onlyBuiltDependencies": [
+            "@tailwindcss/oxide",
+            "core-js",
+            "esbuild",
+            "sharp",
+            "unrs-resolver"
+        ]
+    },
+    "workspaces": [
+        "apps/*",
+        "packages/*",
+        "vendor/excalidraw/packages/*"
+    ],
+    "devDependencies": {
+        "esbuild": "0.19.10",
+        "esbuild-sass-plugin": "2.16.0",
+        "sass": "1.51.0"
+    },
+    "dependencies": {
+        "@braintree/sanitize-url": "6.0.2",
+        "es6-promise-pool": "2.5.0",
+        "fractional-indexing": "3.2.0",
+        "lodash.throttle": "4.1.1",
+        "nanoid": "3.3.3",
+        "open-color": "1.9.1",
+        "perfect-freehand": "1.2.0",
+        "points-on-curve": "1.0.1",
+        "roughjs": "4.6.4"
+    }
+}
