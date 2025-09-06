@@ -1,0 +1,75 @@
+"use client";
+
+import { useRef } from "react";
+import { WorkspaceProvider } from "@/components/workspace/WorkspaceProvider";
+import { WorkspaceViewport } from "@/components/workspace/WorkspaceViewport";
+import { WorkspaceScaler } from "@/components/workspace/WorkspaceScaler";
+import { CanvasMount } from "@/components/workspace/CanvasMount";
+import { ChromeLayout } from "@/components/chrome/ChromeLayout";
+import { WorkspaceErrorBoundary } from "@/components/workspace/WorkspaceErrorBoundary";
+import { useKeyboardShortcuts } from "@/components/workspace/hooks/useKeyboardShortcuts";
+import { useContainerSizeObserver } from "@/components/workspace/hooks/useContainerSizeObserver";
+
+export function WorkspaceRoot(): JSX.Element {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  useKeyboardShortcuts();
+  useContainerSizeObserver(rootRef);
+
+  return (
+    <WorkspaceProvider value={{ containerRef: rootRef }}>
+      <WorkspaceErrorBoundary>
+        {/* Fixed control strip outside the scroll container for maximum robustness */}
+        <ChromeLayout />
+        {/* Unscaled root container: do not apply transforms here */}
+        <div
+          ref={rootRef}
+          className="workspace-root debug-layout relative w-full h-screen overflow-auto flex flex-col"
+          data-workspace-root
+          style={{
+            // Heights used by sticky chrome
+            // Defaults: header 56px, top 48px, options 48px
+            ['--h-header' as any]: '56px',
+            ['--h-top' as any]: '48px',
+            ['--h-opts' as any]: '48px',
+            // Seed default for indicator row
+            ['--h-indicator' as any]: '40px',
+            // Gap tokens between rows
+            ['--gap-header-top' as any]: '8px',
+            ['--gap-top-opts' as any]: '8px',
+            ['--gap-indicator-above' as any]: '8px',
+            ['--gap-indicator-below' as any]: '12px',
+            // Composite stack heights (CSS calc on the same node as backdrop)
+            ['--h-chrome' as any]: 'calc(var(--h-header) + var(--h-top) + var(--h-opts))',
+            ['--h-stack' as any]: 'calc(var(--h-chrome) + var(--gap-header-top) + var(--gap-top-opts) + var(--gap-indicator-above) + var(--h-indicator) + var(--gap-indicator-below))',
+            // Composite height vars are CSS-owned in globals.css
+            // Spacing defaults
+            ['--page-padding' as any]: '24px',
+            // z-index tokens
+            ['--z-header' as any]: '1000',
+            ['--z-toolbar' as any]: '900',
+            ['--z-indicator' as any]: '40',
+            // Scroller behavior & containment
+            overscrollBehavior: 'contain',
+            contain: 'layout',
+            isolation: 'isolate',
+            // Opaque background to prevent transparency artifacts under sticky chrome
+            backgroundColor: 'var(--workspace-bg, #ffffff)',
+            // Page indicator tokens (solid surface)
+            ['--pill-bg' as any]: '#ffffff',
+            ['--pill-fg' as any]: '#111111',
+            ['--pill-border' as any]: '#e5e7eb',
+            // Page size tokens (virtual page size for Phase 2)
+            ['--page-width' as any]: '1200px',
+            ['--page-height' as any]: '2200px',
+          }}
+        >
+          <WorkspaceViewport>
+            <WorkspaceScaler>
+              <CanvasMount />
+            </WorkspaceScaler>
+          </WorkspaceViewport>
+        </div>
+      </WorkspaceErrorBoundary>
+    </WorkspaceProvider>
+  );
+}

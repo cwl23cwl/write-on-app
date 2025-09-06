@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "predev": "node ./scripts/ensure-next-dev-dirs.mjs",
+    "dev": "next dev",
+    "dev:turbo": "next dev --turbopack",
     "build": "next build --turbopack",
     "start": "next start",
     "lint": "eslint"
@@ -14,9 +16,11 @@
     "@excalidraw/excalidraw": "link:../../vendor/excalidraw/packages/excalidraw",
     "@excalidraw/math": "link:../../vendor/excalidraw/packages/math",
     "@excalidraw/utils": "link:../../vendor/excalidraw/packages/utils",
+    "immer": "^10.0.3",
     "next": "15.5.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "zustand": "^4.5.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -26,6 +30,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.5.2",
+    "eslint-plugin-writeon": "workspace:*",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
