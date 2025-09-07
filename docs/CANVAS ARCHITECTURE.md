@@ -369,3 +369,35 @@ useEffect(() => {
 - Ref errors → use `forwardRef` and mount guards.  
 
 ---
+---
+
+## Running Commands: Root vs App
+
+Because this is a monorepo, some phases are best done inside the app (`apps/write-on-app/`) while others require the workspace root.
+
+**Rules of thumb**
+- **App folder (`apps/write-on-app/`)**
+  - Use for day-to-day development of canvas layout, UI, and Next.js pages.
+  - Run `pnpm dev`, edit React components, tweak Zustand stores.
+  - Fastest feedback loop (Next.js hot reload).
+- **Workspace root (`write-on-app/`)**
+  - Use when installing deps, building the whole repo, or touching `packages/*` or `vendor/`.
+  - Always run lint/typecheck/build here before opening a PR.
+
+**Phase guidance**
+- **Phase 0–2 (Goals, Layout & Sticky Chrome):**  
+  Work inside the **app folder**. These phases affect UI/layout only.
+- **Phase 3 (Viewport Model: Zoom, Sizing, DPR):**  
+  Primarily app folder, but check root build if you change shared state packages.
+- **Phase 4 (Canvas Mount, Excalidraw island):**  
+  Needs **root** because it involves the vendor fork and package linking.
+- **Phase 5 (Toolbars & Tool State):**  
+  App folder for UI/tools; root if adding/updating shared UI packages.
+- **Phase 6–7 (Accessibility, Stability, Performance):**  
+  Mostly app folder, validate at root before PR.
+- **Phase 8–10 (Testing, Theming, Packaging):**  
+  Run at **root** to ensure repo-wide consistency.
+
+**Before any PR**
+```bash
+pnpm -w typecheck && pnpm -w lint && pnpm -w build

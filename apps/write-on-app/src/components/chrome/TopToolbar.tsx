@@ -22,7 +22,7 @@ export function TopToolbar(): JSX.Element {
   return (
     <div
       ref={ref}
-      className="chrome-top-toolbar h-10 w-full flex items-center gap-2 px-2"
+      className="chrome-top-toolbar top-toolbar h-10 w-full flex items-center gap-2 px-2"
       style={{ contain: 'layout paint', backgroundColor: 'transparent', marginTop: 'var(--gap-header-top)', marginBottom: 0 }}
     >
       {tools.map((t) => (
