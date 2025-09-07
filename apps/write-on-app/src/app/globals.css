@@ -123,6 +123,12 @@ body {
   transform: none !important;
 }
 
+/* Ensure Excalidraw (or any engine) fills the page wrapper */
+.excalidraw-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
 /* Debug layout outlines (temporary aid) */
 .debug-layout .workspace-viewport {
   outline: 1px solid #3b82f6; /* blue */
