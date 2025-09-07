@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import ExcalidrawRef from "@/components/excalidraw/ExcalidrawRef";
 import { EXCALIDRAW_PROPS, INITIAL_APP_STATE } from "@/components/workspace/excalidraw/excalidrawConfig";
 import { useExcalidrawBridge } from "@/components/workspace/excalidraw/useExcalidrawBridge";
@@ -80,8 +80,11 @@ export function ExcalidrawAdapter({ initialData, readOnly, onReady, className, t
 
   useEffect(() => { isMounted.current = true; }, []);
 
-  const ready = Boolean(containerRef.current);
-  const data = initialData ?? { elements: [], appState: { ...INITIAL_APP_STATE }, scrollToContent: true };
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    if (containerRef.current && !ready) setReady(true);
+  }, [ready]);
+  const data = initialData ?? { elements: [], appState: { ...INITIAL_APP_STATE, width: 1200, height: 2200 }, scrollToContent: true };
 
   // Phase 2 zoom/scroll guard: stop wheel from reaching Excalidraw so browser/page handle it
   useEffect(() => {

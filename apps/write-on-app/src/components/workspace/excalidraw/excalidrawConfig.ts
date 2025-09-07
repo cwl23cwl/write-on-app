@@ -53,7 +53,7 @@ export function getExcalidrawProps(): Partial<ExcalidrawProps> {
 export function getInitialData(): ExcalidrawProps["initialData"] {
   return {
     elements: [],
-    appState: { ...INITIAL_APP_STATE },
+    appState: { ...INITIAL_APP_STATE, width: 1200, height: 2200 },
     scrollToContent: true,
   };
 }
