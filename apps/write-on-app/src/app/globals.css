@@ -111,7 +111,6 @@ body {
 .page-wrapper {
   width: 1200px;   /* basePageSize.w */
   height: 2200px;  /* basePageSize.h */
-  margin: 0 auto;  /* center horizontally */
   position: relative;
   box-sizing: content-box; /* ensure padding doesn't shrink the paper */
   padding: 0;
@@ -135,6 +134,8 @@ body {
   inset: 0;
   width: 100% !important;
   height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
 }
 
 /* Neutralize mobile/layout caps if applied by Excalidraw */
@@ -143,6 +144,12 @@ body {
 .excalidraw .excalidraw__canvas {
   max-width: none !important;
   max-height: none !important;
+}
+
+/* Ensure mobile variant fills fully as well */
+.excalidraw.excalidraw--mobile {
+  width: 100% !important;
+  height: 100% !important;
 }
 
 /* Belt-and-suspenders: no accidental zoom on the canvas itself */
