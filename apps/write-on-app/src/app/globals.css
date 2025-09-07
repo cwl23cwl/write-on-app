@@ -100,6 +100,9 @@ body {
 /* Viewport owns scrolling; inner scale layer owns zoom */
 #workspace-viewport {
   overflow: auto;
+  /* Center the scaled paper horizontally */
+  display: flex;
+  justify-content: center;
 }
 
 #workspace-scale-layer {
@@ -113,7 +116,6 @@ body {
   height: 2200px;  /* basePageSize.h */
   position: relative;
   box-sizing: content-box; /* ensure padding doesn't shrink the paper */
-  padding: 0;
 }
 
 /* Ensure indicator and strip pin to top and never transform */
