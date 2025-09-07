@@ -109,8 +109,9 @@ body {
 }
 
 .page-wrapper {
-  width: var(--page-width, 1200px);
-  height: var(--page-height, 2200px);
+  width: 1200px;   /* basePageSize.w */
+  height: 2200px;  /* basePageSize.h */
+  margin: 0 auto;  /* center horizontally */
 }
 
 /* Ensure indicator and strip pin to top and never transform */
