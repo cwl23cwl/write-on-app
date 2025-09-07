@@ -8,6 +8,7 @@ import { normalizedDeltaY } from "@/components/workspace/utils/events";
 export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement | null>): void {
   const setScale = useViewportStore((s) => s.setScale);
   const setViewState = useViewportStore((s) => s.setViewState);
+  const setScroll = useViewportStore((s) => s.setScroll);
   const pan = useViewportStore((s) => s.pan);
   const constraints = useViewportStore((s) => s.constraints);
 
@@ -32,13 +33,23 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
         const min = constraints.minScale;
         const max = constraints.maxScale;
         const preScale = currentScale;
-        const host = el as HTMLElement;
-        const focus = getWorldPoint(e, host, { scale: preScale, scrollX, scrollY });
+        // Use actual DOM scroll offsets from the viewport for correct anchoring
+        const viewport = el as HTMLElement;
+        const rect = viewport.getBoundingClientRect();
+        const domScrollX = viewport.scrollLeft;
+        const domScrollY = viewport.scrollTop;
+        const focus = {
+          x: (e.clientX - rect.left) / (preScale || 1) + domScrollX,
+          y: (e.clientY - rect.top) / (preScale || 1) + domScrollY,
+        };
         const newScale = Math.max(min, Math.min(preScale * factor, max));
         const k = newScale / preScale;
-        const newScrollX = focus.x - (focus.x - scrollX) * k;
-        const newScrollY = focus.y - (focus.y - scrollY) * k;
+        const newScrollX = focus.x - (focus.x - domScrollX) * k;
+        const newScrollY = focus.y - (focus.y - domScrollY) * k;
+        // Update store and DOM scroll to keep anchor under cursor
         setViewState({ scale: newScale, scrollX: newScrollX, scrollY: newScrollY });
+        viewport.scrollLeft = Math.max(0, Math.round(newScrollX));
+        viewport.scrollTop = Math.max(0, Math.round(newScrollY));
         return;
       }
       // Let normal page scroll happen when not zooming
@@ -73,8 +84,14 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
       lastWorld.current = null;
     };
 
+    // Keep store in sync with DOM scroll (for focus math)
+    const onScroll = (): void => {
+      setScroll(el.scrollLeft, el.scrollTop);
+    };
+
     // Capture phase so we can intercept before inner libraries
     el.addEventListener("wheel", onWheel as EventListener, { passive: false, capture: true });
+    el.addEventListener("scroll", onScroll as EventListener, { passive: true });
     el.addEventListener("pointerdown", onPointerDown as EventListener, { passive: true });
     el.addEventListener("pointermove", onPointerMove as EventListener, { passive: true });
     el.addEventListener("pointerup", onPointerUp as EventListener, { passive: true });
@@ -82,6 +99,7 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
 
     return () => {
       el.removeEventListener("wheel", onWheel as EventListener, { capture: true } as EventListenerOptions);
+      el.removeEventListener("scroll", onScroll as EventListener);
       el.removeEventListener("pointerdown", onPointerDown as EventListener);
       el.removeEventListener("pointermove", onPointerMove as EventListener);
       el.removeEventListener("pointerup", onPointerUp as EventListener);

@@ -162,8 +162,11 @@ export function ExcalidrawAdapter({ initialData, readOnly, onReady, className, t
         return;
       }
 
-      // Block panning shortcuts: space/hand key ('h') from reaching engine
-      if (!ctrlLike && (e.code === 'Space' || k === ' ' || k === 'Spacebar' || k.toLowerCase() === 'h')) {
+      // Block panning shortcuts: space/hand key ('h') from reaching engine,
+      // but allow when typing inside Excalidraw text editors.
+      const targetEl = (e.target as Element) ?? (document.activeElement as Element | null);
+      const typing = !!targetEl?.closest?.('#excal-host [contenteditable="true"], #excal-host input, #excal-host textarea');
+      if (!ctrlLike && !typing && (e.code === 'Space' || k === ' ' || k === 'Spacebar' || k.toLowerCase() === 'h')) {
         // Do not prevent default for Space so page can still scroll if browser allows
         (e as any).stopImmediatePropagation?.();
         e.stopPropagation();
@@ -182,8 +185,16 @@ export function ExcalidrawAdapter({ initialData, readOnly, onReady, className, t
 
     // Wrapper that only acts if event target is inside #excal-host
     const insideHost = (e: Event): boolean => {
-      const t = e.target as Element | null;
-      return !!t && !!t.closest('#excal-host');
+      const t: any = e.target;
+      let el: Element | null = null;
+      if (t && typeof t.closest === 'function') {
+        el = t as Element;
+      } else if (t && t.ownerDocument && t.ownerDocument.activeElement) {
+        el = t.ownerDocument.activeElement as Element;
+      } else if (document && document.activeElement) {
+        el = document.activeElement as Element;
+      }
+      return !!el?.closest?.('#excal-host');
     };
 
     const wheelWrapper = (e: Event) => { if (insideHost(e)) onWheel(e as WheelEvent); };

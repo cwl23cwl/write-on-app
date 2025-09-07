@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
 import type { CanvasStore, ToolType } from "@/types/state";
+import { useViewportStore } from "@/state";
 
 const getDpr = (): number =>
   typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 3) : 1;
@@ -90,8 +91,9 @@ export const useCanvasStore = create<CanvasStore>()(
         const logicalWidth = Math.max(0, Math.round(rect.width));
         const logicalHeight = Math.max(0, Math.round(rect.height));
         const dpr = getDpr();
-        const physicalWidth = Math.max(0, Math.round(logicalWidth * dpr));
-        const physicalHeight = Math.max(0, Math.round(logicalHeight * dpr));
+        const zoom = (() => { try { return useViewportStore.getState().viewport.scale || 1; } catch { return 1; } })();
+        const physicalWidth = Math.max(0, Math.round(logicalWidth * dpr * zoom));
+        const physicalHeight = Math.max(0, Math.round(logicalHeight * dpr * zoom));
 
         set((s) => {
           s.resolution.logicalWidth = logicalWidth;
@@ -107,7 +109,7 @@ export const useCanvasStore = create<CanvasStore>()(
         // Do not write CSS size; keep canvas CSS size driven by the 1200x2200 page wrapper
         try {
           const ctx = canvas.getContext('2d');
-          if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          if (ctx) ctx.setTransform(dpr * zoom, 0, 0, dpr * zoom, 0, 0);
         } catch {}
       },
 
