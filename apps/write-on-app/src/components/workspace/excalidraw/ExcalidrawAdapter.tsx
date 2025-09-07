@@ -86,34 +86,65 @@ export function ExcalidrawAdapter({ initialData, readOnly, onReady, className, t
   }, [ready]);
   const data = initialData ?? { elements: [], appState: { ...INITIAL_APP_STATE, width: 1200, height: 2200 }, scrollToContent: true };
 
-  // Phase 2 zoom/scroll guard: stop wheel from reaching Excalidraw so browser/page handle it
+  // Phase 2 zoom/pinch guard: intercept wheel/pinch on Excalidraw root so it never sees the gesture
   useEffect(() => {
-    const el = containerRef.current as HTMLElement | null;
-    if (!el) return;
-    const onWheelCapture = (e: WheelEvent): void => {
-      // Redirect zoom gestures to viewport; never let Excalidraw swallow wheel.
-      if (e.ctrlKey || e.metaKey) {
+    const host = (containerRef.current as HTMLElement | null)?.querySelector('.excalidraw') as HTMLElement | null;
+    if (!host) return;
+
+    const onPageZoom = (e: WheelEvent): void => {
+      // If an ancestor already handled zoom (defaultPrevented), skip to avoid double zoom
+      if (e.defaultPrevented) return;
+      const dy = (e as any).deltaY ?? 0;
+      const unit = (e as any).deltaMode === 1 ? 16 : (e as any).deltaMode === 2 ? window.innerHeight : 1;
+      const ndy = dy * unit;
+      const factor = Math.exp(-ndy / 400);
+      const preScale = useViewportStore.getState().viewport.scale;
+      const { minScale, maxScale } = useViewportStore.getState().constraints;
+      const newScale = Math.max(minScale, Math.min(preScale * factor, maxScale));
+      const { scrollX, scrollY } = useViewportStore.getState().viewport;
+      // Focus calculation relative to scaler if present
+      const viewportEl = document.getElementById('workspace-viewport') as HTMLElement | null;
+      const scaler = document.getElementById('workspace-scale-layer') as HTMLElement | null;
+      const refEl = scaler || viewportEl || host;
+      const rect = refEl?.getBoundingClientRect();
+      const x = rect ? (e.clientX - rect.left) / (preScale || 1) + (scrollX || 0) : scrollX;
+      const y = rect ? (e.clientY - rect.top) / (preScale || 1) + (scrollY || 0) : scrollY;
+      const k = newScale / preScale;
+      const newScrollX = x - (x - scrollX) * k;
+      const newScrollY = y - (y - scrollY) * k;
+      useViewportStore.getState().setViewState({ scale: newScale, scrollX: newScrollX, scrollY: newScrollY });
+    };
+
+    const onWheel = (e: WheelEvent): void => {
+      const ctrlLike = e.ctrlKey || e.metaKey;
+      if (ctrlLike) {
         e.preventDefault();
+        onPageZoom(e);
+      } else {
+        // Allow page scroll while blocking engine from handling the wheel
+        (e as any).stopImmediatePropagation?.();
+        e.stopPropagation();
       }
-      // Always stop propagation so Excalidraw doesn't intercept wheel; default scroll still occurs.
+    };
+
+    const onGesture = (e: Event): void => {
+      e.preventDefault();
       (e as any).stopImmediatePropagation?.();
       e.stopPropagation();
     };
-    const onKeyDownCapture = (e: KeyboardEvent): void => {
-      if (e.ctrlKey || e.metaKey) {
-        const k = e.key;
-        if (k === '+' || k === '-' || k === '=' || k === '0') {
-          e.preventDefault();
-          (e as any).stopImmediatePropagation?.();
-          e.stopPropagation();
-        }
-      }
-    };
-    el.addEventListener('wheel', onWheelCapture as EventListener, { capture: true, passive: false } as AddEventListenerOptions);
-    el.addEventListener('keydown', onKeyDownCapture as EventListener, { capture: true } as AddEventListenerOptions);
+
+    host.addEventListener('wheel', onWheel as EventListener, { capture: true, passive: false } as AddEventListenerOptions);
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach((type) => {
+      host.addEventListener(type, onGesture as EventListener, { capture: true, passive: false } as AddEventListenerOptions);
+    });
+
     return () => {
-      try { el.removeEventListener('wheel', onWheelCapture as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
-      try { el.removeEventListener('keydown', onKeyDownCapture as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
+      try { host.removeEventListener('wheel', onWheel as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
+      try {
+        ['gesturestart', 'gesturechange', 'gestureend'].forEach((type) => {
+          try { host.removeEventListener(type, onGesture as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
+        });
+      } catch {}
     };
   }, []);
 
