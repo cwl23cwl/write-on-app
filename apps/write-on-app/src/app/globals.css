@@ -113,6 +113,15 @@ body {
   height: var(--page-height, 2200px);
 }
 
+/* Ensure indicator and strip pin to top and never transform */
+.page-indicator,
+.control-strip {
+  position: sticky; /* control-strip is fixed via its rule; this is safe */
+  top: 0;
+  z-index: var(--z-control-strip, 1000);
+  transform: none !important;
+}
+
 /* Debug layout outlines (temporary aid) */
 .debug-layout .workspace-viewport {
   outline: 1px solid #3b82f6; /* blue */
