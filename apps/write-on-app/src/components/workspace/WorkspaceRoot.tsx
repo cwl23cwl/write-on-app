@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { WorkspaceProvider } from "@/components/workspace/WorkspaceProvider";
 import { WorkspaceViewport } from "@/components/workspace/WorkspaceViewport";
 import { WorkspaceScaler } from "@/components/workspace/WorkspaceScaler";
@@ -14,6 +14,34 @@ export function WorkspaceRoot(): JSX.Element {
   const rootRef = useRef<HTMLDivElement | null>(null);
   useKeyboardShortcuts();
   useContainerSizeObserver(rootRef);
+
+  // Guardrail: ensure the fixed control strip never ends up inside the scaler
+  useEffect(() => {
+    const ctrl = document.querySelector('.control-strip') as HTMLElement | null;
+    if (ctrl && ctrl.closest('.workspace-scaler')) {
+      console.warn("Control strip is inside a scaler — move it out!", ctrl);
+    }
+  }, []);
+
+  // One-way dependency: control strip height -> workspace padding
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+    const ctrl = document.querySelector('.control-strip') as HTMLElement | null;
+    if (!ctrl) return;
+    const apply = () => {
+      const h = ctrl.offsetHeight;
+      if (h > 0) root.style.setProperty('--control-strip-height', `${h}px`);
+    };
+    apply();
+    const ro = new ResizeObserver(() => apply());
+    ro.observe(ctrl);
+    window.addEventListener('resize', apply, { passive: true });
+    return () => {
+      try { ro.disconnect(); } catch {}
+      window.removeEventListener('resize', apply);
+    };
+  }, []);
 
   return (
     <WorkspaceProvider value={{ containerRef: rootRef }}>

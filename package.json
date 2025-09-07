@@ -5,10 +5,14 @@
     "packageManager": "pnpm@10.15.1",
     "scripts": {
         "dev": "pnpm --filter write-on-app dev",
+        "turbo:dev": "turbo run dev --parallel",
         "build:vendor": "pnpm -w -r --filter \"./vendor/excalidraw/packages/*\" run build",
         "build:apps": "pnpm -w -r --filter \"./apps/*\" run build",
+        "turbo:build": "turbo run build",
         "build:app": "pnpm --filter \"./apps/write-on-app\" run build",
-        "start": "pnpm --filter write-on-app start"
+        "start": "pnpm --filter write-on-app start",
+        "turbo:lint": "turbo run lint",
+        "turbo:test": "turbo run test"
     },
     "pnpm": {
         "overrides": {

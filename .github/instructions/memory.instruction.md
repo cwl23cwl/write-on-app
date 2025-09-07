@@ -16,6 +16,19 @@ applyTo: '**'
 - Architecture patterns: WorkspaceRoot (scroll owner), sticky chrome inside scroller, WorkspaceViewport (no transforms), WorkspaceScaler (Phase 3 transforms), CanvasMount adapter
 - Key requirements: Page-only scroll, crisp ink, no overlays blocking input, sticky toolbars never scale
 
+## Cross-Browser & Mobile Guardrails
+- All implementations must be verified in **Chrome, Firefox, and Safari** to ensure consistent layout, zoom, scroll, and pointer math.
+- Watch for engine quirks:
+  - **Firefox**: `deltaMode` line vs pixel normalization; `position: fixed` inside transforms breaks; strict pointer capture discipline.
+  - **Safari**: Trackpad pinch sets `ctrlKey`; fractional DPR must be respected; safe-area insets (env constants) for iOS notch.
+  - **Chrome/Edge**: Consistent default, but must not rely on Chrome-only behaviors.
+- **Mobile integration**:  
+  - Respect `dvh`/`vh` differences (`height: 100dvh` fallback).  
+  - Use safe-area insets for headers/controls.  
+  - Ensure toolbars remain pinned and do not scale with workspace zoom.  
+  - `touch-action: none` on canvas while drawing; prevent passive scrolling only when zoom gestures are handled.  
+  - Excalidraw adapter should degrade gracefully on touch devices (pointer events vs touch events).
+  
 ## Coding Patterns
 - Prefer sticky chrome as direct children of scroll container
 - Avoid transforms on sticky ancestors; apply zoom only on scaler (Phase 3)
@@ -52,6 +65,11 @@ applyTo: '**'
 
  - 2025-09-06: Control strip converted to a single fixed container (.control-strip) spanning full width (z-index 1000). Removed per-child sticky from AppHeader, TopToolbar, OptionsToolbar, and PageIndicatorRow to avoid nested sticky complexities. Implemented vertical gaps via CSS vars: TopToolbar margin-top var(--gap-header-top), OptionsToolbar margin-top var(--gap-top-opts), and PageIndicator pill margins var(--gap-indicator-above/below). WorkspaceViewport offsets content with padding-top: var(--h-stack), keeping the workspace clear under the fixed strip. useMeasureCssVar continues to write --h-header/--h-top/--h-opts/--h-indicator. Build succeeded with Next.js 15.5.2 (Turbopack).
    - Cross-browser hardening: replaced contain: 'layout paint style' with 'layout paint' for Safari/Firefox compatibility; added .chrome-header safe-area insets (env/constant) so header measurement includes iOS notch; added dvh fallback (height: 100vh; height: 100dvh) on .workspace-root; guarded ResizeObserver usage in useMeasureCssVar to avoid crashes on older engines.
+- 2025-09-07: Freeze CSS for control strip — added !important to position, top, left, right, and z-index in apps/write-on-app/src/app/globals.css to prevent future overrides; retained width:100% and visual styles. This locks the strip to viewport top and ensures it never scales with the workspace.
+- 2025-09-07: Pad workspace root via variable — moved top offset from WorkspaceViewport to .workspace-root (padding-top: var(--control-strip-height, 160px)). Added alias --control-strip-height: var(--h-stack) in globals.css and a ResizeObserver in WorkspaceRoot to set --control-strip-height from the actual .control-strip offsetHeight. Keeps one-way dependency: strip height drives scroll area padding.
+ - 2025-09-07: Z-index discipline — added Z constants (apps/write-on-app/src/constants/zIndex.ts) with CONTROL_STRIP=1000 and WORKSPACE=0. CSS now uses var(--z-control-strip, 1000) for .control-strip with !important. Added Vitest + jsdom test (src/test/controlStripDom.test.tsx) asserting the control strip is never inside .workspace-scaler; included test setup with ResizeObserver stub.
+
+ - 2025-09-07: Guardrail added to lock DOM structure for control strip. Implemented runtime assertion in WorkspaceRoot (useEffect) that warns if `.control-strip` is ever rendered inside `.workspace-scaler` (console.warn: "Control strip is inside a scaler — move it out!"). Verified current structure keeps <ChromeLayout /> rendered above the scroll container and <WorkspaceScaler /> nested under <WorkspaceViewport />, ensuring the strip remains outside any future zoom transforms.
 
 ## Notes
 - Source reference: docs/CANVAS ARCHITECTURE.md (internal)

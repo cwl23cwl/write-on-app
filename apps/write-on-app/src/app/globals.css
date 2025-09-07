@@ -3,6 +3,9 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Z-index discipline tokens */
+  --z-control-strip: 1000;
+  --z-workspace: 0;
 }
 
 @theme inline {
@@ -52,12 +55,13 @@ body {
 
 /* Phase-2: pin control strip and offset content */
 .control-strip {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
+  /* Guardrail: freeze positioning to prevent regressions */
+  position: fixed !important;  /* never overridden */
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: var(--z-control-strip, 1000) !important;
   width: 100%;
-  z-index: 1000;
   display: flex;
   flex-direction: column;
   /* Provide a solid surface behind chrome to prevent content bleed-through */
@@ -80,7 +84,8 @@ body {
   /* The viewport height varies on mobile browsers; prefer dynamic dvh with vh fallback */
   height: 100vh;
   height: 100dvh;
-  padding-top: 0;
+  /* Offset content by the fixed control strip height */
+  padding-top: var(--control-strip-height, 160px);
 }
 
 .workspace-scaler {
@@ -117,4 +122,6 @@ body {
     + var(--h-indicator)
     + var(--gap-indicator-below)
   );
+  /* Alias: control strip total height used by scroll container padding */
+  --control-strip-height: var(--h-stack);
 }

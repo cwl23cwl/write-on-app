@@ -1,37 +1,42 @@
 {
-  "name": "write-on-app",
-  "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "predev": "node ./scripts/ensure-next-dev-dirs.mjs",
-    "dev": "next dev",
-    "dev:turbo": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "@excalidraw/common": "link:../../vendor/excalidraw/packages/common",
-    "@excalidraw/element": "link:../../vendor/excalidraw/packages/element",
-    "@excalidraw/excalidraw": "link:../../vendor/excalidraw/packages/excalidraw",
-    "@excalidraw/math": "link:../../vendor/excalidraw/packages/math",
-    "@excalidraw/utils": "link:../../vendor/excalidraw/packages/utils",
-    "immer": "^10.0.3",
-    "next": "15.5.2",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "zustand": "^4.5.7"
-  },
-  "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "15.5.2",
-    "eslint-plugin-writeon": "workspace:*",
-    "tailwindcss": "^4",
-    "typescript": "^5"
-  }
+    "name":  "write-on-app",
+    "version":  "0.1.0",
+    "private":  true,
+    "scripts":  {
+                    "predev":  "node ./scripts/ensure-next-dev-dirs.mjs",
+                    "dev":  "next dev",
+                    "dev:turbo":  "next dev --turbopack",
+                    "build":  "next build --turbopack",
+                    "start":  "next start",
+                    "lint":  "eslint",
+                    "test":  "vitest"
+                },
+    "dependencies":  {
+                         "@excalidraw/common":  "link:../../vendor/excalidraw/packages/common",
+                         "@excalidraw/element":  "link:../../vendor/excalidraw/packages/element",
+                         "@excalidraw/excalidraw":  "link:../../vendor/excalidraw/packages/excalidraw",
+                         "@excalidraw/math":  "link:../../vendor/excalidraw/packages/math",
+                         "@excalidraw/utils":  "link:../../vendor/excalidraw/packages/utils",
+                         "immer":  "^10.0.3",
+                         "next":  "15.5.2",
+                         "react":  "19.1.0",
+                         "react-dom":  "19.1.0",
+                         "zustand":  "^4.5.7"
+                     },
+    "devDependencies":  {
+                            "@eslint/eslintrc":  "^3",
+                            "@tailwindcss/postcss":  "^4",
+                            "@testing-library/dom":  "10.4.0",
+                            "@testing-library/react":  "16.2.0",
+                            "@types/node":  "^20",
+                            "@types/react":  "^19",
+                            "@types/react-dom":  "^19",
+                            "eslint":  "^9",
+                            "eslint-config-next":  "15.5.2",
+                            "eslint-plugin-writeon":  "workspace:*",
+                            "jsdom":  "^26.1.0",
+                            "tailwindcss":  "^4",
+                            "typescript":  "^5",
+                            "vitest":  "^3.2.4"
+                        }
 }

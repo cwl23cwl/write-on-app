@@ -1,0 +1,16 @@
+{
+  "root": false,
+  "extends": [],
+  "plugins": ["writeon"],
+  "rules": {
+    "@typescript-eslint/explicit-function-return-type": "error",
+    "@typescript-eslint/no-explicit-any": "error",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "error",
+    "writeon/no-direct-dom-manipulation": "error",
+    "writeon/store-access-via-hooks": "warn",
+    "writeon/no-unauthorized-transform": "error",
+    "writeon/require-canvas-error-boundary": "warn"
+  }
+}
+
