@@ -127,9 +127,9 @@ body {
 }
 
 /* Ensure Excalidraw (or any engine) fills the page wrapper */
-.excal-host,
-.excal-host > .excalidraw,
-.excal-host > .excalidraw .excalidraw__container,
+#excal-host,
+#excal-host > .excalidraw,
+#excal-host > .excalidraw .excalidraw__container,
 .excalidraw-container {
   position: absolute;
   inset: 0;
