@@ -87,10 +87,11 @@ export function ExcalidrawAdapter({ initialData, readOnly, onReady, className, t
   }, [ready]);
   const data = initialData ?? { elements: [], appState: { ...INITIAL_APP_STATE, width: 1200, height: 2200 }, scrollToContent: true };
 
-  // Phase 2 zoom/pinch guard: intercept wheel/pinch on Excalidraw root so it never sees the gesture
+  // Phase 2 zoom/pinch/keyboard guard: intercept gestures on Excalidraw to ensure engine never zooms/pans itself
   useEffect(() => {
-    const host = (containerRef.current as HTMLElement | null)?.querySelector('.excalidraw') as HTMLElement | null;
-    if (!host) return;
+    const excalHost = document.getElementById('excal-host') as HTMLElement | null;
+    const excalRoot = (excalHost || (containerRef.current as HTMLElement | null))?.querySelector('.excalidraw') as HTMLElement | null;
+    if (!excalHost && !excalRoot) return;
 
     const onPageZoom = (e: WheelEvent): void => {
       // If an ancestor already handled zoom (defaultPrevented), skip to avoid double zoom
@@ -179,22 +180,47 @@ export function ExcalidrawAdapter({ initialData, readOnly, onReady, className, t
       }
     };
 
-    host.addEventListener('wheel', onWheel as EventListener, { capture: true, passive: false } as AddEventListenerOptions);
-    ['gesturestart', 'gesturechange', 'gestureend'].forEach((type) => {
-      host.addEventListener(type, onGesture as EventListener, { capture: true, passive: false } as AddEventListenerOptions);
-    });
-    host.addEventListener('keydown', onKeyDown as EventListener, { capture: true } as AddEventListenerOptions);
-    host.addEventListener('pointerdown', onPointerDown as EventListener, { capture: true } as AddEventListenerOptions);
+    // Wrapper that only acts if event target is inside #excal-host
+    const insideHost = (e: Event): boolean => {
+      const t = e.target as Element | null;
+      return !!t && !!t.closest('#excal-host');
+    };
 
-    return () => {
-      try { host.removeEventListener('wheel', onWheel as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
+    const wheelWrapper = (e: Event) => { if (insideHost(e)) onWheel(e as WheelEvent); };
+    const keyWrapper = (e: Event) => { if (insideHost(e)) onKeyDown(e as KeyboardEvent); };
+    const ptrWrapper = (e: Event) => { if (insideHost(e)) onPointerDown(e as PointerEvent); };
+    const gestWrapper = (e: Event) => { if (insideHost(e)) onGesture(e); };
+
+    const addAll = (el: EventTarget | null) => {
+      if (!el) return;
+      el.addEventListener('wheel', wheelWrapper as EventListener, { capture: true, passive: false } as AddEventListenerOptions);
+      ['gesturestart', 'gesturechange', 'gestureend'].forEach((type) => {
+        el.addEventListener(type, gestWrapper as EventListener, { capture: true, passive: false } as AddEventListenerOptions);
+      });
+      el.addEventListener('keydown', keyWrapper as EventListener, { capture: true } as AddEventListenerOptions);
+      el.addEventListener('pointerdown', ptrWrapper as EventListener, { capture: true } as AddEventListenerOptions);
+    };
+
+    const removeAll = (el: EventTarget | null) => {
+      if (!el) return;
+      try { el.removeEventListener('wheel', wheelWrapper as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
       try {
         ['gesturestart', 'gesturechange', 'gestureend'].forEach((type) => {
-          try { host.removeEventListener(type, onGesture as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
+          try { el.removeEventListener(type, gestWrapper as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
         });
       } catch {}
-      try { host.removeEventListener('keydown', onKeyDown as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
-      try { host.removeEventListener('pointerdown', onPointerDown as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
+      try { el.removeEventListener('keydown', keyWrapper as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
+      try { el.removeEventListener('pointerdown', ptrWrapper as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
+    };
+
+    addAll(excalHost);
+    addAll(excalRoot);
+    addAll(document);
+
+    return () => {
+      removeAll(excalHost);
+      removeAll(excalRoot);
+      removeAll(document);
     };
   }, []);
 
