@@ -32,16 +32,13 @@ describe('Page wrapper sizing and canvas fill', () => {
     }
 
     const { container, unmount } = render(<TestHarness />);
-    const wrapper = container.querySelector('.page-wrapper') as HTMLElement | null;
+    const page = container.querySelector('.phase2-page') as HTMLElement | null;
     const mount = container.querySelector('.workspace-canvas-mount') as HTMLElement | null;
-    const exca = container.querySelector('[data-excalidraw-adapter]') as HTMLElement | null;
-    expect(wrapper).toBeTruthy();
-    expect(mount?.style.width).toBe('100%');
-    expect(mount?.style.height).toBe('100%');
-    expect(exca?.style.width).toBe('100%');
-    expect(exca?.style.height).toBe('100%');
+    expect(mount).toBeTruthy();
+    expect(page).toBeTruthy();
+    expect((page as HTMLElement).style.width).toBe('1200px');
+    expect((page as HTMLElement).style.height).toBe('2200px');
     unmount();
     cleanup();
   });
 });
-

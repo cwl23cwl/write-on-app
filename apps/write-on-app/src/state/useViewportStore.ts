@@ -47,6 +47,7 @@ export const useViewportStore = create<ViewportStore>()(
             if (!s.constraints.enableZoom) return;
             const { minScale, maxScale } = s.constraints;
             s.viewport.scale = Math.max(minScale, Math.min(scale, maxScale));
+            s.viewport.devicePixelRatio = getDpr() * s.viewport.scale;
             s.interactions.isZooming = false;
           }, false, "viewport/setScale"),
 
@@ -73,6 +74,7 @@ export const useViewportStore = create<ViewportStore>()(
           set((s) => {
             const { minScale, maxScale } = s.constraints;
             s.viewport.scale = Math.max(minScale, Math.min(v.scale, maxScale));
+            s.viewport.devicePixelRatio = getDpr() * s.viewport.scale;
             s.viewport.scrollX = v.scrollX;
             s.viewport.scrollY = v.scrollY;
             s.viewport.offsetX = v.scrollX;
@@ -86,6 +88,7 @@ export const useViewportStore = create<ViewportStore>()(
             s.viewport.offsetY = 0;
             s.viewport.scrollX = 0;
             s.viewport.scrollY = 0;
+            s.viewport.devicePixelRatio = getDpr();
             // sizes remain; DPR recalculated lazily
           }, false, "viewport/resetViewport"),
 

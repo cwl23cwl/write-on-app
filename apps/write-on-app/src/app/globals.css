@@ -95,6 +95,7 @@ body {
   height: 100dvh;
   /* Offset content by the fixed control strip height */
   padding-top: var(--control-strip-height, 160px);
+  overflow-y: auto;
 }
 
 /* Viewport owns scrolling; inner scale layer owns zoom */
@@ -140,6 +141,16 @@ body {
   max-height: none !important;
 }
 
+/* Improve crispness: neutralize parent scale on Excalidraw subtree and let it pick up layout-scale via CSS zoom
+   - transform: scale(1/zoom) cancels the parent #workspace-scale-layer transform
+   - zoom: var(--workspace-zoom) inflates layout metrics so Excalidraw sizes its backing store accordingly
+   Note: CSS zoom is non-standard and not supported in Firefox. For Firefox, crispness may still rely on engine heuristics. */
+#excal-host {
+  transform: scale(calc(1 / var(--workspace-zoom, 1)));
+  transform-origin: top left;
+  zoom: var(--workspace-zoom, 1);
+}
+
 /* Neutralize mobile/layout caps if applied by Excalidraw */
 .excalidraw.excalidraw--mobile,
 .excalidraw .layer-ui__wrapper,
@@ -154,12 +165,7 @@ body {
   height: 100% !important;
 }
 
-/* Belt-and-suspenders: no accidental zoom on the canvas itself */
-.excalidraw,
-.excalidraw canvas {
-  transform: none !important;
-  zoom: 1 !important;
-}
+/* Avoid forcing transform/zoom on the engine canvas; let the engine manage its own internals */
 
 /* Debug layout outlines (temporary aid) */
 .debug-layout .workspace-viewport {
