@@ -88,9 +88,20 @@ body {
   padding-top: var(--control-strip-height, 160px);
 }
 
-.workspace-scaler {
-  transform-origin: 0 0;
+/* Viewport owns scrolling; inner scale layer owns zoom */
+#workspace-viewport {
+  overflow: auto;
+}
+
+#workspace-scale-layer {
+  transform: scale(var(--workspace-zoom, 1));
+  transform-origin: top left;
   will-change: transform;
+}
+
+.page-wrapper {
+  width: var(--page-width, 1200px);
+  height: var(--page-height, 2200px);
 }
 
 /* Debug layout outlines (temporary aid) */

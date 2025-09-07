@@ -51,7 +51,7 @@ export function WorkspaceRoot(): JSX.Element {
         {/* Unscaled root container: do not apply transforms here */}
         <div
           ref={rootRef}
-          className="workspace-root debug-layout relative w-full h-screen overflow-auto flex flex-col"
+          className="workspace-root debug-layout relative w-full h-screen overflow-hidden flex flex-col"
           data-workspace-root
           style={{
             // Heights used by sticky chrome

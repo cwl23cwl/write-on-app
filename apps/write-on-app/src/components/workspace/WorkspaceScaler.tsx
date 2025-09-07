@@ -10,9 +10,7 @@ export function WorkspaceScaler({ children }: PropsWithChildren): JSX.Element {
       id="workspace-scale-layer"
       className="workspace-scaler"
       style={{
-        // Phase 2: No scaling here; all input & rendering at 1:1 CSS pixels
-        transform: 'none',
-        transformOrigin: '0 0',
+        // Transform is owned by CSS (#workspace-scale-layer)
       }}
     >
       <div
