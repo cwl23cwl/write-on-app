@@ -28,12 +28,15 @@ describe('Viewport/Scale layer structure', () => {
     const viewport = container.querySelector('#workspace-viewport');
     const scale = container.querySelector('#workspace-scale-layer');
     const page = container.querySelector('.page-wrapper');
+    const host = container.querySelector('.excal-host');
     const strip = container.querySelector('.control-strip');
     const indicator = container.querySelector('.page-indicator');
     expect(viewport).toBeTruthy();
     expect(scale).toBeTruthy();
     expect(page).toBeTruthy();
+    expect(host).toBeTruthy();
     expect(page?.closest('#workspace-scale-layer')).toBe(scale);
+    expect(host?.closest('.page-wrapper')).toBe(page);
     expect(scale?.closest('#workspace-viewport')).toBe(viewport);
     expect(strip?.closest('#workspace-scale-layer')).toBeNull();
     expect(indicator?.closest('#workspace-scale-layer')).toBeNull();
@@ -41,4 +44,5 @@ describe('Viewport/Scale layer structure', () => {
     cleanup();
   });
 });
+
 

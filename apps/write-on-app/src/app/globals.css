@@ -112,6 +112,7 @@ body {
   width: 1200px;   /* basePageSize.w */
   height: 2200px;  /* basePageSize.h */
   margin: 0 auto;  /* center horizontally */
+  position: relative;
 }
 
 /* Ensure indicator and strip pin to top and never transform */
@@ -124,6 +125,9 @@ body {
 }
 
 /* Ensure Excalidraw (or any engine) fills the page wrapper */
+.excal-host,
+.excalidraw,
+.excalidraw .excalidraw__container,
 .excalidraw-container {
   width: 100% !important;
   height: 100% !important;
