@@ -121,7 +121,7 @@ export function ExcalidrawAdapter({ initialData, readOnly, onReady, className, t
       className={`workspace-excalidraw ${className ?? ""}`.trim()}
       data-excalidraw-adapter
       data-testid={testId}
-      style={{ position: "relative", pointerEvents: "auto", width: "100%", height: "100%", minHeight: 'var(--page-height, 2200px)' }}
+      style={{ position: "relative", pointerEvents: "auto", width: "100%", height: "100%" }}
     >
       {!ready && (
         <div className="workspace-excalidraw-placeholder text-xs text-gray-500" data-placeholder>
