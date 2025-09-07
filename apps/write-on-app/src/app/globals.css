@@ -113,6 +113,8 @@ body {
   height: 2200px;  /* basePageSize.h */
   margin: 0 auto;  /* center horizontally */
   position: relative;
+  box-sizing: content-box; /* ensure padding doesn't shrink the paper */
+  padding: 0;
 }
 
 /* Ensure indicator and strip pin to top and never transform */
@@ -126,11 +128,28 @@ body {
 
 /* Ensure Excalidraw (or any engine) fills the page wrapper */
 .excal-host,
-.excalidraw,
-.excalidraw .excalidraw__container,
+.excal-host > .excalidraw,
+.excal-host > .excalidraw .excalidraw__container,
 .excalidraw-container {
+  position: absolute;
+  inset: 0;
   width: 100% !important;
   height: 100% !important;
+}
+
+/* Neutralize mobile/layout caps if applied by Excalidraw */
+.excalidraw.excalidraw--mobile,
+.excalidraw .layer-ui__wrapper,
+.excalidraw .excalidraw__canvas {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+/* Belt-and-suspenders: no accidental zoom on the canvas itself */
+.excalidraw,
+.excalidraw canvas {
+  transform: none !important;
+  zoom: 1 !important;
 }
 
 /* Debug layout outlines (temporary aid) */
