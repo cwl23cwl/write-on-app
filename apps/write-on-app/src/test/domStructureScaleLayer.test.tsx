@@ -28,7 +28,7 @@ describe('Viewport/Scale layer structure', () => {
     const viewport = container.querySelector('#workspace-viewport');
     const scale = container.querySelector('#workspace-scale-layer');
     const page = container.querySelector('.page-wrapper');
-    const host = container.querySelector('.excal-host');
+    const host = container.querySelector('#excal-host');
     const strip = container.querySelector('.control-strip');
     const indicator = container.querySelector('.page-indicator');
     expect(viewport).toBeTruthy();
