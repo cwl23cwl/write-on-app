@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import ExcalidrawRef from "@/components/excalidraw/ExcalidrawRef";
-import { EXCALIDRAW_PROPS, INITIAL_APP_STATE } from "@/components/workspace/excalidraw/excalidrawConfig";
+import { EXCALIDRAW_PROPS, INITIAL_APP_STATE, CONSTRAINTS } from "@/components/workspace/excalidraw/excalidrawConfig";
 import { useExcalidrawBridge } from "@/components/workspace/excalidraw/useExcalidrawBridge";
 import { useExcalidrawLifecycle } from "@/components/workspace/excalidraw/useExcalidrawLifecycle";
 import type { ExcalidrawAPI, ExcalidrawComponentProps } from "@/components/workspace/excalidraw/types";
@@ -143,10 +143,48 @@ export function ExcalidrawAdapter({ initialData, readOnly, onReady, className, t
       e.stopPropagation();
     };
 
+    const onKeyDown = (e: KeyboardEvent): void => {
+      const ctrlLike = e.ctrlKey || e.metaKey;
+      const k = e.key;
+      if (ctrlLike && (k === '+' || k === '=' || k === '-' || k === '_' || k === '0')) {
+        e.preventDefault();
+        (e as any).stopImmediatePropagation?.();
+        e.stopPropagation();
+        const pre = useViewportStore.getState().viewport.scale;
+        const { minScale, maxScale } = useViewportStore.getState().constraints;
+        let next = pre;
+        if (k === '+' || k === '=') next = pre * (1 + CONSTRAINTS.ZOOM_STEP);
+        else if (k === '-' || k === '_') next = pre * (1 - CONSTRAINTS.ZOOM_STEP);
+        else if (k === '0') next = 1;
+        next = Math.max(minScale, Math.min(next, maxScale));
+        useViewportStore.getState().setScale(next);
+        return;
+      }
+
+      // Block panning shortcuts: space/hand key ('h') from reaching engine
+      if (!ctrlLike && (e.code === 'Space' || k === ' ' || k === 'Spacebar' || k.toLowerCase() === 'h')) {
+        // Do not prevent default for Space so page can still scroll if browser allows
+        (e as any).stopImmediatePropagation?.();
+        e.stopPropagation();
+        return;
+      }
+    };
+
+    const onPointerDown = (e: PointerEvent): void => {
+      // Block middle-mouse pan from reaching engine
+      if (e.button === 1) {
+        (e as any).stopImmediatePropagation?.();
+        e.stopPropagation();
+        // allow default autoscroll if browser wants
+      }
+    };
+
     host.addEventListener('wheel', onWheel as EventListener, { capture: true, passive: false } as AddEventListenerOptions);
     ['gesturestart', 'gesturechange', 'gestureend'].forEach((type) => {
       host.addEventListener(type, onGesture as EventListener, { capture: true, passive: false } as AddEventListenerOptions);
     });
+    host.addEventListener('keydown', onKeyDown as EventListener, { capture: true } as AddEventListenerOptions);
+    host.addEventListener('pointerdown', onPointerDown as EventListener, { capture: true } as AddEventListenerOptions);
 
     return () => {
       try { host.removeEventListener('wheel', onWheel as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
@@ -155,6 +193,8 @@ export function ExcalidrawAdapter({ initialData, readOnly, onReady, className, t
           try { host.removeEventListener(type, onGesture as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
         });
       } catch {}
+      try { host.removeEventListener('keydown', onKeyDown as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
+      try { host.removeEventListener('pointerdown', onPointerDown as EventListener, { capture: true } as AddEventListenerOptions); } catch {}
     };
   }, []);
 
