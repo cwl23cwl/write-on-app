@@ -27,7 +27,9 @@ export function WorkspaceScaler({ children }: PropsWithChildren): JSX.Element {
           boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
         }}
       >
-        {children}
+        <div className="excal-host" style={{ width: '100%', height: '100%' }}>
+          {children}
+        </div>
       </div>
     </div>
   );

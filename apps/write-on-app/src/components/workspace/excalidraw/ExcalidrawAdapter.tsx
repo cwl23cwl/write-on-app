@@ -88,14 +88,13 @@ export function ExcalidrawAdapter({ initialData, readOnly, onReady, className, t
     const el = containerRef.current as HTMLElement | null;
     if (!el) return;
     const onWheelCapture = (e: WheelEvent): void => {
-      // For zoom gestures, stop propagation to prevent Excalidraw internal zoom.
-      // Parent capture handler on WorkspaceViewport already handled scaling.
+      // Redirect zoom gestures to viewport; never let Excalidraw swallow wheel.
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
-        (e as any).stopImmediatePropagation?.();
-        e.stopPropagation();
       }
-      // Otherwise let normal scroll bubble to the page
+      // Always stop propagation so Excalidraw doesn't intercept wheel; default scroll still occurs.
+      (e as any).stopImmediatePropagation?.();
+      e.stopPropagation();
     };
     const onKeyDownCapture = (e: KeyboardEvent): void => {
       if (e.ctrlKey || e.metaKey) {
