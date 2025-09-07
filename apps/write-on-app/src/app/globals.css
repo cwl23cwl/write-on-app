@@ -78,6 +78,15 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
+/* Toolbars: fixed/sticky container handles pinning; ensure no transforms apply */
+.app-header,
+.top-toolbar,
+.options-toolbar {
+  transform: none !important;
+  will-change: auto;
+  contain: layout paint;
+}
+
 /* Top offset is applied in WorkspaceViewport using --h-stack;
    avoid duplicating here to prevent double spacing. */
 .workspace-root {
