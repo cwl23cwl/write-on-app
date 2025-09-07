@@ -21,10 +21,6 @@ export function WorkspaceScaler({ children }: PropsWithChildren): JSX.Element {
       <div
         className="page-wrapper"
         style={{
-          width: 'var(--page-width, 1200px)',
-          minHeight: 'var(--page-height, 2200px)',
-          height: 'var(--page-height, 2200px)',
-          margin: '0 auto',
           backgroundColor: '#fafafa',
           border: '1px solid #e5e5e5',
           borderRadius: '8px',
