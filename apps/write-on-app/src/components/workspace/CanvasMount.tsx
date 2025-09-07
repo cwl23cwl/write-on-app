@@ -27,7 +27,7 @@ export function CanvasMount({ className }: Props): JSX.Element {
     <div
       ref={containerRef}
       className={`workspace-canvas-mount ${className ?? ""}`.trim()}
-      style={{ width: '100%', minHeight: 'var(--page-height, 2200px)', height: 'var(--page-height, 2200px)', position: 'relative', zIndex: 0 }}
+      style={{ width: '100%', height: '100%', position: 'relative', zIndex: 0 }}
     >
       {/* The internal canvas helps resolution management; Excalidraw renders in its own subtree */}
       <canvas ref={canvasRef} className="workspace-canvas absolute inset-0 pointer-events-none" aria-hidden />
