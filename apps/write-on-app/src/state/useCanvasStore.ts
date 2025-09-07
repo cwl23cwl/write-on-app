@@ -104,9 +104,7 @@ export const useCanvasStore = create<CanvasStore>()(
         // Apply to canvas element for crisp rendering
         if (canvas.width !== physicalWidth) canvas.width = physicalWidth;
         if (canvas.height !== physicalHeight) canvas.height = physicalHeight;
-        const style = (canvas as HTMLCanvasElement).style;
-        style.width = `${logicalWidth}px`;
-        style.height = `${logicalHeight}px`;
+        // Do not write CSS size; keep canvas CSS size driven by the 1200x2200 page wrapper
         try {
           const ctx = canvas.getContext('2d');
           if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
