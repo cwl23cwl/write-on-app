@@ -8,6 +8,7 @@ import { useExcalidrawLifecycle } from "@/components/workspace/excalidraw/useExc
 import type { ExcalidrawAPI, ExcalidrawComponentProps } from "@/components/workspace/excalidraw/types";
 import { useCanvasStore, useViewportStore } from "@/state";
 import type { ToolType } from "@/types/state";
+import { normalizedDeltaY } from "@/components/workspace/utils/events";
 
 type Props = {
   initialData: ExcalidrawComponentProps["initialData"] | null;
@@ -121,7 +122,16 @@ export function ExcalidrawAdapter({ initialData, readOnly, onReady, className, t
         e.preventDefault();
         onPageZoom(e);
       } else {
-        // Allow page scroll while blocking engine from handling the wheel
+        // Programmatically scroll the viewport to guarantee scroll works
+        const viewportEl = document.getElementById('workspace-viewport') as HTMLElement | null;
+        if (viewportEl) {
+          const dy = normalizedDeltaY(e);
+          const dx = e.deltaX;
+          viewportEl.scrollBy({ top: dy, left: dx, behavior: 'auto' });
+          // Prevent default to avoid double scroll on browsers that still perform default scrolling
+          e.preventDefault();
+        }
+        // Block the engine from seeing this wheel
         (e as any).stopImmediatePropagation?.();
         e.stopPropagation();
       }
