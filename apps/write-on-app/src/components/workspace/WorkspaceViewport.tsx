@@ -33,6 +33,7 @@ export function WorkspaceViewport({ className, children }: Props): JSX.Element {
   return (
     <div
       ref={containerRef}
+      id="workspace-viewport"
       className={`workspace-viewport flex-1 ${className ?? ""}`.trim()}
       style={{
         paddingLeft: 'var(--page-padding)',
