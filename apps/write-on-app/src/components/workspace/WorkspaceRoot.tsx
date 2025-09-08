@@ -66,12 +66,14 @@ export function WorkspaceRoot(): JSX.Element {
             ['--gap-top-opts' as any]: '8px',
             ['--gap-indicator-above' as any]: '8px',
             ['--gap-indicator-below' as any]: '12px',
+            // Additional unscaled top gap between chrome and content
+            ['--content-top-gap' as any]: '24px',
             // Composite stack heights (CSS calc on the same node as backdrop)
             ['--h-chrome' as any]: 'calc(var(--h-header) + var(--h-top) + var(--h-opts))',
             ['--h-stack' as any]: 'calc(var(--h-chrome) + var(--gap-header-top) + var(--gap-top-opts) + var(--gap-indicator-above) + var(--h-indicator) + var(--gap-indicator-below))',
             // Composite height vars are CSS-owned in globals.css
             // Spacing defaults
-            ['--page-padding' as any]: '24px',
+            ['--page-padding' as any]: '32px',
             // z-index tokens
             ['--z-header' as any]: '1000',
             ['--z-toolbar' as any]: '900',

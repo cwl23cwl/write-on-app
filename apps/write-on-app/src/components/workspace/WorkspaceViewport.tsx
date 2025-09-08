@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useViewportEvents } from "@/components/workspace/hooks/useViewportEvents";
+import { useInitialHorizontalCenter } from "@/components/workspace/hooks/useInitialHorizontalCenter";
 
 type Props = {
   className?: string;
@@ -13,6 +14,7 @@ type Props = {
 export function WorkspaceViewport({ className, children }: Props): JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null);
   useViewportEvents(containerRef);
+  useInitialHorizontalCenter(containerRef);
 
   // Guardrail: detect transforms on ancestors and warn
   useEffect(() => {
@@ -33,6 +35,7 @@ export function WorkspaceViewport({ className, children }: Props): JSX.Element {
   return (
     <div
       ref={containerRef}
+      id="workspace-viewport"
       className={`workspace-viewport flex-1 ${className ?? ""}`.trim()}
       style={{
         paddingLeft: 'var(--page-padding)',

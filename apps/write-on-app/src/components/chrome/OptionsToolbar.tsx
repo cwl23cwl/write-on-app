@@ -9,7 +9,7 @@ export function OptionsToolbar(): JSX.Element {
   return (
     <aside
       ref={ref}
-      className="chrome-options-toolbar ml-auto w-64 p-2 self-start"
+      className="chrome-options-toolbar options-toolbar ml-auto w-64 p-2 self-start"
       style={{ contain: 'layout paint', backgroundColor: 'transparent', marginTop: 'var(--gap-top-opts)', marginBottom: 0 }}
     >
       <div className="text-sm text-gray-600">Tool Options</div>

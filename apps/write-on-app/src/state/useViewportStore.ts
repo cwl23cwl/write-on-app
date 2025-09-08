@@ -27,8 +27,8 @@ const initialState: Pick<ViewportStore, "viewport" | "interactions" | "constrain
     lastPointerPosition: null,
   },
   constraints: {
-    minScale: 0.1,
-    maxScale: 5.0,
+    minScale: 0.5,
+    maxScale: 3.0,
     enablePan: true,
     enableZoom: true,
   },
@@ -47,8 +47,32 @@ export const useViewportStore = create<ViewportStore>()(
             if (!s.constraints.enableZoom) return;
             const { minScale, maxScale } = s.constraints;
             s.viewport.scale = Math.max(minScale, Math.min(scale, maxScale));
+            s.viewport.devicePixelRatio = getDpr() * s.viewport.scale;
             s.interactions.isZooming = false;
           }, false, "viewport/setScale"),
+
+        // Multiplicative zoom controls (~5% per step)
+        zoomIn: (): void =>
+          set((s) => {
+            if (!s.constraints.enableZoom) return;
+            const factor = 1.03;
+            const next = s.viewport.scale * factor;
+            const { minScale, maxScale } = s.constraints;
+            s.viewport.scale = Math.max(minScale, Math.min(next, maxScale));
+            s.viewport.devicePixelRatio = getDpr() * s.viewport.scale;
+            s.interactions.isZooming = false;
+          }, false, "viewport/zoomIn"),
+
+        zoomOut: (): void =>
+          set((s) => {
+            if (!s.constraints.enableZoom) return;
+            const factor = 1.03;
+            const next = s.viewport.scale / factor;
+            const { minScale, maxScale } = s.constraints;
+            s.viewport.scale = Math.max(minScale, Math.min(next, maxScale));
+            s.viewport.devicePixelRatio = getDpr() * s.viewport.scale;
+            s.interactions.isZooming = false;
+          }, false, "viewport/zoomOut"),
 
         pan: (dx: number, dy: number): void =>
           set((s) => {
@@ -73,6 +97,7 @@ export const useViewportStore = create<ViewportStore>()(
           set((s) => {
             const { minScale, maxScale } = s.constraints;
             s.viewport.scale = Math.max(minScale, Math.min(v.scale, maxScale));
+            s.viewport.devicePixelRatio = getDpr() * s.viewport.scale;
             s.viewport.scrollX = v.scrollX;
             s.viewport.scrollY = v.scrollY;
             s.viewport.offsetX = v.scrollX;
@@ -86,6 +111,7 @@ export const useViewportStore = create<ViewportStore>()(
             s.viewport.offsetY = 0;
             s.viewport.scrollX = 0;
             s.viewport.scrollY = 0;
+            s.viewport.devicePixelRatio = getDpr();
             // sizes remain; DPR recalculated lazily
           }, false, "viewport/resetViewport"),
 
