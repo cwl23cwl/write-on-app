@@ -127,11 +127,16 @@ The **control strip** (AppHeader, TopToolbar, OptionsToolbar, PageIndicator) is 
 
 ```tsx
 <AppRoot>
-  <div className="control-strip">{/* AppHeader, TopToolbar, OptionsToolbar, PageIndicator */}</div>
-  <WorkspaceRoot>
-    <WorkspaceViewport>
-      <WorkspaceScaler>
-        <CanvasMount />
+  <AppHeader /> // sticky; top: 0; z: 50
+  <TopToolbar /> // sticky; below header; z: 40
+  <OptionsToolbar /> // sticky; below top toolbar; z: 40
+  <PageIndicator /> // sticky; right-aligned; z: 40
+  <WorkspaceRoot> // page scroll lives here
+    <WorkspaceViewport> // virtual size & padding; NO transforms
+      <WorkspaceScaler> // transform: scale(S); houses the page
+        <CanvasMount>
+          <Page /> // fixed-size 1200x2200
+        </CanvasMount>
       </WorkspaceScaler>
     </WorkspaceViewport>
   </WorkspaceRoot>
@@ -172,6 +177,15 @@ export const Z = {
   --z-workspace: 0;
 }
 
+Page Element
+
+A Page is the fixed logical surface where drawing/editing happens.
+
+Size: always 1200 × 2200 CSS pixels.
+
+The Page must completely fill its CanvasMount and never resize or shrink.
+
+Zoom/scroll affects only the WorkspaceScaler; the Page itself remains static.
 Runtime Guard
 
 Detect regressions in development:

@@ -106,7 +106,17 @@ body {
   justify-content: center;
 }
 
+/* Scaled-size spacer and transform layer */
+.workspace-scaler {
+  position: relative;
+  /* Spacer sized to scaled page so scrollbars reflect visual size */
+  width: calc(var(--page-width, 1200px) * var(--workspace-zoom, 1));
+  height: calc(var(--page-height, 2200px) * var(--workspace-zoom, 1));
+}
+
 #workspace-scale-layer {
+  position: absolute;
+  inset: 0;
   transform: scale(var(--workspace-zoom, 1));
   transform-origin: top left;
   will-change: transform;
@@ -141,15 +151,9 @@ body {
   max-height: none !important;
 }
 
-/* Improve crispness: neutralize parent scale on Excalidraw subtree and let it pick up layout-scale via CSS zoom
-   - transform: scale(1/zoom) cancels the parent #workspace-scale-layer transform
-   - zoom: var(--workspace-zoom) inflates layout metrics so Excalidraw sizes its backing store accordingly
-   Note: CSS zoom is non-standard and not supported in Firefox. For Firefox, crispness may still rely on engine heuristics. */
-#excal-host {
-  transform: scale(calc(1 / var(--workspace-zoom, 1)));
-  transform-origin: top left;
-  zoom: var(--workspace-zoom, 1);
-}
+/* Phase 2: allow the scale layer to visually scale the entire page;
+   do not apply counter-transforms on the canvas host so its logical
+   size remains 1200x2200 CSS pixels regardless of zoom. */
 
 /* Neutralize mobile/layout caps if applied by Excalidraw */
 .excalidraw.excalidraw--mobile,
@@ -184,7 +188,7 @@ body {
   --gap-header-top: 8px;
   --gap-top-opts: 8px;
   --gap-indicator-above: 8px;
-  --gap-indicator-below: 12px;
+  --gap-indicator-below: 12px; /* keep strip height stable */
   --h-indicator: 40px;
   /* computed stacks */
   --h-chrome: calc(var(--h-header) + var(--h-top) + var(--h-opts));
@@ -198,4 +202,9 @@ body {
   );
   /* Alias: control strip total height used by scroll container padding */
   --control-strip-height: var(--h-stack);
+}
+
+/* Add unscaled breathing room between chrome and content */
+.workspace-scaler {
+  margin-top: var(--content-top-gap, 7px);
 }
