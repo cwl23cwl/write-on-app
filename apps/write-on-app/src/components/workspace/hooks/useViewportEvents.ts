@@ -29,27 +29,14 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
         // App owns zoom: prevent browser zoom and normalize deltas
         e.preventDefault();
         const dy = normalizedDeltaY(e);
-        const factor = Math.exp(-dy / 400);
+        // Smooth multiplicative factor (~gradual zoom)
+        const factor = Math.exp(-dy * 0.0015);
         const min = constraints.minScale;
         const max = constraints.maxScale;
-        const preScale = currentScale;
-        // Use actual DOM scroll offsets from the viewport for correct anchoring
-        const viewport = el as HTMLElement;
-        const rect = viewport.getBoundingClientRect();
-        const domScrollX = viewport.scrollLeft;
-        const domScrollY = viewport.scrollTop;
-        const focus = {
-          x: (e.clientX - rect.left) / (preScale || 1) + domScrollX,
-          y: (e.clientY - rect.top) / (preScale || 1) + domScrollY,
-        };
+        const preScale = currentScale || 1;
         const newScale = Math.max(min, Math.min(preScale * factor, max));
-        const k = newScale / preScale;
-        const newScrollX = focus.x - (focus.x - domScrollX) * k;
-        const newScrollY = focus.y - (focus.y - domScrollY) * k;
-        // Update store and DOM scroll to keep anchor under cursor
-        setViewState({ scale: newScale, scrollX: newScrollX, scrollY: newScrollY });
-        viewport.scrollLeft = Math.max(0, Math.round(newScrollX));
-        viewport.scrollTop = Math.max(0, Math.round(newScrollY));
+        // Do not anchor to cursor; we re-center on scale change globally
+        setViewState({ scale: newScale, scrollX: 0, scrollY: 0 });
         return;
       }
       // Let normal page scroll happen when not zooming
@@ -105,5 +92,5 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
       el.removeEventListener("pointerup", onPointerUp as EventListener);
       el.removeEventListener("pointercancel", onPointerUp as EventListener);
     };
-  }, [containerRef, setScale, pan, constraints, currentScale, activeTool, scrollX, scrollY]);
+  }, [containerRef, setScale, pan, constraints, currentScale, activeTool, scrollX, scrollY, setViewState]);
 }
