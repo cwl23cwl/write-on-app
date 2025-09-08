@@ -78,6 +78,15 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
+/* Toolbars: fixed/sticky container handles pinning; ensure no transforms apply */
+.app-header,
+.top-toolbar,
+.options-toolbar {
+  transform: none !important;
+  will-change: auto;
+  contain: layout paint;
+}
+
 /* Top offset is applied in WorkspaceViewport using --h-stack;
    avoid duplicating here to prevent double spacing. */
 .workspace-root {
@@ -86,12 +95,81 @@ body {
   height: 100dvh;
   /* Offset content by the fixed control strip height */
   padding-top: var(--control-strip-height, 160px);
+  overflow-y: auto;
 }
 
+/* Viewport owns scrolling; inner scale layer owns zoom */
+#workspace-viewport {
+  overflow: auto;
+  /* Center the scaled paper horizontally */
+  display: flex;
+  justify-content: center;
+}
+
+/* Scaled-size spacer and transform layer */
 .workspace-scaler {
-  transform-origin: 0 0;
+  position: relative;
+  /* Spacer sized to scaled page so scrollbars reflect visual size */
+  width: calc(var(--page-width, 1200px) * var(--workspace-zoom, 1));
+  height: calc(var(--page-height, 2200px) * var(--workspace-zoom, 1));
+}
+
+#workspace-scale-layer {
+  position: absolute;
+  inset: 0;
+  transform: scale(var(--workspace-zoom, 1));
+  transform-origin: top left;
   will-change: transform;
 }
+
+.page-wrapper {
+  width: 1200px;   /* basePageSize.w */
+  height: 2200px;  /* basePageSize.h */
+  position: relative;
+  box-sizing: content-box; /* ensure padding doesn't shrink the paper */
+}
+
+/* Ensure indicator and strip pin to top and never transform */
+.page-indicator,
+.control-strip {
+  position: sticky; /* control-strip is fixed via its rule; this is safe */
+  top: 0;
+  z-index: var(--z-control-strip, 1000);
+  transform: none !important;
+}
+
+/* Ensure Excalidraw (or any engine) fills the page wrapper */
+#excal-host,
+#excal-host > .excalidraw,
+#excal-host > .excalidraw .excalidraw__container,
+.excalidraw-container {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
+/* Phase 2: allow the scale layer to visually scale the entire page;
+   do not apply counter-transforms on the canvas host so its logical
+   size remains 1200x2200 CSS pixels regardless of zoom. */
+
+/* Neutralize mobile/layout caps if applied by Excalidraw */
+.excalidraw.excalidraw--mobile,
+.excalidraw .layer-ui__wrapper,
+.excalidraw .excalidraw__canvas {
+  max-width: none !important;
+  max-height: none !important;
+}
+
+/* Ensure mobile variant fills fully as well */
+.excalidraw.excalidraw--mobile {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Avoid forcing transform/zoom on the engine canvas; let the engine manage its own internals */
 
 /* Debug layout outlines (temporary aid) */
 .debug-layout .workspace-viewport {
@@ -110,7 +188,7 @@ body {
   --gap-header-top: 8px;
   --gap-top-opts: 8px;
   --gap-indicator-above: 8px;
-  --gap-indicator-below: 12px;
+  --gap-indicator-below: 12px; /* keep strip height stable */
   --h-indicator: 40px;
   /* computed stacks */
   --h-chrome: calc(var(--h-header) + var(--h-top) + var(--h-opts));
@@ -124,4 +202,9 @@ body {
   );
   /* Alias: control strip total height used by scroll container padding */
   --control-strip-height: var(--h-stack);
+}
+
+/* Add unscaled breathing room between chrome and content */
+.workspace-scaler {
+  margin-top: var(--content-top-gap, 7px);
 }

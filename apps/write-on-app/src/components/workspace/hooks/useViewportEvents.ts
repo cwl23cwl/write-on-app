@@ -8,6 +8,7 @@ import { normalizedDeltaY } from "@/components/workspace/utils/events";
 export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement | null>): void {
   const setScale = useViewportStore((s) => s.setScale);
   const setViewState = useViewportStore((s) => s.setViewState);
+  const setScroll = useViewportStore((s) => s.setScroll);
   const pan = useViewportStore((s) => s.pan);
   const constraints = useViewportStore((s) => s.constraints);
 
@@ -28,17 +29,14 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
         // App owns zoom: prevent browser zoom and normalize deltas
         e.preventDefault();
         const dy = normalizedDeltaY(e);
-        const factor = Math.exp(-dy / 400);
+        // Smooth multiplicative factor (~gradual zoom)
+        const factor = Math.exp(-dy * 0.0015);
         const min = constraints.minScale;
         const max = constraints.maxScale;
-        const preScale = currentScale;
-        const host = el as HTMLElement;
-        const focus = getWorldPoint(e, host, { scale: preScale, scrollX, scrollY });
+        const preScale = currentScale || 1;
         const newScale = Math.max(min, Math.min(preScale * factor, max));
-        const k = newScale / preScale;
-        const newScrollX = focus.x - (focus.x - scrollX) * k;
-        const newScrollY = focus.y - (focus.y - scrollY) * k;
-        setViewState({ scale: newScale, scrollX: newScrollX, scrollY: newScrollY });
+        // Do not anchor to cursor; we re-center on scale change globally
+        setViewState({ scale: newScale, scrollX: 0, scrollY: 0 });
         return;
       }
       // Let normal page scroll happen when not zooming
@@ -73,8 +71,14 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
       lastWorld.current = null;
     };
 
+    // Keep store in sync with DOM scroll (for focus math)
+    const onScroll = (): void => {
+      setScroll(el.scrollLeft, el.scrollTop);
+    };
+
     // Capture phase so we can intercept before inner libraries
     el.addEventListener("wheel", onWheel as EventListener, { passive: false, capture: true });
+    el.addEventListener("scroll", onScroll as EventListener, { passive: true });
     el.addEventListener("pointerdown", onPointerDown as EventListener, { passive: true });
     el.addEventListener("pointermove", onPointerMove as EventListener, { passive: true });
     el.addEventListener("pointerup", onPointerUp as EventListener, { passive: true });
@@ -82,10 +86,11 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
 
     return () => {
       el.removeEventListener("wheel", onWheel as EventListener, { capture: true } as EventListenerOptions);
+      el.removeEventListener("scroll", onScroll as EventListener);
       el.removeEventListener("pointerdown", onPointerDown as EventListener);
       el.removeEventListener("pointermove", onPointerMove as EventListener);
       el.removeEventListener("pointerup", onPointerUp as EventListener);
       el.removeEventListener("pointercancel", onPointerUp as EventListener);
     };
-  }, [containerRef, setScale, pan, constraints, currentScale, activeTool, scrollX, scrollY]);
+  }, [containerRef, setScale, pan, constraints, currentScale, activeTool, scrollX, scrollY, setViewState]);
 }

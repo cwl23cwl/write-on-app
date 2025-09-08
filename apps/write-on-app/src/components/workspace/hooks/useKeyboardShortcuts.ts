@@ -4,10 +4,10 @@ import { useEffect } from "react";
 import { useViewportStore } from "@/state";
 
 export function useKeyboardShortcuts(): void {
-  const setScale = useViewportStore((s) => s.setScale);
+  const zoomIn = useViewportStore((s) => s.zoomIn);
+  const zoomOut = useViewportStore((s) => s.zoomOut);
   const fitToScreen = useViewportStore((s) => s.fitToScreen);
   const resetViewport = useViewportStore((s) => s.resetViewport);
-  const current = useViewportStore((s) => s.viewport.scale);
 
   useEffect((): (() => void) => {
     const onKey = (e: KeyboardEvent): void => {
@@ -17,16 +17,16 @@ export function useKeyboardShortcuts(): void {
         resetViewport();
         return;
       }
-      // ctrl/cmd + +/- => zoom
+      // ctrl/cmd + +/- => zoom (multiplicative ~5% steps)
       if (e.ctrlKey || e.metaKey) {
         if (e.key === "=" || e.key === "+") {
           e.preventDefault();
-          setScale(current * 1.1);
+          zoomIn();
           return;
         }
         if (e.key === "-" || e.key === "_") {
           e.preventDefault();
-          setScale(current / 1.1);
+          zoomOut();
           return;
         }
       }
@@ -38,5 +38,5 @@ export function useKeyboardShortcuts(): void {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [current, setScale, fitToScreen, resetViewport]);
+  }, [zoomIn, zoomOut, fitToScreen, resetViewport]);
 }

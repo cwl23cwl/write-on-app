@@ -27,7 +27,7 @@ export function PageIndicator(): JSX.Element {
       aria-label={`Page ${current} of ${total}`}
       aria-expanded={dropdownOpen || undefined}
       onKeyDown={onKeyDown}
-      className="chrome-page-indicator inline-flex items-center justify-center gap-2 font-medium text-sm w-auto min-w-[120px] max-w-[70vw] rounded-full border select-none"
+      className="chrome-page-indicator page-indicator inline-flex items-center justify-center gap-2 font-medium text-sm w-auto min-w-[120px] max-w-[70vw] rounded-full border select-none"
       style={{
         minHeight: '36px',
         paddingInline: '16px',
