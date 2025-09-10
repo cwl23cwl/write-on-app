@@ -9,6 +9,7 @@ import type { ExcalidrawAPI, ExcalidrawComponentProps } from "@/components/works
 import { useCanvasStore, useViewportStore } from "@/state";
 import type { ToolType } from "@/types/state";
 import { normalizedDeltaY } from "@/components/workspace/utils/events";
+import { useCanvasResolution } from "@/components/workspace/hooks/useCanvasResolution";
 
 type Props = {
   initialData: ExcalidrawComponentProps["initialData"] | null;
@@ -27,13 +28,21 @@ export function ExcalidrawAdapter({ initialData, readOnly, onReady, className, t
   // Track API readiness via ref storage; no external state required
   const apiRef = useRef<ExcalidrawAPI | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  
+  // Set container reference in store for resolution management
+  const setContainerRef = useCanvasStore((s) => s.setContainerRef);
+  
+  useEffect(() => {
+    if (containerRef.current && setContainerRef) {
+      setContainerRef(containerRef.current);
+    }
+  }, [setContainerRef]);
 
   const setExcalidrawAPI = useCanvasStore((s) => s.setExcalidrawAPI);
   const activeTool = useCanvasStore((s) => s.tools.activeTool);
   const scale = useViewportStore((s) => s.viewport.scale);
   // setScale handled inside useExcalidrawEvents
   const requestRedraw = useCanvasStore((s) => s.requestRedraw);
-  const updateResolution = useCanvasStore((s) => s.updateResolution);
 
   // Bridge: when API is set, notify consumers and store
   const handleApiReady = useCallback((api: ExcalidrawAPI | null): void => {
@@ -51,19 +60,21 @@ export function ExcalidrawAdapter({ initialData, readOnly, onReady, className, t
 
   // Phase 2: do not attach wheel/touch interception; allow page scroll to bubble.
 
+  // Phase 3 Step 3: Enhanced DPR-aware canvas resolution management
+  useCanvasResolution();
+
   // Full lifecycle: mount, resolution updates, resize observer, unmount
   useExcalidrawLifecycle({ containerRef, apiRef, initialData, onReady });
 
-  // Keep Excalidraw at zoom 1.0 visually; update canvas resolution on scale changes
+  // Keep Excalidraw at zoom 1.0 visually; resolution is handled by useCanvasResolution
   useEffect((): void => {
     try {
       // Some forks expose setZoom; if present, force 1
       const anyApi = apiRef.current as unknown as { setZoom?: (z: number) => void } | null;
       if (anyApi && typeof anyApi.setZoom === "function") anyApi.setZoom(1);
     } catch {}
-    updateResolution();
     requestRedraw();
-  }, [scale, updateResolution, requestRedraw]);
+  }, [scale, requestRedraw]);
 
   // Optional guard: if engine attempts to change zoom, force back to 1
   useEffect(() => {

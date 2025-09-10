@@ -23,7 +23,7 @@ const initialState: Pick<ViewportStore, "viewport" | "interactions" | "constrain
     // Phase 3: viewport and page sizing
     viewportSize: { w: 0, h: 0 },
     pageSize: { w: 1200, h: 2200 },
-    virtualSize: { w: 1500, h: 2550 }, // page + padding (150+150, 200+150)
+    virtualSize: { w: 1280, h: 2280 }, // page + padding (40+40, 40+40)
     fitMode: 'fit-width' as const,
     step: 0.1,
   },
@@ -159,10 +159,10 @@ export const useViewportStore = create<ViewportStore>()(
         setPageSize: (w: number, h: number): void =>
           set((s) => {
             s.viewport.pageSize = { w: Math.max(0, Math.round(w)), h: Math.max(0, Math.round(h)) };
-            // Update virtual size: page + padding (150px each side, 200px top, 150px bottom)
+            // Update virtual size: page + padding (40px each side, 40px top, 40px bottom)
             s.viewport.virtualSize = { 
-              w: s.viewport.pageSize.w + 300, // 150 + 150
-              h: s.viewport.pageSize.h + 350  // 200 + 150
+              w: s.viewport.pageSize.w + 80,  // 40 + 40
+              h: s.viewport.pageSize.h + 80   // 40 + 40
             };
           }, false, "viewport/setPageSize"),
 
@@ -176,8 +176,8 @@ export const useViewportStore = create<ViewportStore>()(
             const { viewportSize, pageSize } = s.viewport;
             if (viewportSize.w <= 0 || pageSize.w <= 0) return;
             
-            // Calculate fit scale accounting for horizontal padding (300px total)
-            const paddingX = 300; // 150px each side
+            // Calculate fit scale accounting for horizontal padding (80px total)
+            const paddingX = 80; // 40px each side
             const availableWidth = viewportSize.w - paddingX;
             const fitScale = availableWidth / pageSize.w;
             
