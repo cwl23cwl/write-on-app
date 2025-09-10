@@ -20,6 +20,12 @@ const initialState: Pick<ViewportStore, "viewport" | "interactions" | "constrain
     canvasWidth: 0,
     canvasHeight: 0,
     devicePixelRatio: getDpr(),
+    // Phase 3: viewport and page sizing
+    viewportSize: { w: 0, h: 0 },
+    pageSize: { w: 1200, h: 2200 },
+    virtualSize: { w: 1500, h: 2550 }, // page + padding (150+150, 200+150)
+    fitMode: 'fit-width' as const,
+    step: 0.1,
   },
   interactions: {
     isPanning: false,
@@ -143,6 +149,60 @@ export const useViewportStore = create<ViewportStore>()(
             s.viewport.canvasWidth = Math.max(0, Math.round(width));
             s.viewport.canvasHeight = Math.max(0, Math.round(height));
           }, false, "viewport/updateCanvasSize"),
+
+        // Phase 3 actions
+        setViewportSize: (w: number, h: number): void =>
+          set((s) => {
+            s.viewport.viewportSize = { w: Math.max(0, Math.round(w)), h: Math.max(0, Math.round(h)) };
+          }, false, "viewport/setViewportSize"),
+
+        setPageSize: (w: number, h: number): void =>
+          set((s) => {
+            s.viewport.pageSize = { w: Math.max(0, Math.round(w)), h: Math.max(0, Math.round(h)) };
+            // Update virtual size: page + padding (150px each side, 200px top, 150px bottom)
+            s.viewport.virtualSize = { 
+              w: s.viewport.pageSize.w + 300, // 150 + 150
+              h: s.viewport.pageSize.h + 350  // 200 + 150
+            };
+          }, false, "viewport/setPageSize"),
+
+        setFitMode: (mode: 'fit-width' | 'free'): void =>
+          set((s) => {
+            s.viewport.fitMode = mode;
+          }, false, "viewport/setFitMode"),
+
+        fitWidth: (): void =>
+          set((s) => {
+            const { viewportSize, pageSize } = s.viewport;
+            if (viewportSize.w <= 0 || pageSize.w <= 0) return;
+            
+            // Calculate fit scale accounting for horizontal padding (300px total)
+            const paddingX = 300; // 150px each side
+            const availableWidth = viewportSize.w - paddingX;
+            const fitScale = availableWidth / pageSize.w;
+            
+            const { minScale, maxScale } = s.constraints;
+            const clampedScale = Math.max(minScale, Math.min(fitScale, maxScale));
+            
+            s.viewport.scale = clampedScale;
+            s.viewport.devicePixelRatio = getDpr() * clampedScale;
+            s.viewport.fitMode = 'fit-width';
+          }, false, "viewport/fitWidth"),
+
+        getScaledPageW: (): number => {
+          const state = useViewportStore.getState();
+          return state.viewport.pageSize.w * state.viewport.scale;
+        },
+
+        getScaledPageH: (): number => {
+          const state = useViewportStore.getState();
+          return state.viewport.pageSize.h * state.viewport.scale;
+        },
+
+        getZoomPercent: (): number => {
+          const state = useViewportStore.getState();
+          return Math.round(state.viewport.scale * 100);
+        },
       })),
       {
         name: "writeon-viewport",

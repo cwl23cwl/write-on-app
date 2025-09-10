@@ -7,10 +7,10 @@ export function CanvasMount({ className }: Props): JSX.Element {
   return (
     <div className={`workspace-canvas-mount ${className ?? ""}`.trim()} style={{ width: '100%', height: '100%' }}>
       <div
-        className="phase2-page mx-auto"
+        className="phase2-page"
         style={{
-          width: 1200,
-          height: 2200,
+          width: 'var(--page-width)',
+          height: 'var(--page-height)',
           background: '#ffffff',
           boxShadow: '0 0 6px rgba(0,0,0,0.2)',
         }}
