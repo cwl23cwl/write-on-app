@@ -6,6 +6,17 @@
   /* Z-index discipline tokens */
   --z-control-strip: 1000;
   --z-workspace: 0;
+  
+  /* Page size and padding constants */
+  --page-width: 1200px;
+  --page-height: 2200px;
+  --page-padding-x: 40px;
+  --page-padding-top: 40px;
+  --page-padding-bottom: 40px;
+  
+  /* Virtual size calculation: page + padding */
+  --virtual-width: calc(var(--page-width) + 2 * var(--page-padding-x));
+  --virtual-height: calc(var(--page-height) + var(--page-padding-top) + var(--page-padding-bottom));
 }
 
 @theme inline {
@@ -94,7 +105,7 @@ body {
   height: 100vh;
   height: 100dvh;
   /* Offset content by the fixed control strip height */
-  padding-top: var(--control-strip-height, 160px);
+  padding-top: var(--control-strip-height, 200px); /* Increased default fallback */
   overflow-y: auto;
 }
 
@@ -109,9 +120,9 @@ body {
 /* Scaled-size spacer and transform layer */
 .workspace-scaler {
   position: relative;
-  /* Spacer sized to scaled page so scrollbars reflect visual size */
-  width: calc(var(--page-width, 1200px) * var(--workspace-zoom, 1));
-  height: calc(var(--page-height, 2200px) * var(--workspace-zoom, 1));
+  /* Spacer sized to scaled virtual size (page + padding) so scrollbars reflect visual size */
+  width: calc(var(--virtual-width, 1500px) * var(--workspace-zoom, 1));
+  height: calc(var(--virtual-height, 2550px) * var(--workspace-zoom, 1));
 }
 
 #workspace-scale-layer {
@@ -123,9 +134,12 @@ body {
 }
 
 .page-wrapper {
-  width: 1200px;   /* basePageSize.w */
-  height: 2200px;  /* basePageSize.h */
-  position: relative;
+  width: var(--page-width);   /* basePageSize.w */
+  height: var(--page-height);  /* basePageSize.h */
+  position: absolute;
+  /* Position page at padding offset to center it within virtual space */
+  left: var(--page-padding-x);
+  top: var(--page-padding-top);
   box-sizing: content-box; /* ensure padding doesn't shrink the paper */
 }
 
@@ -188,7 +202,7 @@ body {
   --gap-header-top: 8px;
   --gap-top-opts: 8px;
   --gap-indicator-above: 8px;
-  --gap-indicator-below: 12px; /* keep strip height stable */
+  --gap-indicator-below: 0; /* no gap below PageIndicator */
   --h-indicator: 40px;
   /* computed stacks */
   --h-chrome: calc(var(--h-header) + var(--h-top) + var(--h-opts));
@@ -204,7 +218,7 @@ body {
   --control-strip-height: var(--h-stack);
 }
 
-/* Add unscaled breathing room between chrome and content */
+/* Workspace scaler sits directly below control strip with no extra gap */
 .workspace-scaler {
-  margin-top: var(--content-top-gap, 7px);
+  margin-top: 0;
 }

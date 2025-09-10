@@ -9,11 +9,18 @@ import { ChromeLayout } from "@/components/chrome/ChromeLayout";
 import { WorkspaceErrorBoundary } from "@/components/workspace/WorkspaceErrorBoundary";
 import { useKeyboardShortcuts } from "@/components/workspace/hooks/useKeyboardShortcuts";
 import { useContainerSizeObserver } from "@/components/workspace/hooks/useContainerSizeObserver";
+import { useViewportStore } from "@/state";
 
 export function WorkspaceRoot(): JSX.Element {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const setPageSize = useViewportStore((s) => s.setPageSize);
   useKeyboardShortcuts();
   useContainerSizeObserver(rootRef);
+
+  // Phase 3: Register page size with viewport store on mount
+  useEffect(() => {
+    setPageSize(1200, 2200);
+  }, [setPageSize]);
 
   // Guardrail: ensure the fixed control strip never ends up inside the scaler
   useEffect(() => {
@@ -65,9 +72,8 @@ export function WorkspaceRoot(): JSX.Element {
             ['--gap-header-top' as any]: '8px',
             ['--gap-top-opts' as any]: '8px',
             ['--gap-indicator-above' as any]: '8px',
-            ['--gap-indicator-below' as any]: '12px',
-            // Additional unscaled top gap between chrome and content
-            ['--content-top-gap' as any]: '24px',
+            ['--gap-indicator-below' as any]: '0',
+            // Workspace content sits directly below control strip
             // Composite stack heights (CSS calc on the same node as backdrop)
             ['--h-chrome' as any]: 'calc(var(--h-header) + var(--h-top) + var(--h-opts))',
             ['--h-stack' as any]: 'calc(var(--h-chrome) + var(--gap-header-top) + var(--gap-top-opts) + var(--gap-indicator-above) + var(--h-indicator) + var(--gap-indicator-below))',

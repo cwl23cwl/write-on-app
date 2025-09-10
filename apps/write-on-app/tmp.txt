@@ -1,0 +1,299 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { useViewportStore, useCanvasStore } from "@/state";
+import { getWorldPoint } from "@/components/workspace/utils/coords";
+import { normalizedDeltaY } from "@/components/workspace/utils/events";
+
+export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement | null>): void {
+  const setScale = useViewportStore((s) => s.setScale);
+  const setViewState = useViewportStore((s) => s.setViewState);
+  const setScroll = useViewportStore((s) => s.setScroll);
+  const pan = useViewportStore((s) => s.pan);
+  const constraints = useViewportStore((s) => s.constraints);
+  const fitMode = useViewportStore((s) => s.viewport.fitMode ?? 'free');
+  const setFitMode = useViewportStore((s) => s.setFitMode);
+  const pageW = useViewportStore((s) => s.viewport.pageSize?.w ?? s.viewport.canvasWidth ?? 1200);
+
+  const lastWorld = useRef<{ x: number; y: number } | null>(null);
+  const panning = useRef(false);
+  const lastClient = useRef<{ x: number; y: number } | null>(null);
+  const currentScale = useViewportStore((s) => s.viewport.scale);
+  const scrollX = useViewportStore((s) => s.viewport.scrollX);
+  const scrollY = useViewportStore((s) => s.viewport.scrollY);
+  const activeTool = useCanvasStore((s) => s.tools.activeTool);
+  const gestureStartScaleRef = useRef<number>(1);
+  const gestureAnchorClient = useRef<{ x: number; y: number } | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const pendingRef = useRef<{ scale: number; sx: number; sy: number } | null>(null);
+  // Some environments fail to set ctrl/meta flags reliably on WheelEvent (e.g., OS-level gesture mapping).
+  // Track current key state as a fallback to detect zoom intent.
+  const ctrlPressedRef = useRef(false);
+  const metaPressedRef = useRef(false);
+
+  useEffect((): (() => void) | void => {
+    const el = containerRef.current;
+    if (!el) return;
+    const scalerLayer = (el as HTMLElement).querySelector('#workspace-scale-layer') as HTMLElement | null;
+    const isDebug = (): boolean => {
+      try { return (typeof localStorage !== 'undefined') && localStorage.getItem('writeon_debug_wheel') === '1'; } catch { return false; }
+    };
+    const forceAlwaysWheel = (): boolean => {
+      try { return (typeof localStorage !== 'undefined') && localStorage.getItem('writeon_force_always_wheel') === '1'; } catch { return false; }
+    };
+
+    // Keep lightweight global key state so zoom intent detection does not rely solely on event flags
+    const onKeyDown = (e: KeyboardEvent): void => {
+      if (e.key === 'Control') ctrlPressedRef.current = true;
+      if (e.key === 'Meta') metaPressedRef.current = true;
+    };
+    const onKeyUp = (e: KeyboardEvent): void => {
+      if (e.key === 'Control') ctrlPressedRef.current = false;
+      if (e.key === 'Meta') metaPressedRef.current = false;
+    };
+    window.addEventListener('keydown', onKeyDown, { passive: true, capture: true });
+    window.addEventListener('keyup', onKeyUp, { passive: true, capture: true });
+
+    const computeFitWidthScale = (): number => {
+      const cs = getComputedStyle(el);
+      const padLeft = parseFloat(cs.paddingLeft || '0') || 0;
+      const padRight = parseFloat(cs.paddingRight || '0') || 0;
+      const viewportW = el.clientWidth;
+      const available = Math.max(0, viewportW - (padLeft + padRight));
+      const basePageW = pageW || 1200;
+      if (basePageW <= 0) return 1;
+      const raw = available / basePageW;
+      const min = constraints.minScale;
+      const max = constraints.maxScale;
+      return Math.max(min, Math.min(raw, max));
+    };
+
+    const onWheel = (e: WheelEvent): void => {
+      const ctrlLike = forceAlwaysWheel() || e.ctrlKey || e.metaKey || ctrlPressedRef.current || metaPressedRef.current;
+      if (!ctrlLike) {
+        // Not a zoom gesture: allow page to scroll naturally
+        if (isDebug()) console.info('[wheel] skip: no ctrl/meta', { ctrl: e.ctrlKey, meta: e.metaKey, dy: e.deltaY, dm: e.deltaMode });
+        return;
+      }
+      // Zoom gesture: prevent browser zoom and compute multiplicative factor
+      e.preventDefault();
+      (e as any).stopImmediatePropagation?.();
+      e.stopPropagation();
+      if (isDebug()) console.info('[wheel] zoom-intent', { ctrl: e.ctrlKey, meta: e.metaKey, dy: e.deltaY, dm: e.deltaMode });
+      const dy = normalizedDeltaY(e);
+      let factor: number;
+      const ady = Math.abs(dy);
+      if (ady >= 80) {
+        const perNotch = 0.10; // ~10% per wheel notch
+        const notches = Math.max(1, Math.round(ady / 100));
+        const dir = dy < 0 ? 1 : -1; // negative -> zoom in
+        factor = Math.pow(1 + perNotch, dir * notches);
+      } else {
+        // smooth trackpad mapping
+        factor = Math.exp(-dy * 0.0015);
+      }
+      const min = constraints.minScale;
+      const max = constraints.maxScale;
+      const preScale = (useViewportStore.getState().viewport.scale || 1);
+      const newScale = Math.max(min, Math.min(preScale * factor, max));
+      if (isDebug()) console.info('[wheel] factor', { factor, preScale, newScale, min, max });
+
+      // Pointer-centered anchor against the viewport scroll container (CSS units)
+      const rect = el.getBoundingClientRect();
+      const clientX = e.clientX - rect.left;
+      const clientY = e.clientY - rect.top;
+      const scrollLeft = el.scrollLeft;
+      const scrollTop = el.scrollTop;
+      const worldX = (clientX + scrollLeft) / (preScale || 1);
+      const worldY = (clientY + scrollTop) / (preScale || 1);
+      const newScrollLeft = worldX * newScale - clientX;
+      const newScrollTop = worldY * newScale - clientY;
+      if (isDebug()) console.info('[wheel] anchor+scroll', { clientX, clientY, scrollLeft, scrollTop, worldX, worldY, newScrollLeft, newScrollTop });
+      if (fitMode === 'fit-width') {
+        const liveFit = computeFitWidthScale();
+        const rel = Math.abs(newScale - liveFit) / (liveFit || 1);
+        if (rel > 0.005) setFitMode?.('free');
+        if (isDebug()) console.info('[wheel] fit-check', { fitMode, liveFit: Number(liveFit.toFixed(4)), rel });
+      }
+      // Coalesce scale + scroll updates; ignore tiny deltas to avoid thrash
+      const rel = Math.abs(newScale - preScale) / (preScale || 1);
+      if (rel < 0.0001) return;
+      pendingRef.current = { scale: newScale, sx: newScrollLeft, sy: newScrollTop };
+      if (rafRef.current == null) {
+        rafRef.current = requestAnimationFrame(() => {
+          const p = pendingRef.current;
+          pendingRef.current = null;
+          rafRef.current = null;
+          if (!p) return;
+          setViewState({ scale: p.scale, scrollX: p.sx, scrollY: p.sy });
+          try {
+            el.scrollLeft = Math.max(0, Math.round(p.sx));
+            el.scrollTop = Math.max(0, Math.round(p.sy));
+          } catch {}
+        });
+      }
+    };
+
+    const onPointerDown = (e: PointerEvent): void => {
+      if (!constraints.enablePan) return;
+      if (activeTool !== 'hand') return;
+      const host = (scalerLayer as HTMLElement) || (el as HTMLElement);
+      const sNow = useViewportStore.getState();
+      const world = getWorldPoint(e, host, { scale: sNow.viewport.scale, scrollX: sNow.viewport.scrollX, scrollY: sNow.viewport.scrollY });
+      const capEl = (e.target as Element) ?? (e.currentTarget as Element);
+      try { capEl.setPointerCapture(e.pointerId); } catch {}
+      panning.current = true;
+      lastWorld.current = world;
+    };
+
+    const onPointerMove = (e: PointerEvent): void => {
+      // Always remember last client position for Safari gesture anchoring
+      lastClient.current = { x: e.clientX, y: e.clientY };
+      if (activeTool !== 'hand') return;
+      if (!panning.current || !lastWorld.current) return;
+      const host = (scalerLayer as HTMLElement) || (el as HTMLElement);
+      const sNow = useViewportStore.getState();
+      const world = getWorldPoint(e, host, { scale: sNow.viewport.scale, scrollX: sNow.viewport.scrollX, scrollY: sNow.viewport.scrollY });
+      const dx = world.x - lastWorld.current.x;
+      const dy = world.y - lastWorld.current.y;
+      pan(dx, dy);
+      lastWorld.current = world;
+    };
+
+    const onPointerUp = (e: PointerEvent): void => {
+      const relEl = (e.target as Element) ?? (e.currentTarget as Element);
+      try { relEl?.releasePointerCapture?.(e.pointerId); } catch {}
+      panning.current = false;
+      lastWorld.current = null;
+    };
+
+    // Keep store in sync with DOM scroll (for focus math)
+    const onScroll = (): void => {
+      setScroll(el.scrollLeft, el.scrollTop);
+    };
+
+    // Safari/iOS gesture events fallback
+    const onGestureStart = (e: Event): void => {
+      const ge = e as any;
+      try { (ge as Event).preventDefault(); } catch {}
+      gestureStartScaleRef.current = (useViewportStore.getState().viewport.scale || 1);
+      // Freeze anchor for the whole gesture sequence
+      if (lastClient.current) {
+        gestureAnchorClient.current = { ...lastClient.current };
+      } else {
+        const r = el.getBoundingClientRect();
+        gestureAnchorClient.current = { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+      }
+    };
+
+    const onGestureChange = (e: Event): void => {
+      const ge = e as any;
+      try { (ge as Event).preventDefault(); } catch {}
+      (ge as any).stopImmediatePropagation?.();
+      const base = gestureStartScaleRef.current || 1;
+      const delta = typeof ge.scale === 'number' ? ge.scale : 1;
+      const min = constraints.minScale;
+      const max = constraints.maxScale;
+      const preScale = (useViewportStore.getState().viewport.scale || base);
+      const newScale = Math.max(min, Math.min(base * delta, max));
+      // Anchor using frozen gesture anchor or fallback to viewport center
+      let clientX: number;
+      let clientY: number;
+      if (gestureAnchorClient.current) {
+        clientX = gestureAnchorClient.current.x;
+        clientY = gestureAnchorClient.current.y;
+      } else {
+        const r = el.getBoundingClientRect();
+        clientX = r.left + r.width / 2;
+        clientY = r.top + r.height / 2;
+      }
+      // Use viewport scroll container for CSS-space anchoring
+      const rect = el.getBoundingClientRect();
+      const clientRX = clientX - rect.left;
+      const clientRY = clientY - rect.top;
+      const scrollLeft = el.scrollLeft;
+      const scrollTop = el.scrollTop;
+      const worldX = (clientRX + scrollLeft) / (preScale || 1);
+      const worldY = (clientRY + scrollTop) / (preScale || 1);
+      const newScrollLeft = worldX * newScale - clientRX;
+      const newScrollTop = worldY * newScale - clientRY;
+      if (fitMode === 'fit-width') {
+        const liveFit = computeFitWidthScale();
+        const rel = Math.abs(newScale - liveFit) / (liveFit || 1);
+        if (rel > 0.005) setFitMode?.('free');
+      }
+      // Coalesce scale + scroll with RAF; ignore tiny deltas
+      const rel2 = Math.abs(newScale - preScale) / (preScale || 1);
+      if (rel2 < 0.0005) return;
+      pendingRef.current = { scale: newScale, sx: newScrollLeft, sy: newScrollTop };
+      if (rafRef.current == null) {
+        rafRef.current = requestAnimationFrame(() => {
+          const p = pendingRef.current;
+          pendingRef.current = null;
+          rafRef.current = null;
+          if (!p) return;
+          setViewState({ scale: p.scale, scrollX: p.sx, scrollY: p.sy });
+          try {
+            el.scrollLeft = Math.max(0, Math.round(p.sx));
+            el.scrollTop = Math.max(0, Math.round(p.sy));
+          } catch {}
+        });
+      }
+    };
+
+    const onGestureEnd = (_e: Event): void => {
+      // cleanup anchor for next gesture
+      gestureAnchorClient.current = null;
+    };
+
+    // Capture at window to ensure we see Ctrl/Cmd+wheel before page zoom; limit to viewport hits
+    const onWindowWheel = (e: WheelEvent): void => {
+      if ((e as any).__writeonHandled) return;
+      const ctrlLike = forceAlwaysWheel() || e.ctrlKey || e.metaKey || ctrlPressedRef.current || metaPressedRef.current;
+      if (!ctrlLike) return; // let normal scroll flow
+      // Use geometry hit-test instead of DOM containment to handle portals/shadow DOM
+      const rect = el.getBoundingClientRect();
+      if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) return;
+      // Preempt Chrome page zoom as early as possible
+      try { e.preventDefault(); } catch {}
+      (e as any).stopImmediatePropagation?.();
+      e.stopPropagation();
+      if (isDebug()) console.info('[window] preempt page zoom', {
+        ctrl: e.ctrlKey, meta: e.metaKey, dy: e.deltaY, dm: e.deltaMode,
+        x: e.clientX, y: e.clientY, rect: { left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom }
+      });
+      (e as any).__writeonHandled = true;
+      onWheel(e);
+    };
+    window.addEventListener("wheel", onWindowWheel as EventListener, { passive: false, capture: true } as AddEventListenerOptions);
+    document.addEventListener("wheel", onWindowWheel as EventListener, { passive: false, capture: true } as AddEventListenerOptions);
+    // Also attach directly on the viewport element as a belt-and-suspenders path
+    el.addEventListener("wheel", onWheel as EventListener, { passive: false, capture: true } as AddEventListenerOptions);
+    el.addEventListener("scroll", onScroll as EventListener, { passive: true });
+    el.addEventListener("pointerdown", onPointerDown as EventListener, { passive: true });
+    el.addEventListener("pointermove", onPointerMove as EventListener, { passive: true });
+    el.addEventListener("pointerup", onPointerUp as EventListener, { passive: true });
+    el.addEventListener("pointercancel", onPointerUp as EventListener, { passive: true });
+    // Safari-only gesture fallback; safe to register everywhere
+    try { el.addEventListener('gesturestart', onGestureStart as EventListener, { capture: true, passive: false } as AddEventListenerOptions); } catch {}
+    try { el.addEventListener('gesturechange', onGestureChange as EventListener, { capture: true, passive: false } as AddEventListenerOptions); } catch {}
+    try { el.addEventListener('gestureend', onGestureEnd as EventListener, { capture: true, passive: false } as AddEventListenerOptions); } catch {}
+
+    return () => {
+      try { window.removeEventListener("wheel", onWindowWheel as EventListener, { capture: true } as EventListenerOptions); } catch {}
+      try { document.removeEventListener("wheel", onWindowWheel as EventListener, { capture: true } as EventListenerOptions); } catch {}
+      try { el.removeEventListener("wheel", onWheel as EventListener, { capture: true } as EventListenerOptions); } catch {}
+      el.removeEventListener("scroll", onScroll as EventListener);
+      el.removeEventListener("pointerdown", onPointerDown as EventListener);
+      el.removeEventListener("pointermove", onPointerMove as EventListener);
+      el.removeEventListener("pointerup", onPointerUp as EventListener);
+      el.removeEventListener("pointercancel", onPointerUp as EventListener);
+      try { el.removeEventListener('gesturestart', onGestureStart as EventListener, { capture: true } as EventListenerOptions); } catch {}
+      try { el.removeEventListener('gesturechange', onGestureChange as EventListener, { capture: true } as EventListenerOptions); } catch {}
+      try { el.removeEventListener('gestureend', onGestureEnd as EventListener, { capture: true } as EventListenerOptions); } catch {}
+      window.removeEventListener('keydown', onKeyDown as EventListener);
+      window.removeEventListener('keyup', onKeyUp as EventListener);
+      if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
+    };
+  }, [containerRef, setScale, pan, constraints, currentScale, activeTool, scrollX, scrollY, setViewState, fitMode, setFitMode, pageW]);
+}
