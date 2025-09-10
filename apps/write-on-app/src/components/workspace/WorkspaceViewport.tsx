@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useViewportEvents } from "@/components/workspace/hooks/useViewportEvents";
 import { useInitialHorizontalCenter } from "@/components/workspace/hooks/useInitialHorizontalCenter";
+import { useViewportStore } from "@/state";
 
 type Props = {
   className?: string;
@@ -13,8 +14,35 @@ type Props = {
 // It establishes the virtual workspace area and hosts input listeners.
 export function WorkspaceViewport({ className, children }: Props): JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const setViewportSize = useViewportStore((s) => s.setViewportSize);
+  
   useViewportEvents(containerRef);
   useInitialHorizontalCenter(containerRef);
+
+  // Phase 3: Measure viewport size and store it
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const updateSize = () => {
+      const rect = el.getBoundingClientRect();
+      setViewportSize(rect.width, rect.height);
+    };
+
+    // Initial measurement
+    updateSize();
+
+    // Observe size changes
+    const resizeObserver = new ResizeObserver(() => {
+      updateSize();
+    });
+    resizeObserver.observe(el);
+
+    // Cleanup
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [setViewportSize]);
 
   // Guardrail: detect transforms on ancestors and warn
   useEffect(() => {
@@ -38,8 +66,10 @@ export function WorkspaceViewport({ className, children }: Props): JSX.Element {
       id="workspace-viewport"
       className={`workspace-viewport flex-1 ${className ?? ""}`.trim()}
       style={{
-        paddingLeft: 'var(--page-padding)',
-        paddingRight: 'var(--page-padding)',
+        paddingLeft: 'var(--page-padding-x)',
+        paddingRight: 'var(--page-padding-x)',
+        paddingTop: 'var(--page-padding-top)',
+        paddingBottom: 'var(--page-padding-bottom)',
       }}
     >
       {children}

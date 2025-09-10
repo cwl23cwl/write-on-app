@@ -9,11 +9,18 @@ import { ChromeLayout } from "@/components/chrome/ChromeLayout";
 import { WorkspaceErrorBoundary } from "@/components/workspace/WorkspaceErrorBoundary";
 import { useKeyboardShortcuts } from "@/components/workspace/hooks/useKeyboardShortcuts";
 import { useContainerSizeObserver } from "@/components/workspace/hooks/useContainerSizeObserver";
+import { useViewportStore } from "@/state";
 
 export function WorkspaceRoot(): JSX.Element {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const setPageSize = useViewportStore((s) => s.setPageSize);
   useKeyboardShortcuts();
   useContainerSizeObserver(rootRef);
+
+  // Phase 3: Register page size with viewport store on mount
+  useEffect(() => {
+    setPageSize(1200, 2200);
+  }, [setPageSize]);
 
   // Guardrail: ensure the fixed control strip never ends up inside the scaler
   useEffect(() => {
