@@ -42,7 +42,10 @@
       "Read(/C:\\write-on-app\\vendor\\excalidraw\\packages\\common/**)",
       "Read(/C:\\write-on-app\\vendor\\excalidraw\\packages\\utils/**)",
       "Read(/C:\\write-on-app\\vendor\\excalidraw\\packages\\element/**)",
-      "Read(/C:\\write-on-app\\vendor\\excalidraw\\packages\\excalidraw/**)"
+      "Read(/C:\\write-on-app\\vendor\\excalidraw\\packages\\excalidraw/**)",
+      "Bash(find:*)",
+      "Bash(pnpm dev:*)",
+      "Read(//c/Users/charl/Pictures/Screenshots/**)"
     ],
     "deny": [],
     "ask": []
