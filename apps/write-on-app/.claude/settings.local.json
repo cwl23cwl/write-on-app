@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/C:\\write-on-app\\apps\\write-on-app/**)",
+      "Read(/C:\\write-on-app\\apps\\write-on-app\\src\\components\\workspace\\hooks/**)",
+      "Read(/C:\\write-on-app\\apps\\write-on-app\\src\\state/**)",
+      "Read(/C:\\write-on-app\\apps\\write-on-app\\src\\types/**)",
+      "Read(/C:\\write-on-app\\apps\\write-on-app\\src\\components\\workspace/**)",
+      "Read(/C:\\write-on-app\\apps\\write-on-app\\src\\components\\workspace/**)",
+      "Read(/C:\\write-on-app\\apps\\write-on-app\\src\\app/**)",
+      "Read(/C:\\write-on-app\\apps\\write-on-app\\src\\components\\workspace/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

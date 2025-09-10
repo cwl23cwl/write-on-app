@@ -12,6 +12,12 @@ export interface ViewportSlice {
     canvasWidth: number;
     canvasHeight: number;
     devicePixelRatio: number;
+    // Phase 3: viewport and page sizing
+    viewportSize: { w: number; h: number };
+    pageSize: { w: number; h: number };
+    virtualSize: { w: number; h: number };
+    fitMode: 'fit-width' | 'free';
+    step: number;
   };
 }
 
@@ -41,6 +47,14 @@ export interface ViewportActions {
   fitToScreen: () => void;
   updateContainerSize: (width: number, height: number) => void;
   updateCanvasSize: (width: number, height: number) => void;
+  // Phase 3 actions
+  setViewportSize: (w: number, h: number) => void;
+  setPageSize: (w: number, h: number) => void;
+  setFitMode: (mode: 'fit-width' | 'free') => void;
+  fitWidth: () => void;
+  getScaledPageW: () => number;
+  getScaledPageH: () => number;
+  getZoomPercent: () => number;
 }
 
 export type ViewportStore = ViewportSlice & InteractionSlice & ConstraintSlice & ViewportActions;
@@ -96,6 +110,15 @@ export interface CanvasActions {
   requestRedraw: () => void;
   setLastError: (error: Error | null) => void;
   setScene: (scene: { elements: unknown[]; appState: Record<string, unknown>; files?: Record<string, unknown> }) => void;
+  setCanvasResolution?: (resolution: { 
+    logicalWidth: number; 
+    logicalHeight: number; 
+    physicalWidth: number; 
+    physicalHeight: number; 
+    effectiveDPR: number;
+    needsRedraw: boolean;
+  }) => void;
+  setContainerRef?: (element: HTMLElement) => void;
 }
 
 export type CanvasStore = CanvasSlice & CanvasActions;

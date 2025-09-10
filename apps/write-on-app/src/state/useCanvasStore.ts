@@ -44,6 +44,8 @@ const initialCanvasState: CanvasStore = {
   setActiveTool: () => {},
   requestRedraw: () => {},
   setLastError: () => {},
+  setCanvasResolution: () => {},
+  setContainerRef: () => {},
 };
 
 const devtoolsEnabled = typeof window !== "undefined" && !!(window as any).__REDUX_DEVTOOLS_EXTENSION__ && process.env.NODE_ENV === "development";
@@ -133,6 +135,20 @@ export const useCanvasStore = create<CanvasStore>()(
         set((s) => {
           s.scene = scene;
         }, false, "canvas/setScene"),
+
+      setCanvasResolution: (resolution): void =>
+        set((s) => {
+          s.resolution.logicalWidth = resolution.logicalWidth;
+          s.resolution.logicalHeight = resolution.logicalHeight;
+          s.resolution.physicalWidth = resolution.physicalWidth;
+          s.resolution.physicalHeight = resolution.physicalHeight;
+          s.resolution.needsRedraw = resolution.needsRedraw;
+        }, false, "canvas/setCanvasResolution"),
+
+      setContainerRef: (element: HTMLElement): void =>
+        set((s) => {
+          s.refs.containerElement = element;
+        }, false, "canvas/setContainerRef"),
     })),
     { enabled: devtoolsEnabled, name: "CanvasStore" }
   )
