@@ -1,0 +1,64 @@
+{
+  "name": "@write-on-app/excalidraw-island",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./dist/excalidraw-island.js",
+  "module": "./dist/dev/excalidraw-island.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "development": "./dist/dev/excalidraw-island.js",
+      "production": "./dist/excalidraw-island.js",
+      "default": "./dist/excalidraw-island.js"
+    }
+  },
+  "files": [
+    "dist/*"
+  ],
+  "scripts": {
+    "build": "node scripts/build.js",
+    "build:dev": "cross-env NODE_ENV=development node scripts/build.js",
+    "build:prod": "cross-env NODE_ENV=production node scripts/build.js",
+    "dev": "cross-env NODE_ENV=development node scripts/build.js --watch",
+    "serve": "cross-env NODE_ENV=development node scripts/build.js --serve",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "@excalidraw/common": "link:../../vendor/excalidraw/packages/common",
+    "@excalidraw/element": "link:../../vendor/excalidraw/packages/element",
+    "@excalidraw/excalidraw": "link:../../vendor/excalidraw/packages/excalidraw",
+    "@excalidraw/math": "link:../../vendor/excalidraw/packages/math",
+    "@excalidraw/utils": "link:../../vendor/excalidraw/packages/utils"
+  },
+  "devDependencies": {
+    "@types/react": "18.3.12",
+    "@types/react-dom": "18.3.1",
+    "cross-env": "7.0.3",
+    "typescript": "5.7.2",
+    "vite": "6.0.7",
+    "esbuild": "0.19.10"
+  },
+  "peerDependencies": {},
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not ie <= 11",
+      "not op_mini all",
+      "not safari < 12",
+      "not kaios <= 2.5",
+      "not edge < 79",
+      "not chrome < 70",
+      "not and_uc < 13",
+      "not samsung < 10"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
