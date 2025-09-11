@@ -23,7 +23,7 @@ export function WorkspaceViewport({ className, children }: Props): JSX.Element {
   const setFitMode = useViewportStore((s) => s.setFitMode);
   
   useViewportEvents(containerRef);
-  useInitialHorizontalCenter(containerRef);
+  // useInitialHorizontalCenter(containerRef); // Temporarily disabled for pointer-pivot zoom testing
   useKeyboardZoom(containerRef);
 
   // Phase 3: Measure viewport size and store it

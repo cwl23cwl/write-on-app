@@ -137,9 +137,9 @@ body {
   width: var(--page-width);   /* basePageSize.w */
   height: var(--page-height);  /* basePageSize.h */
   position: absolute;
-  /* Position page at padding offset to center it within virtual space */
-  left: var(--page-padding-x);
-  top: var(--page-padding-top);
+  /* Center page within virtual space using calc to account for padding */
+  left: calc((var(--virtual-width) - var(--page-width)) / 2);
+  top: calc((var(--virtual-height) - var(--page-height)) / 2);
   box-sizing: content-box; /* ensure padding doesn't shrink the paper */
 }
 
