@@ -45,7 +45,9 @@
       "Read(/C:\\write-on-app\\vendor\\excalidraw\\packages\\excalidraw/**)",
       "Bash(find:*)",
       "Bash(pnpm dev:*)",
-      "Read(//c/Users/charl/Pictures/Screenshots/**)"
+      "Read(//c/Users/charl/Pictures/Screenshots/**)",
+      "WebSearch",
+      "WebFetch(domain:docs.excalidraw.com)"
     ],
     "deny": [],
     "ask": []
