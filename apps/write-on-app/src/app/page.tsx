@@ -13,6 +13,14 @@ const SimpleContractTest = dynamic(
   }
 );
 
+const Step10Test = dynamic(
+  () => import("@/components/test/Step10Test").then(mod => ({ default: mod.Step10Test })),
+  { 
+    ssr: false,
+    loading: () => null
+  }
+);
+
 export default function Home(): JSX.Element {
   const [showTest, setShowTest] = useState(false);
 
@@ -28,6 +36,7 @@ export default function Home(): JSX.Element {
       </div>
       <div className="w-full h-screen">
         {showTest ? <SimpleContractTest /> : <WorkspaceRoot />}
+        {!showTest && <Step10Test />}
       </div>
     </div>
   );
