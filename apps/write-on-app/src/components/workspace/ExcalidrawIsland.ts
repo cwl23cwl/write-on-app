@@ -8,10 +8,15 @@
  * - Readonly/initial-scene routing logic
  */
 
+type ViewMode = 'teacher' | 'student';
+type WriteScope = 'teacher-base' | 'student' | 'teacher-review';
+
 interface ExcalidrawIslandElement extends HTMLElement {
   scale?: number;
-  readonly?: boolean;
-  initialScene?: string; // JSON string
+  mode?: ViewMode;
+  writeScope?: WriteScope;
+  baseScene?: string; // JSON string - teacher base layer
+  overlayScene?: string; // JSON string - writable layer
 }
 
 type ExcalidrawModule = {
@@ -24,8 +29,11 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
   private excalidrawRef: React.RefObject<any> = null;
   private isInitialized = false;
   private currentScale = 1;
-  private isReadonly = false;
-  private currentScene: unknown = null;
+  private currentMode: ViewMode = 'teacher';
+  private currentWriteScope: WriteScope = 'teacher-base';
+  private currentBaseScene: unknown = null;
+  private currentOverlayScene: unknown = null;
+  private compositeScene: unknown = null;
   
   // HMR tracking for dev environment
   private hmrVersion = 0;
@@ -39,7 +47,7 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
   }
 
   static get observedAttributes() {
-    return ['scale', 'readonly', 'initial-scene'];
+    return ['scale', 'mode', 'write-scope', 'base-scene', 'overlay-scene'];
   }
 
   get scale(): number {
@@ -53,30 +61,63 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
     }
   }
 
-  get readonly(): boolean {
-    return this.isReadonly;
+  get mode(): ViewMode {
+    return this.currentMode;
   }
 
-  set readonly(value: boolean) {
-    if (typeof value === 'boolean' && value !== this.isReadonly) {
-      this.isReadonly = value;
-      this.updateReadonly();
+  set mode(value: ViewMode) {
+    if (value && value !== this.currentMode) {
+      this.currentMode = value;
+      this.updateComposition();
     }
   }
 
-  get initialScene(): string | null {
-    return this.currentScene ? JSON.stringify(this.currentScene) : null;
+  get writeScope(): WriteScope {
+    return this.currentWriteScope;
   }
 
-  set initialScene(value: string | null) {
+  set writeScope(value: WriteScope) {
+    if (value && value !== this.currentWriteScope) {
+      this.currentWriteScope = value;
+      this.updateWriteScope();
+    }
+  }
+
+  get baseScene(): string | null {
+    return this.currentBaseScene ? JSON.stringify(this.currentBaseScene) : null;
+  }
+
+  set baseScene(value: string | null) {
     if (value) {
       try {
         const scene = JSON.parse(value);
-        this.currentScene = scene;
-        this.updateScene();
+        this.currentBaseScene = scene;
+        this.updateComposition();
       } catch (error) {
-        console.warn('[ExcalidrawIsland] Invalid initial scene JSON:', error);
+        console.warn('[ExcalidrawIsland] Invalid base scene JSON:', error);
       }
+    } else {
+      this.currentBaseScene = null;
+      this.updateComposition();
+    }
+  }
+
+  get overlayScene(): string | null {
+    return this.currentOverlayScene ? JSON.stringify(this.currentOverlayScene) : null;
+  }
+
+  set overlayScene(value: string | null) {
+    if (value) {
+      try {
+        const scene = JSON.parse(value);
+        this.currentOverlayScene = scene;
+        this.updateComposition();
+      } catch (error) {
+        console.warn('[ExcalidrawIsland] Invalid overlay scene JSON:', error);
+      }
+    } else {
+      this.currentOverlayScene = null;
+      this.updateComposition();
     }
   }
 
@@ -90,11 +131,17 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
           this.scale = scale;
         }
         break;
-      case 'readonly':
-        this.readonly = newValue === 'true';
+      case 'mode':
+        this.mode = (newValue as ViewMode) || 'teacher';
         break;
-      case 'initial-scene':
-        this.initialScene = newValue;
+      case 'write-scope':
+        this.writeScope = (newValue as WriteScope) || 'teacher-base';
+        break;
+      case 'base-scene':
+        this.baseScene = newValue;
+        break;
+      case 'overlay-scene':
+        this.overlayScene = newValue;
         break;
     }
   }
@@ -104,10 +151,17 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
     
     // Initialize attributes from DOM
     this.currentScale = parseFloat(this.getAttribute('scale') || '1');
-    this.isReadonly = this.getAttribute('readonly') === 'true';
-    const initialSceneAttr = this.getAttribute('initial-scene');
-    if (initialSceneAttr) {
-      this.initialScene = initialSceneAttr;
+    this.currentMode = (this.getAttribute('mode') as ViewMode) || 'teacher';
+    this.currentWriteScope = (this.getAttribute('write-scope') as WriteScope) || 'teacher-base';
+    
+    const baseSceneAttr = this.getAttribute('base-scene');
+    if (baseSceneAttr) {
+      this.baseScene = baseSceneAttr;
+    }
+    
+    const overlaySceneAttr = this.getAttribute('overlay-scene');
+    if (overlaySceneAttr) {
+      this.overlayScene = overlaySceneAttr;
     }
 
     await this.initializeExcalidraw();
@@ -151,7 +205,7 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
   private async loadDevModule(): Promise<ExcalidrawModule> {
     // Add timestamp for HMR invalidation
     const timestamp = Date.now();
-    const importPath = `/src/components/workspace/excalidraw/ExcalidrawAdapterMinimal?t=${timestamp}`;
+    const importPath = `./excalidraw/ExcalidrawAdapterMinimal?t=${timestamp}`;
     
     try {
       const module = await import(importPath);
@@ -174,7 +228,7 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
       };
     } catch (error) {
       console.warn('[ExcalidrawIsland] Dev import failed, falling back to direct import');
-      const module = await import('@/components/workspace/excalidraw/ExcalidrawAdapterMinimal');
+      const module = await import('./excalidraw/ExcalidrawAdapterMinimal');
       return {
         ExcalidrawAdapterMinimal: module.ExcalidrawAdapterMinimal,
         ExcalidrawContractAPI: module.ExcalidrawContractAPI
@@ -185,7 +239,7 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
   private async loadProdModule(): Promise<ExcalidrawModule> {
     // Prod: Single lazy-loaded bundle
     // In production, webpack/Next.js will handle bundling
-    const module = await import('@/components/workspace/excalidraw/ExcalidrawAdapterMinimal');
+    const module = await import('./excalidraw/ExcalidrawAdapterMinimal');
     return {
       ExcalidrawAdapterMinimal: module.ExcalidrawAdapterMinimal,
       ExcalidrawContractAPI: module.ExcalidrawContractAPI
@@ -209,13 +263,18 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
     // Create React root
     this.reactRoot = ReactDOM.createRoot(container);
 
-    // Render Excalidraw adapter
+    // Render Excalidraw adapter with composite scene
+    this.updateComposition();
+    
     const ExcalidrawComponent = React.createElement(
       excalidrawModule.ExcalidrawAdapterMinimal,
       {
         ref: this.excalidrawRef,
-        initialData: this.currentScene,
-        readOnly: this.isReadonly,
+        initialData: this.compositeScene,
+        readOnly: this.isWriteRestricted(),
+        mode: this.currentMode,
+        writeScope: this.currentWriteScope,
+        currentStudentId: this.getCurrentStudentId(),
         onReady: (api: any) => {
           console.log('[ExcalidrawIsland] Excalidraw API ready');
           this.dispatchEvent(new CustomEvent('excalidraw-ready', {
@@ -256,26 +315,139 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
     }
   }
 
-  private updateReadonly(): void {
-    // Update readonly state - requires remounting for now
-    console.log(`[ExcalidrawIsland] Readonly updated to ${this.isReadonly}`);
+  private isWriteRestricted(): boolean {
+    // Determine if current layer is writable based on write-scope
+    // For now, all layers are writable - restriction will be handled by filtering edits
+    return false;
+  }
+
+  private updateWriteScope(): void {
+    // Update write permissions - requires remounting for significant scope changes
+    console.log(`[ExcalidrawIsland] Write scope updated to ${this.currentWriteScope}`);
     if (this.isInitialized) {
-      // For now, we'll need to remount to change readonly
-      // This could be optimized to use the adapter's API directly
       this.reinitialize();
     }
   }
 
-  private updateScene(): void {
-    // Update scene via imperative API
-    if (this.excalidrawRef?.current && this.currentScene) {
+  private updateComposition(): void {
+    // Composite base and overlay scenes into a single scene
+    this.compositeScene = this.compositeLayers();
+    
+    // Update Excalidraw if already initialized
+    if (this.excalidrawRef?.current && this.compositeScene) {
       try {
-        this.excalidrawRef.current.setScene(this.currentScene);
-        console.log('[ExcalidrawIsland] Scene updated');
+        this.excalidrawRef.current.setScene(this.compositeScene);
+        console.log('[ExcalidrawIsland] Composite scene updated');
       } catch (error) {
-        console.warn('[ExcalidrawIsland] Scene update failed:', error);
+        console.warn('[ExcalidrawIsland] Composite scene update failed:', error);
       }
     }
+  }
+
+  private compositeLayers(): unknown {
+    // Layer composition: [Teacher Base] → [Student/Teacher Review Overlay]
+    // This creates the visual stack similar to Photoshop layers
+    
+    const baseElements = this.getSceneElements(this.currentBaseScene) || [];
+    const overlayElements = this.getSceneElements(this.currentOverlayScene) || [];
+    
+    // Tag elements with ownership and combine
+    const combinedElements = [
+      // Base elements tagged as teacher-owned
+      ...baseElements.map(el => ({ 
+        ...el, 
+        locked: this.isBaseElementLocked(el),
+        owner: 'teacher', // Teacher base layer elements
+        // Make unselectable if not in current write scope
+        selectable: this.currentWriteScope === 'teacher-base',
+        // Visual indicator for cross-layer content
+        strokeWidth: this.currentWriteScope === 'teacher-base' ? el.strokeWidth : (el.strokeWidth || 1),
+        opacity: this.currentWriteScope === 'teacher-base' ? 1 : 0.7
+      })),
+      // Overlay elements tagged based on current write scope  
+      ...overlayElements.map(el => ({
+        ...el,
+        owner: this.getOverlayElementOwner(), // Student or teacher-review elements
+        // Overlay elements are always selectable in their layer
+        selectable: true,
+        opacity: 1
+      }))
+    ];
+    
+    // Merge appStates - overlay takes precedence for conflicting properties
+    const baseAppState = this.getSceneAppState(this.currentBaseScene) || {};
+    const overlayAppState = this.getSceneAppState(this.currentOverlayScene) || {};
+    const combinedAppState = { ...baseAppState, ...overlayAppState };
+    
+    // Combine files from both layers
+    const baseFiles = this.getSceneFiles(this.currentBaseScene) || {};
+    const overlayFiles = this.getSceneFiles(this.currentOverlayScene) || {};
+    const combinedFiles = { ...baseFiles, ...overlayFiles };
+    
+    const composite = {
+      elements: combinedElements,
+      appState: combinedAppState,
+      files: combinedFiles
+    };
+    
+    console.log(`[ExcalidrawIsland] Composited ${baseElements.length} base + ${overlayElements.length} overlay elements with ownership tags`);
+    
+    // Emit layersready event when composition completes (optional API)
+    this.dispatchEvent(new CustomEvent('layersready', {
+      bubbles: true,
+      detail: { 
+        baseElements: baseElements.length,
+        overlayElements: overlayElements.length,
+        totalElements: combinedElements.length 
+      }
+    }));
+    
+    return composite;
+  }
+
+  private getSceneElements(scene: unknown): any[] {
+    return scene && typeof scene === 'object' && Array.isArray((scene as any).elements) 
+      ? (scene as any).elements 
+      : [];
+  }
+
+  private getSceneAppState(scene: unknown): Record<string, unknown> {
+    return scene && typeof scene === 'object' && (scene as any).appState
+      ? (scene as any).appState
+      : {};
+  }
+
+  private getSceneFiles(scene: unknown): Record<string, unknown> {
+    return scene && typeof scene === 'object' && (scene as any).files
+      ? (scene as any).files
+      : {};
+  }
+
+  private isBaseElementLocked(element: any): boolean {
+    // Base layer elements are locked unless we're in teacher-base write scope
+    return this.currentWriteScope !== 'teacher-base';
+  }
+
+  private getOverlayElementOwner(): string {
+    // Determine owner tag for overlay elements based on write scope
+    switch (this.currentWriteScope) {
+      case 'student':
+        // For now, use a placeholder student ID - in real app this would come from context
+        return 'student:current-student-id';
+      case 'teacher-review':
+        // For now, use a placeholder student ID - in real app this would come from context
+        return 'teacher-review:current-student-id';
+      case 'teacher-base':
+        return 'teacher';
+      default:
+        return 'teacher';
+    }
+  }
+
+  private getCurrentStudentId(): string {
+    // TODO: This should come from route context or user session
+    // For now, return a placeholder
+    return 'current-student-id';
   }
 
   private renderError(error: Error): void {
@@ -350,12 +522,46 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
     return this.excalidrawRef?.current || null;
   }
 
-  public async requestExport(options: { type: 'png' | 'svg'; dpi?: number }) {
+  public async requestExport(options: { 
+    type: 'png' | 'svg'; 
+    dpi?: number;
+    layers?: ('base' | 'overlay')[]
+  }) {
     const api = this.getExcalidrawAPI();
-    if (api && typeof api.requestExport === 'function') {
-      return await api.requestExport(options);
+    if (!api || typeof api.requestExport !== 'function') {
+      throw new Error('Excalidraw API not ready');
     }
-    throw new Error('Excalidraw API not ready');
+    
+    // Handle selective layer export (optional API)
+    if (options.layers && options.layers.length > 0) {
+      console.log(`[ExcalidrawIsland] Exporting specific layers:`, options.layers);
+      
+      // Create a custom scene with only requested layers
+      let exportElements: any[] = [];
+      
+      if (options.layers.includes('base')) {
+        const baseElements = this.getSceneElements(this.currentBaseScene) || [];
+        exportElements.push(...baseElements.map(el => ({ ...el, owner: 'teacher' })));
+      }
+      
+      if (options.layers.includes('overlay')) {
+        const overlayElements = this.getSceneElements(this.currentOverlayScene) || [];
+        exportElements.push(...overlayElements.map(el => ({ 
+          ...el, 
+          owner: this.getOverlayElementOwner() 
+        })));
+      }
+      
+      // For selective export, we'd need to temporarily set the scene
+      // This is complex with the current architecture, so we'll log for now
+      console.log(`[ExcalidrawIsland] Would export ${exportElements.length} elements from selected layers`);
+    }
+    
+    // Default behavior: export flattened composite (all visible layers)
+    return await api.requestExport({
+      type: options.type,
+      dpi: options.dpi
+    });
   }
 
   public async setScene(scene: unknown) {

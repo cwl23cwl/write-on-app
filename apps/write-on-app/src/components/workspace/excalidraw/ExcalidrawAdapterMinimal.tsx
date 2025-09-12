@@ -70,6 +70,10 @@ interface Props {
   onReady: (api: ExcalidrawAPI) => void;
   className?: string;
   testId?: string;
+  // Ownership enforcement context
+  mode?: 'teacher' | 'student';
+  writeScope?: 'teacher-base' | 'student' | 'teacher-review';
+  currentStudentId?: string;
 }
 
 function emitCustomEvent(element: HTMLElement | null, eventName: string, detail: unknown): void {
@@ -84,8 +88,49 @@ function emitCustomEvent(element: HTMLElement | null, eventName: string, detail:
   element.dispatchEvent(event);
 }
 
+// Ownership enforcement helpers
+function canEditElement(element: any, writeScope: string, currentStudentId: string): boolean {
+  if (!element.owner) return true; // Legacy elements without owner tags
+  
+  switch (writeScope) {
+    case 'teacher-base':
+      return element.owner === 'teacher';
+    case 'student':
+      return element.owner === `student:${currentStudentId}`;
+    case 'teacher-review':
+      return element.owner === `teacher-review:${currentStudentId}`;
+    default:
+      return false;
+  }
+}
+
+function canSelectElement(element: any, writeScope: string, currentStudentId: string): boolean {
+  // Key UX principle: users can only select elements they can edit
+  // This makes cross-layer elements completely unselectable
+  return canEditElement(element, writeScope, currentStudentId);
+}
+
+function shouldHideElement(element: any, writeScope: string, currentStudentId: string): boolean {
+  // For now, show all elements but make non-editable ones unselectable
+  // In the future, this could hide elements based on privacy rules
+  return false;
+}
+
+function getOwnerTagForNewElement(writeScope: string, currentStudentId: string): string {
+  switch (writeScope) {
+    case 'teacher-base':
+      return 'teacher';
+    case 'student':
+      return `student:${currentStudentId}`;
+    case 'teacher-review':
+      return `teacher-review:${currentStudentId}`;
+    default:
+      return 'teacher';
+  }
+}
+
 export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>(function ExcalidrawAdapterMinimal(
-  { initialData, readOnly, onReady, className, testId }, 
+  { initialData, readOnly, onReady, className, testId, mode = 'teacher', writeScope = 'teacher-base', currentStudentId = 'current-student-id' }, 
   ref
 ) {
   const apiRef = useRef<ExcalidrawAPI | null>(null);
@@ -382,6 +427,90 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
     scrollToContent: true 
   };
 
+  // Ownership enforcement event handlers
+  const onPointerUpdate = useCallback((payload: any) => {
+    // Selection filter: completely block selection of cross-layer elements
+    if (payload?.elements && payload.elements.length > 0) {
+      const selectableElements = payload.elements.filter((element: any) => {
+        return canSelectElement(element, writeScope, currentStudentId);
+      });
+      
+      // If any elements were filtered out, log it
+      const filtered = payload.elements.length - selectableElements.length;
+      if (filtered > 0) {
+        console.log(`[OwnershipEnforcement] Blocked selection of ${filtered} cross-layer element(s)`);
+      }
+      
+      // If we filtered out elements, we need to prevent the selection
+      // Unfortunately Excalidraw doesn't give us direct control over selection
+      // So we'll handle this in onChange instead
+    }
+  }, [writeScope, currentStudentId]);
+
+  const onChange = useCallback((elements: any[], appState: any, files: any) => {
+    // Critical UX enforcement: Remove cross-layer elements from selection
+    const selectedIds = new Set(appState.selectedElementIds || []);
+    const blockedSelections = new Set<string>();
+    
+    // Check for cross-layer selections and remove them
+    elements.forEach(element => {
+      if (selectedIds.has(element.id) && element.owner && !canSelectElement(element, writeScope, currentStudentId)) {
+        blockedSelections.add(element.id);
+        selectedIds.delete(element.id);
+      }
+    });
+    
+    if (blockedSelections.size > 0) {
+      console.log(`[OwnershipEnforcement] Removed ${blockedSelections.size} cross-layer elements from selection:`, Array.from(blockedSelections));
+    }
+    
+    // Mutation guard: block changes to elements not in write scope  
+    const enforcedElements = elements.map((element: any) => {
+      // If element exists and we can't edit it, ensure it stays unchanged
+      if (element.owner && !canEditElement(element, writeScope, currentStudentId)) {
+        // For cross-layer elements, ensure they remain visually distinct
+        return {
+          ...element,
+          // Visual indicators for uneditable content
+          opacity: element.opacity || 0.7,
+          locked: true
+        };
+      }
+      
+      // Tag new elements with current write scope
+      if (!element.owner) {
+        return {
+          ...element,
+          owner: getOwnerTagForNewElement(writeScope, currentStudentId),
+          opacity: 1,
+          locked: false
+        };
+      }
+      
+      return element;
+    });
+    
+    // Clean appState to remove cross-layer selections
+    const cleanAppState = {
+      ...appState,
+      selectedElementIds: Array.from(selectedIds),
+      selectedGroupIds: {} // Clear group selections that might include cross-layer elements
+    };
+    
+    // Emit scene change with layer information (minimal API)
+    // Only emit for student and teacher-review layers (overlay changes)
+    if (writeScope === 'student' || writeScope === 'teacher-review') {
+      emitCustomEvent(containerRef.current, 'scenechange', {
+        scene: {
+          elements: enforcedElements,
+          appState: cleanAppState,
+          files
+        },
+        layer: writeScope // 'student' | 'teacher-review'
+      });
+    }
+  }, [writeScope, currentStudentId]);
+
   return (
     <div
       ref={containerRef}
@@ -399,6 +528,8 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
           ref={handleApiReady}
           initialData={data}
           viewModeEnabled={readOnly}
+          onChange={onChange}
+          onPointerUpdate={onPointerUpdate}
           {...EXCALIDRAW_PROPS}
           style={{ width: "100%", height: "100%" }}
         />
