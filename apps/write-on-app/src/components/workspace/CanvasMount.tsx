@@ -5,12 +5,26 @@ import { useExcalidrawIsland } from '@/components/workspace/hooks/useExcalidrawI
 
 type Props = { 
   className?: string;
+  mode?: 'teacher' | 'student';
+  writeScope?: 'teacher-base' | 'student' | 'teacher-review';
+  baseScene?: unknown;
+  overlayScene?: unknown;
+  /** @deprecated - use mode and writeScope */
   readonly?: boolean;
+  /** @deprecated - use baseScene */
   initialScene?: unknown;
 };
 
 // Step 10: Canvas mount with Excalidraw Island integration
-export function CanvasMount({ className, readonly = false, initialScene }: Props): JSX.Element {
+export function CanvasMount({ 
+  className, 
+  mode = 'teacher', 
+  writeScope = 'teacher-base', 
+  baseScene, 
+  overlayScene,
+  readonly = false, 
+  initialScene 
+}: Props): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
   
   const {
@@ -21,8 +35,10 @@ export function CanvasMount({ className, readonly = false, initialScene }: Props
     excalidrawAPI
   } = useExcalidrawIsland({
     containerRef,
-    readonly,
-    initialScene,
+    mode,
+    writeScope,
+    baseScene: baseScene || initialScene, // Legacy support
+    overlayScene,
     onReady: (element) => {
       console.log('[CanvasMount] Excalidraw Island ready');
     },

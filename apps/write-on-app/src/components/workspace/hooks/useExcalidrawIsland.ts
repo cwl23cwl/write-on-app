@@ -15,10 +15,14 @@ import type { ExcalidrawIslandElement } from '@/components/workspace/ExcalidrawI
 interface UseExcalidrawIslandOptions {
   /** Container element where island will be mounted */
   containerRef: React.RefObject<HTMLElement>;
-  /** Readonly mode for student routes */
-  readonly?: boolean;
-  /** Initial scene data for teacher routes */
-  initialScene?: unknown;
+  /** View mode: who is viewing the canvas */
+  mode?: 'teacher' | 'student';
+  /** Write scope: which layer is writable */
+  writeScope?: 'teacher-base' | 'student' | 'teacher-review';
+  /** Teacher base layer scene data */
+  baseScene?: unknown;
+  /** Student/review overlay scene data */
+  overlayScene?: unknown;
   /** Callback when island is ready */
   onReady?: (element: ExcalidrawIslandElement) => void;
   /** Callback when Excalidraw API is ready */
@@ -49,8 +53,10 @@ interface UseExcalidrawIslandReturn {
 export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExcalidrawIslandReturn {
   const {
     containerRef,
-    readonly = false,
-    initialScene,
+    mode = 'teacher',
+    writeScope = 'teacher-base',
+    baseScene,
+    overlayScene,
     onReady,
     onExcalidrawReady
   } = options;
@@ -69,9 +75,13 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
     
     // Set initial attributes
     islandElement.scale = scale;
-    islandElement.readonly = readonly;
-    if (initialScene) {
-      islandElement.initialScene = JSON.stringify(initialScene);
+    islandElement.mode = mode;
+    islandElement.writeScope = writeScope;
+    if (baseScene) {
+      islandElement.baseScene = JSON.stringify(baseScene);
+    }
+    if (overlayScene) {
+      islandElement.overlayScene = JSON.stringify(overlayScene);
     }
 
     // Style the island to fill container
@@ -84,7 +94,7 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
     `;
 
     return islandElement;
-  }, [scale, readonly, initialScene]);
+  }, [scale, mode, writeScope, baseScene, overlayScene]);
 
   // Mount island in container
   const mount = useCallback(() => {
@@ -144,24 +154,43 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
     }
   }, [island, scale]);
 
-  // Sync readonly state
+  // Sync mode
   useEffect(() => {
-    if (island && island.readonly !== readonly) {
-      island.readonly = readonly;
-      console.log(`[useExcalidrawIsland] Readonly synced to ${readonly}`);
+    if (island && island.mode !== mode) {
+      island.mode = mode;
+      console.log(`[useExcalidrawIsland] Mode synced to ${mode}`);
     }
-  }, [island, readonly]);
+  }, [island, mode]);
 
-  // Sync initial scene
+  // Sync write scope
   useEffect(() => {
-    if (island && initialScene) {
-      const sceneJson = JSON.stringify(initialScene);
-      if (island.initialScene !== sceneJson) {
-        island.initialScene = sceneJson;
-        console.log('[useExcalidrawIsland] Initial scene synced');
+    if (island && island.writeScope !== writeScope) {
+      island.writeScope = writeScope;
+      console.log(`[useExcalidrawIsland] Write scope synced to ${writeScope}`);
+    }
+  }, [island, writeScope]);
+
+  // Sync base scene
+  useEffect(() => {
+    if (island && baseScene) {
+      const sceneJson = JSON.stringify(baseScene);
+      if (island.baseScene !== sceneJson) {
+        island.baseScene = sceneJson;
+        console.log('[useExcalidrawIsland] Base scene synced');
       }
     }
-  }, [island, initialScene]);
+  }, [island, baseScene]);
+
+  // Sync overlay scene
+  useEffect(() => {
+    if (island && overlayScene) {
+      const sceneJson = JSON.stringify(overlayScene);
+      if (island.overlayScene !== sceneJson) {
+        island.overlayScene = sceneJson;
+        console.log('[useExcalidrawIsland] Overlay scene synced');
+      }
+    }
+  }, [island, overlayScene]);
 
   // Event listeners for island lifecycle
   useEffect(() => {

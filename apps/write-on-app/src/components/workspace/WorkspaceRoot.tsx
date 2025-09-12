@@ -15,7 +15,7 @@ import { useViewportStore } from "@/state";
 export function WorkspaceRoot(): JSX.Element {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const setPageSize = useViewportStore((s) => s.setPageSize);
-  const { isReadonly, initialScene, routeType, workspaceId } = useWorkspaceRoute();
+  const { mode, writeScope, baseScene, overlayScene, routeType, workspaceId, isReadonly, initialScene } = useWorkspaceRoute();
   
   useKeyboardShortcuts();
   useContainerSizeObserver(rootRef);
@@ -105,8 +105,10 @@ export function WorkspaceRoot(): JSX.Element {
           <WorkspaceViewport>
             <WorkspaceScaler>
               <CanvasMount 
-                readonly={isReadonly}
-                initialScene={initialScene}
+                mode={mode}
+                writeScope={writeScope}
+                baseScene={baseScene}
+                overlayScene={overlayScene}
               />
             </WorkspaceScaler>
           </WorkspaceViewport>

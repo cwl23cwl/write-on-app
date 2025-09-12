@@ -2,7 +2,7 @@
 
 import { WorkspaceRoot } from "@/components/workspace/WorkspaceRoot";
 import dynamic from "next/dynamic";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 
 // Dynamic import to avoid SSR issues
 const SimpleContractTest = dynamic(
@@ -35,8 +35,16 @@ export default function Home(): JSX.Element {
         </button>
       </div>
       <div className="w-full h-screen">
-        {showTest ? <SimpleContractTest /> : <WorkspaceRoot />}
-        {!showTest && <Step10Test />}
+        {showTest ? <SimpleContractTest /> : (
+          <Suspense fallback={<div className="flex items-center justify-center h-screen text-gray-500">Loading workspace...</div>}>
+            <WorkspaceRoot />
+          </Suspense>
+        )}
+        {!showTest && (
+          <Suspense fallback={null}>
+            <Step10Test />
+          </Suspense>
+        )}
       </div>
     </div>
   );
