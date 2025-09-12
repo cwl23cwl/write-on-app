@@ -9,11 +9,14 @@ import { ChromeLayout } from "@/components/chrome/ChromeLayout";
 import { WorkspaceErrorBoundary } from "@/components/workspace/WorkspaceErrorBoundary";
 import { useKeyboardShortcuts } from "@/components/workspace/hooks/useKeyboardShortcuts";
 import { useContainerSizeObserver } from "@/components/workspace/hooks/useContainerSizeObserver";
+import { useWorkspaceRoute } from "@/components/workspace/hooks/useWorkspaceRoute";
 import { useViewportStore } from "@/state";
 
 export function WorkspaceRoot(): JSX.Element {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const setPageSize = useViewportStore((s) => s.setPageSize);
+  const { isReadonly, initialScene, routeType, workspaceId } = useWorkspaceRoute();
+  
   useKeyboardShortcuts();
   useContainerSizeObserver(rootRef);
 
@@ -101,7 +104,10 @@ export function WorkspaceRoot(): JSX.Element {
         >
           <WorkspaceViewport>
             <WorkspaceScaler>
-              <CanvasMount />
+              <CanvasMount 
+                readonly={isReadonly}
+                initialScene={initialScene}
+              />
             </WorkspaceScaler>
           </WorkspaceViewport>
         </div>
