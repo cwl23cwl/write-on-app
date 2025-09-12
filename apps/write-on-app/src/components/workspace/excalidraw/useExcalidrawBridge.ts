@@ -29,7 +29,11 @@ type ExcalidrawAppStateLike = {
   activeTool?: unknown;
 } & Record<string, unknown>;
 
-type BridgeOptions = { mountedRef?: React.RefObject<boolean>; readOnly?: boolean };
+type BridgeOptions = { 
+  mountedRef?: React.RefObject<boolean>; 
+  readOnly?: boolean;
+  onSceneChange?: (elements: readonly unknown[], appState: Record<string, unknown>, files?: Record<string, unknown>) => void;
+};
 
 export function useExcalidrawBridge(api: ExcalidrawAPI | null, opts: BridgeOptions = {}): {
   onChange: (elements: unknown[], appState: Record<string, unknown>, files?: Record<string, unknown>) => void;
@@ -84,8 +88,14 @@ export function useExcalidrawBridge(api: ExcalidrawAPI | null, opts: BridgeOptio
     pending.current = null;
     setScene({ elements: els.slice(), appState: state, files });
     requestRedraw();
+    
+    // Step 7: Emit scene change event if callback provided
+    if (opts.onSceneChange) {
+      opts.onSceneChange(els, state, files);
+    }
+    
     rafId.current = null;
-  }, [requestRedraw, setScene]);
+  }, [requestRedraw, setScene, opts]);
 
   const onChange = useCallback((elements: unknown[], appState: Record<string, unknown>, files?: Record<string, unknown>): void => {
     const cleanState = enforceZoomLock(appState);
