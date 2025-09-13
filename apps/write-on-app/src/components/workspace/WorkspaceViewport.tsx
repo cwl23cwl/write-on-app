@@ -23,7 +23,7 @@ export function WorkspaceViewport({ className, children }: Props): JSX.Element {
   const setFitMode = useViewportStore((s) => s.setFitMode);
   
   useViewportEvents(containerRef);
-  // useInitialHorizontalCenter(containerRef); // Temporarily disabled for pointer-pivot zoom testing
+  useInitialHorizontalCenter(containerRef); // Re-enabled for proper horizontal centering
   useKeyboardZoom(containerRef);
 
   // Phase 3: Measure viewport size and store it
@@ -98,7 +98,7 @@ export function WorkspaceViewport({ className, children }: Props): JSX.Element {
       style={{
         paddingLeft: 'var(--page-padding-x)',
         paddingRight: 'var(--page-padding-x)',
-        paddingTop: '50px', // Increased to ensure it clears the control strip
+        paddingTop: '8px', // Minimal tight gap between PageIndicator and canvas
       }}
     >
       {children}

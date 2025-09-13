@@ -153,9 +153,6 @@ body {
 }
 
 /* Ensure Excalidraw (or any engine) fills the page wrapper */
-#excal-host,
-#excal-host > .excalidraw,
-#excal-host > .excalidraw .excalidraw__container,
 .excalidraw-container {
   position: absolute;
   inset: 0;
@@ -221,4 +218,128 @@ body {
 /* Workspace scaler sits directly below control strip with no extra gap */
 .workspace-scaler {
   margin-top: 0;
+}
+
+/* Fix pointer events conflicts between top/left menu and Excalidraw canvas */
+.FixedSideContainer_side_top {
+  pointer-events: none;
+  position: sticky;
+  top: var(--h-stack);
+  z-index: 50;
+}
+
+/* Re-enable pointer events for the inner controls */
+.FixedSideContainer_side_top .App-menu_top,
+.FixedSideContainer_side_top .App-menu_top * {
+  pointer-events: auto;
+}
+
+/* Constrain left menu */
+.App-menu_top__left {
+  max-height: calc(100vh - var(--h-stack));
+  overflow: auto;
+  align-self: flex-start;
+  background: transparent;
+}
+
+/* Ensure workspace layers have proper z-index */
+.workspace-root,
+.workspace-canvas-mount {
+  position: relative;
+  z-index: 0;
+}
+
+/* Excalidraw mount sizing - fills page */
+.excalidraw-island-container {
+  width: 100%;
+  height: 100%;
+}
+
+/* Hide any remaining Excalidraw UI elements for pure drawing surface */
+.excalidraw .App-toolbar,
+.excalidraw .App-bottom-bar,
+.excalidraw .App-menu,
+.excalidraw .App-menu_bottom,
+.excalidraw .App-menu_top,
+.excalidraw .layer-ui__wrapper,
+.excalidraw .FixedSideContainer,
+.excalidraw .App-main__menu,
+.excalidraw .welcome-screen,
+.excalidraw .help-dialog,
+.excalidraw .Stack,
+.excalidraw .Stack_vertical,
+.excalidraw .Stack_horizontal,
+.excalidraw div[class*="Stack"],
+.excalidraw .Island,
+.excalidraw .ButtonSelect,
+.excalidraw .ToolButton,
+.excalidraw .Shape,
+.excalidraw .panelColumn {
+  display: none !important;
+}
+
+/* More aggressive hiding for any UI containers */
+.excalidraw > div:not(.excalidraw__container):not(.canvas) {
+  display: none !important;
+}
+
+/* Ensure only canvas and container are visible */
+.excalidraw .excalidraw__container > *:not(.canvas):not(canvas) {
+  display: none !important;
+}
+
+/* CRITICAL: Eliminate the giant Stack_vertical overlay and all Excalidraw UI */
+.Stack.Stack_vertical,
+div[class="Stack Stack_vertical"],
+div[class*="Stack_vertical"],
+div[class*="Stack "],
+.excalidraw-island-container .Stack,
+.excalidraw-island-container .Stack_vertical,
+.excalidraw-island-container div[class*="Stack"],
+.excalidraw .Stack,
+.excalidraw .Stack_vertical,
+.excalidraw div[class*="Stack"],
+/* Target any UI overlay elements */
+.excalidraw > div[class*="Stack"],
+.excalidraw-wrapper > div[class*="Stack"],
+excalidraw-island div[class*="Stack"],
+/* Nuclear option: any div with Stack in class name */
+div[class*="Stack"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  position: absolute !important;
+  top: -9999px !important;
+  left: -9999px !important;
+  z-index: -1 !important;
+}
+
+/* NUCLEAR OPTION: Target the Web Component directly */
+excalidraw-island::part(ui-overlay),
+excalidraw-island * [class*="overlay"],
+excalidraw-island * [class*="ui-"],
+excalidraw-island * [class*="toolbar"],
+excalidraw-island * [class*="menu"],
+excalidraw-island * [class*="panel"],
+excalidraw-island * [class*="footer"],
+excalidraw-island * [class*="header"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Force the shadow DOM to hide UI elements */
+excalidraw-island {
+  --excalidraw-ui-visibility: hidden !important;
+}
+
+/* Ensure only canvas remains visible and fills container */
+.excalidraw .excalidraw-canvas,
+.excalidraw canvas {
+  width: 100% !important;
+  height: 100% !important;
+  position: relative !important;
+  z-index: 1 !important;
 }

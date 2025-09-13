@@ -22,9 +22,15 @@ export function clampScrollPosition(
   const scaledContentW = contentSize.w * scale;
   const scaledContentH = contentSize.h * scale;
   
+  console.log(`[clampScrollPosition] Scale: ${scale}, Viewport: ${viewportSize.w}x${viewportSize.h}`);
+  console.log(`[clampScrollPosition] Base content: ${contentSize.w}x${contentSize.h}`);
+  console.log(`[clampScrollPosition] Scaled content: ${scaledContentW}x${scaledContentH}`);
+  
   // Calculate max scroll bounds (content can extend beyond viewport)
   const maxScrollX = Math.max(0, scaledContentW - viewportSize.w);
   const maxScrollY = Math.max(0, scaledContentH - viewportSize.h);
+  
+  console.log(`[clampScrollPosition] Max scroll bounds: ${maxScrollX}, ${maxScrollY}`);
   
   // Apply dead zones at edges to prevent jitter
   const minScrollX = -deadZone;
@@ -32,8 +38,13 @@ export function clampScrollPosition(
   const maxScrollXWithDeadZone = maxScrollX + deadZone;
   const maxScrollYWithDeadZone = maxScrollY + deadZone;
   
+  console.log(`[clampScrollPosition] Clamp range: X[${minScrollX}, ${maxScrollXWithDeadZone}], Y[${minScrollY}, ${maxScrollYWithDeadZone}]`);
+  console.log(`[clampScrollPosition] Input scroll: ${scrollX}, ${scrollY}`);
+  
   const clampedX = Math.max(minScrollX, Math.min(scrollX, maxScrollXWithDeadZone));
   const clampedY = Math.max(minScrollY, Math.min(scrollY, maxScrollYWithDeadZone));
+  
+  console.log(`[clampScrollPosition] Output scroll: ${clampedX}, ${clampedY}`);
   
   return { scrollX: clampedX, scrollY: clampedY };
 }
@@ -53,18 +64,40 @@ export function zoomAtClientPoint(
   const rect = hostEl.getBoundingClientRect();
   const oldScale = currentView.scale || 1;
   
-  // Get world point under cursor before zoom
-  const worldX = (clientX - rect.left) / oldScale + (currentView.scrollX || 0);
-  const worldY = (clientY - rect.top) / oldScale + (currentView.scrollY || 0);
+  console.log(`[zoomAtClientPoint] Element: ${hostEl.id || hostEl.className}`);
+  console.log(`[zoomAtClientPoint] Client mouse: ${clientX}, ${clientY}`);
+  console.log(`[zoomAtClientPoint] Element rect: ${rect.left}, ${rect.top}, ${rect.width}x${rect.height}`);
+  console.log(`[zoomAtClientPoint] Scales: ${oldScale} → ${newScale}`);
   
-  // Calculate new scroll position to keep world point under cursor
-  let newScrollX = worldX - (clientX - rect.left) / newScale;
-  let newScrollY = worldY - (clientY - rect.top) / newScale;
+  // Mouse position relative to the viewport element
+  const mouseX = clientX - rect.left;
+  const mouseY = clientY - rect.top;
+  
+  console.log(`[zoomAtClientPoint] Mouse in viewport: ${mouseX}, ${mouseY}`);
+  console.log(`[zoomAtClientPoint] Current scroll: ${currentView.scrollX}, ${currentView.scrollY}`);
+  
+  // For CSS transform-based zoom, the formula is different:
+  // We want the world point under the cursor to stay in the same place
+  // newScroll = (oldScroll + mousePos) * (newScale/oldScale) - mousePos
+  const scaleRatio = newScale / oldScale;
+  let newScrollX = ((currentView.scrollX || 0) + mouseX) * scaleRatio - mouseX;
+  let newScrollY = ((currentView.scrollY || 0) + mouseY) * scaleRatio - mouseY;
+  
+  console.log(`[zoomAtClientPoint] Scale ratio: ${scaleRatio}`);
+  console.log(`[zoomAtClientPoint] Calculated scroll: ${newScrollX}, ${newScrollY}`);
   
   // Apply clamping if content size is provided
   if (contentSize) {
+    console.log(`[zoomAtClientPoint] Base content size: ${contentSize.w}x${contentSize.h}`);
+    console.log(`[zoomAtClientPoint] Before clamping: ${newScrollX}, ${newScrollY}`);
+    
     const viewportSize = { w: rect.width, h: rect.height };
+    
+    // clampScrollPosition will scale the content size internally, so pass base size
     const clamped = clampScrollPosition(newScrollX, newScrollY, newScale, viewportSize, contentSize);
+    
+    console.log(`[zoomAtClientPoint] After clamping: ${clamped.scrollX}, ${clamped.scrollY}`);
+    
     newScrollX = clamped.scrollX;
     newScrollY = clamped.scrollY;
   }

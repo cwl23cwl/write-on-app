@@ -1,14 +1,49 @@
 import type { ExcalidrawProps } from "@excalidraw/excalidraw/types";
 
 export const EXCALIDRAW_PROPS: Partial<ExcalidrawProps> = {
-  zenModeEnabled: false,
+  zenModeEnabled: true, // Hide all UI to get pure drawing canvas
   gridModeEnabled: false,
-  viewBackgroundColor: "#ffffff",
+  viewBackgroundColor: "transparent", // Let page background show through
   theme: "light",
   isCollaborating: false,
   detectScroll: false, // disable internal scroll/pan detection
   handleKeyboardGlobally: false, // we handle keyboard
   autoFocus: false, // prevent focus steal
+  // CRITICAL: Disable view mode to prevent UI overlays
+  viewModeEnabled: false,
+  // CRITICAL: Disable Excalidraw's internal zoom/pan behavior
+  isBindingEnabled: false, // Disable binding interactions
+  allowFullScreen: false, // Prevent fullscreen mode
+  UIOptions: {
+    // Disable ALL canvas actions
+    canvasActions: {
+      changeViewBackgroundColor: false,
+      clearCanvas: false,
+      export: false,
+      loadScene: false,
+      saveToActiveFile: false,
+      toggleTheme: false,
+      saveAsImage: false,
+      // Additional action disables
+      toggleGridMode: false,
+      toggleZenMode: false,
+      toggleStats: false,
+    },
+    // Disable ALL tools in built-in toolbar
+    tools: {
+      image: false,
+      text: false,
+      arrow: false,
+      line: false,
+      rectangle: false,
+      diamond: false,
+      ellipse: false,
+      freedraw: false,
+      eraser: false,
+    },
+    // Disable dock/panels
+    dockedSidebarBreakpoint: 0, // Never show sidebar
+  },
 };
 
 export const INITIAL_APP_STATE: Record<string, unknown> = {

@@ -216,6 +216,13 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
     island.addEventListener('island-ready', handleIslandReady);
     island.addEventListener('excalidraw-ready', handleExcalidrawReady);
 
+    // Check if island is already initialized (race condition fix)
+    if ((island as any).isInitialized) {
+      console.log('[useExcalidrawIsland] Island already initialized, setting ready state');
+      setIsReady(true);
+      onReady?.(island);
+    }
+
     return () => {
       island.removeEventListener('island-ready', handleIslandReady);
       island.removeEventListener('excalidraw-ready', handleExcalidrawReady);
