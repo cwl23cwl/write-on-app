@@ -142,6 +142,85 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
   const setExcalidrawAPI = useCanvasStore((s) => s.setExcalidrawAPI);
   const scale = useViewportStore((s) => s.viewport.scale);
 
+  // CRITICAL: Continuously eliminate any UI overlays that might appear
+  useEffect(() => {
+    if (!ready || !containerRef.current) return;
+
+    const eliminateUIOverlays = () => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      // Find and eliminate Stack_vertical overlays
+      const stackElements = container.querySelectorAll('[class*="Stack"]');
+      stackElements.forEach(el => {
+        if (el instanceof HTMLElement) {
+          el.style.display = 'none';
+          el.style.visibility = 'hidden'; 
+          el.style.opacity = '0';
+          el.style.pointerEvents = 'none';
+          el.style.position = 'absolute';
+          el.style.top = '-9999px';
+          el.style.left = '-9999px';
+        }
+      });
+
+      // Find and eliminate any toolbar/UI elements
+      const uiElements = container.querySelectorAll('[class*="toolbar"], [class*="menu"], [class*="panel"], [class*="ui-"], [class*="overlay"]');
+      uiElements.forEach(el => {
+        if (el instanceof HTMLElement) {
+          el.style.display = 'none';
+          el.style.visibility = 'hidden';
+          el.style.pointerEvents = 'none';
+        }
+      });
+    };
+
+    // Run immediately and on interval to catch dynamically created UI
+    eliminateUIOverlays();
+    const interval = setInterval(eliminateUIOverlays, 100);
+    
+    // Also run on DOM mutations
+    const observer = new MutationObserver(eliminateUIOverlays);
+    observer.observe(container, { 
+      childList: true, 
+      subtree: true, 
+      attributes: true,
+      attributeFilter: ['class', 'style']
+    });
+
+    return () => {
+      clearInterval(interval);
+      observer.disconnect();
+    };
+  }, [ready]);
+
+  // CRITICAL: Prevent Excalidraw from hijacking scroll/zoom events
+  useEffect(() => {
+    if (!ready || !containerRef.current) return;
+
+    const container = containerRef.current;
+    
+    const preventZoomPan = (e: WheelEvent) => {
+      // Allow events to bubble up to parent scaler for proper zoom handling
+      // Don't preventDefault here - let the scaler handle zoom/pan
+      return true;
+    };
+
+    const preventTouchZoom = (e: TouchEvent) => {
+      // Allow touch events to bubble for proper touch handling
+      return true;
+    };
+
+    // Add passive listeners to ensure events bubble properly
+    container.addEventListener('wheel', preventZoomPan, { passive: true });
+    container.addEventListener('touchmove', preventTouchZoom, { passive: true });
+
+    return () => {
+      container.removeEventListener('wheel', preventZoomPan);
+      container.removeEventListener('touchmove', preventTouchZoom);
+    };
+  }, [ready]);
+
   // Minimal imperative API with DPI-aware exports
   useImperativeHandle(ref, () => ({
     async requestExport({ type, dpi }: { type: 'png' | 'svg'; dpi?: number }) {
@@ -365,55 +444,13 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
     };
   }, [ready]); // Use ready instead of apiRef.current
 
-  // Step 7: Intercept zoom/pan events
+  // TEMP: Disable event interception to allow Excalidraw interactions
+  // Step 7: Intercept zoom/pan events - DISABLED FOR DEBUGGING
+  /*
   useEffect(() => {
-    if (!containerRef.current) return;
-    
-    const container = containerRef.current;
-    
-    const onWheel = (e: WheelEvent): void => {
-      const ctrlLike = e.ctrlKey || e.metaKey;
-      if (ctrlLike) {
-        // Block ctrl+wheel zoom from reaching Excalidraw
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
-      // Allow normal scrolling but prevent it from reaching Excalidraw's zoom
-      e.stopPropagation();
-    };
-    
-    const onKeyDown = (e: KeyboardEvent): void => {
-      const ctrlLike = e.ctrlKey || e.metaKey;
-      const key = e.key;
-      
-      // Block zoom keyboard shortcuts
-      if (ctrlLike && (key === '+' || key === '=' || key === '-' || key === '_' || key === '0')) {
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
-      
-      // Block space and 'h' pan shortcuts
-      if (key === ' ' || key.toLowerCase() === 'h') {
-        const target = e.target as Element;
-        const isTyping = target?.closest('input, textarea, [contenteditable="true"]');
-        if (!isTyping) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-      }
-    };
-    
-    // Add event listeners
-    container.addEventListener('wheel', onWheel, { capture: true, passive: false });
-    document.addEventListener('keydown', onKeyDown, { capture: true });
-    
-    return () => {
-      container.removeEventListener('wheel', onWheel, { capture: true });
-      document.removeEventListener('keydown', onKeyDown, { capture: true });
-    };
+    // Event blocking disabled - let Excalidraw handle all events
   }, []);
+  */
 
   useEffect(() => {
     if (containerRef.current && !ready) {
@@ -449,7 +486,8 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
 
   const onChange = useCallback((elements: any[], appState: any, files: any) => {
     // Critical UX enforcement: Remove cross-layer elements from selection
-    const selectedIds = new Set(appState.selectedElementIds || []);
+    const selectedElementIds = appState.selectedElementIds;
+    const selectedIds = new Set(Array.isArray(selectedElementIds) ? selectedElementIds : []);
     const blockedSelections = new Set<string>();
     
     // Check for cross-layer selections and remove them
@@ -527,7 +565,6 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
         <ExcalidrawRef
           ref={handleApiReady}
           initialData={data}
-          viewModeEnabled={readOnly}
           onChange={onChange}
           onPointerUpdate={onPointerUpdate}
           {...EXCALIDRAW_PROPS}

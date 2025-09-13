@@ -4,6 +4,8 @@ import { useEffect, useRef } from "react";
 import { WorkspaceProvider } from "@/components/workspace/WorkspaceProvider";
 import { WorkspaceViewport } from "@/components/workspace/WorkspaceViewport";
 import { WorkspaceScaler } from "@/components/workspace/WorkspaceScaler";
+import { PageWrapper } from "@/components/workspace/PageWrapper";
+import { Page } from "@/components/workspace/Page";
 import { CanvasMount } from "@/components/workspace/CanvasMount";
 import { ChromeLayout } from "@/components/chrome/ChromeLayout";
 import { WorkspaceErrorBoundary } from "@/components/workspace/WorkspaceErrorBoundary";
@@ -104,12 +106,17 @@ export function WorkspaceRoot(): JSX.Element {
         >
           <WorkspaceViewport>
             <WorkspaceScaler>
-              <CanvasMount 
-                mode={mode}
-                writeScope={writeScope}
-                baseScene={baseScene}
-                overlayScene={overlayScene}
-              />
+              <PageWrapper>
+                <Page>
+                  {/* Page content goes here */}
+                </Page>
+                <CanvasMount 
+                  mode={mode}
+                  writeScope={writeScope}
+                  baseScene={baseScene}
+                  overlayScene={overlayScene}
+                />
+              </PageWrapper>
             </WorkspaceScaler>
           </WorkspaceViewport>
         </div>

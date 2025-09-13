@@ -16,19 +16,7 @@ export function WorkspaceScaler({ children }: PropsWithChildren): JSX.Element {
   return (
     <div ref={wrapperRef} className="workspace-scaler">
       <div ref={layerRef} id="workspace-scale-layer" style={{ position: 'absolute', inset: 0 }}>
-        <div
-          className="page-wrapper"
-          style={{
-            backgroundColor: '#fafafa',
-            border: '1px solid #e5e5e5',
-            borderRadius: '8px',
-            boxShadow: '0 1px 2px rgba(0,0,0,0.06)',
-          }}
-        >
-          <div id="excal-host" style={{ width: '100%', height: '100%' }}>
-            {children}
-          </div>
-        </div>
+        {children}
       </div>
     </div>
   );

@@ -58,20 +58,28 @@ export function CanvasMount({
   return (
     <div 
       className={`workspace-canvas-mount ${className ?? ""}`.trim()} 
-      style={{ width: '100%', height: '100%', position: 'relative' }}
+      style={{ 
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%', 
+        height: '100%',
+        zIndex: 1,  // Above the white page background
+        pointerEvents: 'none',  // Allow clicks through to page, re-enable for canvas
+        // Canvas mount positioned above page surface
+        boxSizing: 'border-box'
+      }}
     >
       {/* Step 10: Island container - will be filled by excalidraw-island Web Component */}
       <div
         ref={containerRef}
         className="excalidraw-island-container"
         style={{
-          width: 'var(--page-width)',
-          height: 'var(--page-height)',
+          width: '100%',
+          height: '100%',
           background: '#ffffff',
-          boxShadow: '0 0 6px rgba(0,0,0,0.2)',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          position: 'relative'
+          position: 'relative',
+          pointerEvents: 'auto'  // Re-enable pointer events for Excalidraw
         }}
       />
       

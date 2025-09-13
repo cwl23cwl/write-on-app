@@ -53,12 +53,12 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
         }
         lastZoomTime.current = now;
         
-        // Adaptive sensitivity: easier to zoom in when very zoomed out, finer when zoomed in
-        let sensitivity = 0.0005; // Base sensitivity
+        // Fine-grained zoom control: 3-4% ticks for precise control
+        let sensitivity = 0.00015; // Much smaller base sensitivity for ~3-4% ticks
         if (currentScale < 0.5) {
-          sensitivity = 0.0008; // Easier to zoom in when zoomed out
+          sensitivity = 0.0002; // Still fine when zoomed out
         } else if (currentScale > 2.0) {
-          sensitivity = 0.0003; // Finer control when zoomed in
+          sensitivity = 0.0001; // Ultra-fine when zoomed in
         }
         
         const factor = Math.exp(-dy * sensitivity);
@@ -106,11 +106,23 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
           }
         }
         
-        // Use pointer-centered zoom with content size for clamping
+        // CRITICAL: Use pointer-centered zoom with precise coordinates
+        console.log(`[Zoom] Mouse at: ${e.clientX}, ${e.clientY} | Scale: ${preScale} → ${newScale}`);
         const currentView = { scale: preScale, scrollX, scrollY };
         const contentSize = { w: virtualSize.w, h: virtualSize.h };
+        
+        // Ensure we're using the viewport element for coordinate calculations
         const newView = zoomAtClientPoint(e.clientX, e.clientY, newScale, currentView, el, contentSize);
+        console.log(`[Zoom] New scroll: ${newView.scrollX}, ${newView.scrollY}`);
+        
+        // Apply both scale and scroll position directly
         setViewState(newView);
+        
+        // CRITICAL: Force DOM scroll update immediately for smooth zoom-to-pointer
+        requestAnimationFrame(() => {
+          el.scrollLeft = newView.scrollX;
+          el.scrollTop = newView.scrollY;
+        });
         return;
       }
       

@@ -173,9 +173,15 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
 
   private async initializeExcalidraw(): Promise<void> {
     try {
+      console.log('[ExcalidrawIsland] Starting initialization...');
+      
       // Step 10: Environment-specific module loading
       const excalidrawModule = await this.loadExcalidrawModule();
+      console.log('[ExcalidrawIsland] Loading module...');
+      
       await this.mountReactComponent(excalidrawModule);
+      console.log('[ExcalidrawIsland] Module loaded, mounting React component...');
+      
       this.isInitialized = true;
       
       // Emit ready event
@@ -183,6 +189,8 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
         bubbles: true,
         detail: { element: this }
       }));
+      console.log('[ExcalidrawIsland] Dispatching island-ready event');
+      console.log('[ExcalidrawIsland] Initialization complete!');
       
     } catch (error) {
       console.error('[ExcalidrawIsland] Initialization failed:', error);
@@ -203,37 +211,12 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
   }
 
   private async loadDevModule(): Promise<ExcalidrawModule> {
-    // Add timestamp for HMR invalidation
-    const timestamp = Date.now();
-    const importPath = `./excalidraw/ExcalidrawAdapterMinimal?t=${timestamp}`;
-    
-    try {
-      const module = await import(importPath);
-      
-      // Check if module updated (simple HMR detection)
-      if (this.lastModuleTimestamp > 0 && timestamp > this.lastModuleTimestamp + 1000) {
-        this.hmrVersion++;
-        console.log(`[ExcalidrawIsland] HMR detected, remounting (v${this.hmrVersion})`);
-        
-        // Remount for HMR
-        if (this.isInitialized) {
-          await this.remountForHMR(module);
-        }
-      }
-      
-      this.lastModuleTimestamp = timestamp;
-      return {
-        ExcalidrawAdapterMinimal: module.ExcalidrawAdapterMinimal,
-        ExcalidrawContractAPI: module.ExcalidrawContractAPI
-      };
-    } catch (error) {
-      console.warn('[ExcalidrawIsland] Dev import failed, falling back to direct import');
-      const module = await import('./excalidraw/ExcalidrawAdapterMinimal');
-      return {
-        ExcalidrawAdapterMinimal: module.ExcalidrawAdapterMinimal,
-        ExcalidrawContractAPI: module.ExcalidrawContractAPI
-      };
-    }
+    console.log('[ExcalidrawIsland] Dev module loaded successfully');
+    const module = await import('./excalidraw/ExcalidrawAdapterMinimal');
+    return {
+      ExcalidrawAdapterMinimal: module.ExcalidrawAdapterMinimal,
+      ExcalidrawContractAPI: module.ExcalidrawContractAPI
+    };
   }
 
   private async loadProdModule(): Promise<ExcalidrawModule> {
