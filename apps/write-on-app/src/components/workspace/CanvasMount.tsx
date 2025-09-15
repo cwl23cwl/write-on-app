@@ -66,32 +66,33 @@ export function CanvasMount({
   }, []);
 
   return (
-    <div 
-      className={`workspace-canvas-mount ${className ?? ""}`.trim()} 
-      style={{ 
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%', 
-        height: '100%',
-        zIndex: 1,  // Above the white page background
-        pointerEvents: 'none',  // Allow clicks through to page, re-enable for canvas
-        // Canvas mount positioned above page surface
-        boxSizing: 'border-box'
-      }}
-    >
-      {/* Step 10: Island container - will be filled by excalidraw-island Web Component */}
-      <div
-        ref={containerRef}
-        className="excalidraw-island-container"
-        style={{
-          width: '100%',
+      <div 
+        className={`workspace-canvas-mount ${className ?? ""}`.trim()} 
+        style={{ 
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%', 
           height: '100%',
-          background: '#ffffff',
-          position: 'relative',
-          pointerEvents: 'auto'  // Re-enable pointer events for Excalidraw
+          zIndex: 1,  // Above the white page background
+          pointerEvents: 'none',  // Allow clicks through to page, re-enable for canvas
+          // Canvas mount positioned above page surface
+          boxSizing: 'border-box'
         }}
-      />
+      >
+        {/* Step 10: Island container - will be filled by excalidraw-island Web Component */}
+        <div
+          id="excal-host"
+          ref={containerRef}
+          className="excalidraw-island-container"
+          style={{
+            width: '100%',
+            height: '100%',
+            background: '#ffffff',
+            position: 'relative',
+            pointerEvents: 'auto'  // Re-enable pointer events for Excalidraw
+          }}
+        />
       
       {/* Loading state */}
       {!isReady && (
