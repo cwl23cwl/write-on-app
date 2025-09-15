@@ -93,7 +93,7 @@ export const useCanvasStore = create<CanvasStore>()(
         const logicalWidth = Math.max(0, Math.round(rect.width));
         const logicalHeight = Math.max(0, Math.round(rect.height));
         const dpr = getDpr();
-        const zoom = (() => { try { return useViewportStore.getState().viewport.scale || 1; } catch { return 1; } })();
+        const zoom = (() => { try { const z = useViewportStore.getState().viewport.scale; return (z ?? 1); } catch { return 1; } })();
         const physicalWidth = Math.max(0, Math.round(logicalWidth * dpr * zoom));
         const physicalHeight = Math.max(0, Math.round(logicalHeight * dpr * zoom));
 

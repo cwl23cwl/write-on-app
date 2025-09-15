@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { useViewportEvents } from "@/components/workspace/hooks/useViewportEvents";
 import { useInitialHorizontalCenter } from "@/components/workspace/hooks/useInitialHorizontalCenter";
 import { useKeyboardZoom } from "@/components/workspace/hooks/useKeyboardZoom";
+import { useWorkspaceContext } from "@/components/workspace/WorkspaceProvider";
 import { useViewportStore } from "@/state";
 
 type Props = {
@@ -15,6 +16,8 @@ type Props = {
 // It establishes the virtual workspace area and hosts input listeners.
 export function WorkspaceViewport({ className, children }: Props): JSX.Element {
   const containerRef = useRef<HTMLDivElement | null>(null);
+  // Scroll container should be the workspace-root provided by context
+  const { containerRef: rootRef } = useWorkspaceContext();
   const setViewportSize = useViewportStore((s) => s.setViewportSize);
   const viewportSize = useViewportStore((s) => s.viewport.viewportSize);
   const pageSize = useViewportStore((s) => s.viewport.pageSize);
@@ -22,9 +25,9 @@ export function WorkspaceViewport({ className, children }: Props): JSX.Element {
   const setScale = useViewportStore((s) => s.setScale);
   const setFitMode = useViewportStore((s) => s.setFitMode);
   
-  useViewportEvents(containerRef);
-  useInitialHorizontalCenter(containerRef); // Re-enabled for proper horizontal centering
-  useKeyboardZoom(containerRef);
+  useViewportEvents(rootRef);
+  useInitialHorizontalCenter(rootRef); // Proper horizontal centering on the scroll container
+  useKeyboardZoom(rootRef);
 
   // Phase 3: Measure viewport size and store it
   useEffect(() => {
