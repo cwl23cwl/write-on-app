@@ -58,9 +58,28 @@ export function CanvasMount({
 
   // Mount island once on component mount, cleanup on unmount
   useEffect(() => {
+    const w = typeof window !== 'undefined' ? (window as any) : undefined;
+    if (w) {
+      if (w.__WRITEON_CANVAS_HOST_MOUNTED__) {
+        if (DEBUG_EXCALIDRAW) console.warn('[CanvasMount] Another interactive host is already mounted; skipping mount');
+        return () => {};
+      }
+      w.__WRITEON_CANVAS_HOST_MOUNTED__ = true;
+      // Dev sanity: warn if duplicate hosts exist in DOM
+      try {
+        const hosts = document.querySelectorAll('#excal-host');
+        if (hosts.length > 1 && DEBUG_EXCALIDRAW) {
+          console.warn('[CanvasMount] Detected multiple #excal-host elements in DOM:', hosts.length);
+        }
+      } catch {}
+    }
+
     mount();
     return () => {
       unmount();
+      if (w) {
+        try { w.__WRITEON_CANVAS_HOST_MOUNTED__ = false; } catch {}
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
