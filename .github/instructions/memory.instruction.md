@@ -6,77 +6,47 @@ applyTo: '**'
 
 ## User Preferences
 - Programming languages: TypeScript, React, Next.js
-- Code style preferences: Concise, componentized, TailwindCSS utility classes
-- Development environment: Monorepo (Turborepo), pnpm, Prisma ORM
-- Communication style: Concise status updates, step-by-step execution
+- Code style preferences: Concise, modular, robust error handling
+- Development environment: pnpm, Turborepo, Prisma ORM (assumed), Next.js app router
+- Communication style: Concise updates, actionable steps
 
 ## Project Context
-- Current project type: Web app with canvas workspace
-- Tech stack: Next.js + React + Tailwind, Excalidraw vendor tree
-- Architecture patterns: WorkspaceRoot (scroll owner), sticky chrome inside scroller, WorkspaceViewport (no transforms), WorkspaceScaler (Phase 3 transforms), CanvasMount adapter
-- Key requirements: Page-only scroll, crisp ink, no overlays blocking input, sticky toolbars never scale
+- Current project type: Web app (monorepo) with Next.js app router
+- Tech stack: React 19, Next 15, Excalidraw integration via custom island/web component
+- Architecture patterns: Hooks + adapters + custom web component (`ExcalidrawIsland`)
+- Key requirements: Fix runtime ReferenceError in `ExcalidrawAdapterMinimal`, stabilize mount/unmount
 
-## Cross-Browser & Mobile Guardrails
-- All implementations must be verified in **Chrome, Firefox, and Safari** to ensure consistent layout, zoom, scroll, and pointer math.
-- Watch for engine quirks:
-  - **Firefox**: `deltaMode` line vs pixel normalization; `position: fixed` inside transforms breaks; strict pointer capture discipline.
-  - **Safari**: Trackpad pinch sets `ctrlKey`; fractional DPR must be respected; safe-area insets (env constants) for iOS notch.
-  - **Chrome/Edge**: Consistent default, but must not rely on Chrome-only behaviors.
-- **Mobile integration**:  
-  - Respect `dvh`/`vh` differences (`height: 100dvh` fallback).  
-  - Use safe-area insets for headers/controls.  
-  - Ensure toolbars remain pinned and do not scale with workspace zoom.  
-  - `touch-action: none` on canvas while drawing; prevent passive scrolling only when zoom gestures are handled.  
-  - Excalidraw adapter should degrade gracefully on touch devices (pointer events vs touch events).
-  
 ## Coding Patterns
-- Prefer sticky chrome as direct children of scroll container
-- Avoid transforms on sticky ancestors; apply zoom only on scaler (Phase 3)
-- Keep canvas inputs unobstructed (no fixed overlays intercepting events)
+- Preferred patterns and practices: Hooks with refs, defensive guards, cleanup in effects
+- Code organization preferences: Separate hooks/adapters/components
+- Testing approaches: Manual runtime verification in dev; console logs present
+- Documentation style: Inline JSDoc minimal
 
 ## Context7 Research History
-- Libraries researched on Context7: N/A (internal docs used)
-- Best practices discovered: Place sticky chrome inside scroll container; avoid transforms on ancestors
-- Implementation patterns used: WorkspaceRoot owns scroll; WorkspaceViewport (no transforms) > WorkspaceScaler > CanvasMount
-- Version-specific findings: N/A
+- Libraries researched on Context7: N/A (network restricted in this environment)
+- Best practices discovered: N/A
+- Implementation patterns used: UseRef for containers; effect guards against null
+- Version-specific findings: React 19/Next 15 concurrent effects require effect safety
 
 ## Conversation History
-- Phase 2 Step 0: Completed – WorkspaceRoot is the sole scroll container; sticky chrome are direct children (fragment); components renamed (AppHeader, WorkspaceViewport, WorkspaceScaler); removed transforms from viewport; updated ESLint plugin allowances.
-- Phase 2 Step 1: Completed – WorkspaceRoot set to 100vh with overflow:auto; sticky positions use CSS variables (--h-header, --h-top); TopToolbar/OptionsToolbar/PageIndicator use correct z-index and top calc; PageIndicator right-aligned via self-end; WorkspaceViewport has no transforms; WorkspaceScaler reserved for future scale(). No transforms/filters on sticky ancestors.
-- Phase 2 Step 2: Completed – Defined CSS custom properties on WorkspaceRoot: --h-header, --h-top, --h-opts, --h-chrome, --gutter-right, --z-header, --z-toolbar, --page-padding. Updated chrome components to use z-index/top via vars. Adjusted WorkspaceViewport padding to reserve right gutter and apply horizontal page padding.
-- Phase 2 Step 3: Completed – Added ResizeObserver-based hook to dynamically measure AppHeader, TopToolbar, and OptionsToolbar heights and update CSS variables on WorkspaceRoot, ensuring --h-chrome stays accurate across layout changes and localization.
-- Phase 2 Step 3 (refined): Updated useMeasureCssVar to:
-  - Stop rewriting --h-chrome (CSS calc owns it)
-  - Use requestAnimationFrame with coalesced single write per frame
-  - Avoid rounding; write exact pixel values
-  - Keep RO + throttled window resize with rAF scheduling
-  - Null-safe cleanup with unobserve + disconnect
-  - Enforce single-writer policy for atomic vars (--h-header|--h-top|--h-opts)
-- Phase 2 Step 4: Completed – WorkspaceRoot is the only scroller with height:100vh, overflow:auto, overscroll-behavior:contain; applied contain: layout paint style; added opaque background via --workspace-bg to prevent sticky transparency artifacts; no transforms added.
-- Phase 2 Step 5: Completed – Implemented PageIndicatorRow sticky placement; PageIndicator pill centered, intrinsic width with 36px min-height, 16px horizontal padding, min-width 120px, max-width 70vw, rounded-full, solid background and subtle border; keyboard handlers (Left/Right = prev/next page, Enter opens dropdown, Esc closes); 32px hit targets for controls; no wheel listeners to allow page scroll; respects prefers-reduced-motion by avoiding animations; added usePageStore for page state with single-writer policy.
-- Phase 2 Step 6: Completed – WorkspaceViewport adds padding-top: var(--h-chrome) and symmetric horizontal padding via --page-padding; no right gutter needed per centered PageIndicator; no transforms applied.
-- Phase 2 Step 7: Completed – WorkspaceScaler future-proofed with transform-origin: top left and will-change: transform; no overflow or scroll behavior set.
-- Phase 2 Step 8: Completed – CanvasMount sizes to container with width:100% and height: var(--page-height); ensured no page-level wheel capture beyond adapter redirection; Excalidraw internal zoom prevented and page scroll allowed when cursor over canvas.
-- Phase 2 Step 9: Completed – Enforced z-index tokens: header 50, toolbars 40, indicator 40; avoided new stacking contexts on WorkspaceViewport/Scaler.
-- Phase 2 Step 10: Completed – Introduced --gutter-right (64px); WorkspaceViewport padding-right reserves gutter; added PageIndicatorRail sticky right rail hosting the pill.
-- Phase 2 Step 11: Completed – Added contain: layout paint style on sticky bars and WorkspaceRoot; avoided heavy shadows; border separators used.
-- Phase 2 Step 12: Noted responsive behavior – RO-driven offsets keep correctness; future collapse of OptionsToolbar possible without code change; vars remain accurate.
-- Phase 2 Step 13: Verified event flow – no wheel/touchmove preventDefault unless zoom-modified; page scroll remains owned by WorkspaceRoot; Excalidraw globals scoped via adapter.
-
- - 2025-09-06: Control strip converted to a single fixed container (.control-strip) spanning full width (z-index 1000). Removed per-child sticky from AppHeader, TopToolbar, OptionsToolbar, and PageIndicatorRow to avoid nested sticky complexities. Implemented vertical gaps via CSS vars: TopToolbar margin-top var(--gap-header-top), OptionsToolbar margin-top var(--gap-top-opts), and PageIndicator pill margins var(--gap-indicator-above/below). WorkspaceViewport offsets content with padding-top: var(--h-stack), keeping the workspace clear under the fixed strip. useMeasureCssVar continues to write --h-header/--h-top/--h-opts/--h-indicator. Build succeeded with Next.js 15.5.2 (Turbopack).
-   - Cross-browser hardening: replaced contain: 'layout paint style' with 'layout paint' for Safari/Firefox compatibility; added .chrome-header safe-area insets (env/constant) so header measurement includes iOS notch; added dvh fallback (height: 100vh; height: 100dvh) on .workspace-root; guarded ResizeObserver usage in useMeasureCssVar to avoid crashes on older engines.
-- 2025-09-07: Freeze CSS for control strip — added !important to position, top, left, right, and z-index in apps/write-on-app/src/app/globals.css to prevent future overrides; retained width:100% and visual styles. This locks the strip to viewport top and ensures it never scales with the workspace.
-- 2025-09-07: Pad workspace root via variable — moved top offset from WorkspaceViewport to .workspace-root (padding-top: var(--control-strip-height, 160px)). Added alias --control-strip-height: var(--h-stack) in globals.css and a ResizeObserver in WorkspaceRoot to set --control-strip-height from the actual .control-strip offsetHeight. Keeps one-way dependency: strip height drives scroll area padding.
- - 2025-09-07: Z-index discipline — added Z constants (apps/write-on-app/src/constants/zIndex.ts) with CONTROL_STRIP=1000 and WORKSPACE=0. CSS now uses var(--z-control-strip, 1000) for .control-strip with !important. Added Vitest + jsdom test (src/test/controlStripDom.test.tsx) asserting the control strip is never inside .workspace-scaler; included test setup with ResizeObserver stub.
-
- - 2025-09-07: Guardrail added to lock DOM structure for control strip. Implemented runtime assertion in WorkspaceRoot (useEffect) that warns if `.control-strip` is ever rendered inside `.workspace-scaler` (console.warn: "Control strip is inside a scaler — move it out!"). Verified current structure keeps <ChromeLayout /> rendered above the scroll container and <WorkspaceScaler /> nested under <WorkspaceViewport />, ensuring the strip remains outside any future zoom transforms.
+- Important decisions made: Target bug `container is not defined` at `ExcalidrawAdapterMinimal.tsx:184`
+- Recurring questions or topics: Excalidraw initialization, island ready events
+- Solutions that worked well: To be determined
+- Things to avoid or that didn't work: Accessing variables not defined in scope
 
 ## Notes
-- Source reference: docs/CANVAS ARCHITECTURE.md (internal)
-- Renames: Header -> AppHeader, ViewportContainer -> WorkspaceViewport, CanvasScaler -> WorkspaceScaler
-- 2025-09-08: Final approach for gap beneath PageIndicator: keep strip stack stable (`--gap-indicator-below` at 12px), and add unscaled content offset via `.workspace-scaler { margin-top: var(--content-top-gap, 7px) }` with inline seed `--content-top-gap: 7px` on WorkspaceRoot. Reverted earlier 19px change. All Vitest checks passed.
-- 2025-09-08: Fixed logical page size under zoom: removed `#excal-host` crispness override (inverse transform + CSS zoom) so only `#workspace-scale-layer` applies scaling; the canvas mount/page remains logically 1200x2200 CSS px at any zoom. Added test `src/test/fixedLogicalSize.test.tsx` asserting the `.phase2-page` stays `1200x2200` across zoom changes. All tests passing.
-- 2025-09-08: Horizontal centering: added `useInitialHorizontalCenter` hook and applied in `WorkspaceViewport` to center the page horizontally on initial mount (reads `--page-width` and scale, sets `scrollLeft` accordingly). Keeps the page aligned under the centered PageIndicator. Tests remain green.
-- 2025-09-08: Always re-center: extended centering to run on window resize, viewport ResizeObserver, and zoom `scale` changes so the page remains horizontally centered under the PageIndicator at all times. Tests remain green.
-- 2025-09-08: Zoom controls: added multiplicative zoomIn/zoomOut (~5% factor 1.05) in `useViewportStore`, changed constraints to minScale=0.5, maxScale=3.0. Updated wheel zoom to use smooth continuous factor `Math.exp(-dy*0.0018)` and removed cursor anchoring; global recenter keeps canvas aligned. Keyboard shortcuts now call zoomIn/zoomOut. All tests pass.
- - 2025-09-08: Zoom tuning per spec: step factor set to 1.03 (~3%) for zoomIn/zoomOut; wheel zoom uses `Math.exp(-dy*0.0015)` for gradual changes. Added Zoom +/- buttons with live percent readout in TopToolbar. Re-centering on scale change keeps CanvasMount centered. Sticky chrome unaffected. Tests pass.
+- Fixed undefined `container` in adapter by guarding with `containerRef.current` in mutation observer.
+- Gated adapter `ready` state on actual Excalidraw API readiness; removed container-based ready effect.
+- Removed forced `api.setZoom(1)`; zoom remains under host scaler control (avoids fighting external scaling).
+- Switched overlay elimination observer to `useLayoutEffect` and guaranteed cleanup (disconnect + clearInterval).
+- Island now dispatches `island-ready` only after adapter’s `onReady` fires; sets `isInitialized` at that time.
+- Added lightweight error boundary around adapter render in `ExcalidrawIsland`.
+- Prevented multi-mount spam via `mountedRef` guard in `useExcalidrawIsland`; `CanvasMount` now mounts once with proper cleanup.
+- Added shadow DOM style so host and container fill available space (`:host{display:block;width:100%;height:100%}` and `.container{width:100%;height:100%;position:relative}`).
+- Ensured adapter and inner Excalidraw root have `width:100%; height:100%`.
+- Added cleanup symmetry: interval + MutationObserver disconnect, event listeners removal, API ref nulling on unmount.
+- Ready contract unified: only `island-ready` is dispatched, carrying `{ api, element }`; the hook listens to one event and sets both `isReady` and `excalidrawAPI`.
+- Added listener management in island via `addListener` with stored disposers; `cleanup()` iterates and removes all, making unmount idempotent.
+- Island mount is idempotent: reuses a single `[data-exc-island-root]` container, unmounts any existing React root before remounting; prevents multiple canvas roots.
+- Excalidraw import hardening: resolve both `default` and named `Excalidraw` exports and render the resolved component directly to ensure ref delivery.
+- Logging now gated by `NEXT_PUBLIC_EXCALIDRAW_DEBUG=1`; default logs suppressed to reduce noise. Dev diagnostics removed from island render.

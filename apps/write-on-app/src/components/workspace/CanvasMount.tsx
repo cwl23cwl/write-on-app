@@ -26,6 +26,9 @@ export function CanvasMount({
   initialScene 
 }: Props): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
+  const DEBUG_EXCALIDRAW = process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1';
+  const loggedReadyRef = useRef<boolean>(false);
+  const loggedApiRef = useRef<boolean>(false);
   
   const {
     mount,
@@ -39,21 +42,28 @@ export function CanvasMount({
     writeScope,
     baseScene: baseScene || initialScene, // Legacy support
     overlayScene,
-    onReady: (element) => {
-      console.log('[CanvasMount] Excalidraw Island ready');
+    onReady: () => {
+      if (DEBUG_EXCALIDRAW && !loggedReadyRef.current) {
+        console.log('[CanvasMount] Excalidraw Island ready');
+        loggedReadyRef.current = true;
+      }
     },
-    onExcalidrawReady: (api) => {
-      console.log('[CanvasMount] Excalidraw API ready');
+    onExcalidrawReady: () => {
+      if (DEBUG_EXCALIDRAW && !loggedApiRef.current) {
+        console.log('[CanvasMount] Excalidraw API ready');
+        loggedApiRef.current = true;
+      }
     }
   });
 
-  // Mount island on component mount
+  // Mount island once on component mount, cleanup on unmount
   useEffect(() => {
     mount();
     return () => {
       unmount();
     };
-  }, [mount, unmount]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div 
