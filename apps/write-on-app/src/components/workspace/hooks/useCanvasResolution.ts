@@ -30,18 +30,15 @@ export function useCanvasResolution(): void {
   const currentDPR = useRef<number>(typeof window !== "undefined" ? window.devicePixelRatio : 1);
 
   const refreshSurface = (): void => {
-    // Find canvas element - Excalidraw creates its own canvas inside the container
-    let canvasElement = canvas;
-    if (!canvasElement && container) {
-      canvasElement = (container as HTMLElement).querySelector('canvas');
-    }
-    
-    if (!canvasElement || !container) return;
+    // Ensure container exists
+    if (!container) return;
+    // Determine page wrapper for logical (unscaled) dimensions
+    const pageEl = (container as HTMLElement).closest('.page-wrapper') as HTMLElement | null;
+    const sizeEl = pageEl ?? (container as HTMLElement);
 
-    // Get logical dimensions from container
-    const rect = (container as HTMLElement).getBoundingClientRect();
-    const logicalWidth = Math.max(0, Math.round(rect.width));
-    const logicalHeight = Math.max(0, Math.round(rect.height));
+    // Get logical (unscaled) dimensions using clientWidth/Height
+    const logicalWidth = Math.max(0, Math.round(sizeEl.clientWidth));
+    const logicalHeight = Math.max(0, Math.round(sizeEl.clientHeight));
 
     if (logicalWidth === 0 || logicalHeight === 0) return;
 
@@ -50,7 +47,7 @@ export function useCanvasResolution(): void {
   const rawEffectiveDPR = deviceDPR * (scale ?? 1);
     const effectiveDPR = Math.max(0.75, Math.min(rawEffectiveDPR, 3));
 
-    // Compute integer backing dimensions
+    // Compute integer backing store dimensions (CSS size * effectiveDPR)
     let backingWidth = Math.round(logicalWidth * effectiveDPR);
     let backingHeight = Math.round(logicalHeight * effectiveDPR);
 
@@ -88,22 +85,17 @@ export function useCanvasResolution(): void {
     lastComputedRef.current = { backingWidth, backingHeight, effectiveDPR };
 
     try {
-      // Set canvas backing store dimensions
-      if (canvasElement.width !== backingWidth) canvasElement.width = backingWidth;
-      if (canvasElement.height !== backingHeight) canvasElement.height = backingHeight;
-
-      // Maintain logical CSS size (don't override page wrapper sizing)
-      // The page wrapper controls the logical size at 1200x2200
-      
-      // Update drawing context scale for correct logical-to-device mapping
-      const ctx = canvasElement.getContext('2d');
-      if (ctx) {
-        // Reset transform and set scale
-        ctx.setTransform(effectiveDPR, 0, 0, effectiveDPR, 0, 0);
-        
-        // Snap to device pixels for crisp rendering
-        ctx.imageSmoothingEnabled = false; // Disable antialiasing for pixel-perfect rendering
-      }
+      // Update all canvases inside the Excalidraw container (static + interactive)
+      const canvases = (container as HTMLElement).querySelectorAll('canvas');
+      canvases.forEach((cv) => {
+        if ((cv as HTMLCanvasElement).width !== backingWidth) (cv as HTMLCanvasElement).width = backingWidth;
+        if ((cv as HTMLCanvasElement).height !== backingHeight) (cv as HTMLCanvasElement).height = backingHeight;
+        const ctx = (cv as HTMLCanvasElement).getContext('2d');
+        if (ctx) {
+          ctx.setTransform(effectiveDPR, 0, 0, effectiveDPR, 0, 0);
+          ctx.imageSmoothingEnabled = false;
+        }
+      });
 
       // Update canvas store resolution state
       useCanvasStore.getState().setCanvasResolution?.({

@@ -158,6 +158,21 @@ body {
   max-height: none !important;
 }
 
+/* Force canvas CSS box to logical page size (via 100% of container) */
+.excalidraw-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Some Excalidraw builds apply inline sizes; override to keep CSS size stable */
+.excalidraw .excalidraw__canvas,
+.excalidraw .excalidraw__canvas canvas {
+  width: 100% !important;
+  height: 100% !important;
+  max-width: none !important;
+  max-height: none !important;
+}
+
 /* Phase 2: allow the scale layer to visually scale the entire page;
    do not apply counter-transforms on the canvas host so its logical
    size remains 1200x2200 CSS pixels regardless of zoom. */
