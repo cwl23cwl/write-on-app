@@ -33,8 +33,12 @@ export function clampScrollPosition(
   const maxX = maxScrollX + gutter;
   const maxY = maxScrollY + gutter;
 
-  const clampedX = Math.max(minX, Math.min(scrollX, maxX));
-  const clampedY = Math.max(minY, Math.min(scrollY, maxY));
+  let clampedX = Math.max(minX, Math.min(scrollX, maxX));
+  let clampedY = Math.max(minY, Math.min(scrollY, maxY));
+
+  // Quantize away near-zero floating point drift
+  if (Math.abs(clampedX) < 0.5) clampedX = 0;
+  if (Math.abs(clampedY) < 0.5) clampedY = 0;
 
   return { scrollX: clampedX, scrollY: clampedY };
 }
