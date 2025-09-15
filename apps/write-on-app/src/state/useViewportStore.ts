@@ -8,6 +8,9 @@ import type { ViewportStore } from "@/types/state";
 const getDpr = (): number =>
   typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 3) : 1;
 
+// Scrollable gutter around the page (CSS pixels on each side)
+const PAGE_GUTTER = 64;
+
 const initialState: Pick<ViewportStore, "viewport" | "interactions" | "constraints" | "viewportReady"> = {
   viewport: {
     scale: 1,
@@ -23,7 +26,7 @@ const initialState: Pick<ViewportStore, "viewport" | "interactions" | "constrain
     // Phase 3: viewport and page sizing
     viewportSize: { w: 0, h: 0 },
     pageSize: { w: 1200, h: 2200 },
-    virtualSize: { w: 1280, h: 2280 }, // page + padding (40+40, 40+40)
+    virtualSize: { w: 1200 + 2 * PAGE_GUTTER, h: 2200 + 2 * PAGE_GUTTER },
     fitMode: 'fit-width' as const,
     step: 0.1,
   },
@@ -160,10 +163,10 @@ export const useViewportStore = create<ViewportStore>()(
         setPageSize: (w: number, h: number): void =>
           set((s) => {
             s.viewport.pageSize = { w: Math.max(0, Math.round(w)), h: Math.max(0, Math.round(h)) };
-            // Update virtual size: page + padding (40px each side, 40px top, 40px bottom)
+            // Update virtual size: page + scrollable gutters on all sides
             s.viewport.virtualSize = { 
-              w: s.viewport.pageSize.w + 80,  // 40 + 40
-              h: s.viewport.pageSize.h + 80   // 40 + 40
+              w: s.viewport.pageSize.w + 2 * PAGE_GUTTER,
+              h: s.viewport.pageSize.h + 2 * PAGE_GUTTER
             };
           }, false, "viewport/setPageSize"),
 
@@ -203,6 +206,11 @@ export const useViewportStore = create<ViewportStore>()(
           const state = useViewportStore.getState();
           return Math.round(state.viewport.scale * 100);
         },
+
+        setViewportReady: (ready: boolean): void =>
+          set((s) => {
+            s.viewportReady = ready;
+          }, false, "viewport/setViewportReady"),
       })),
       {
         name: "writeon-viewport",
@@ -228,7 +236,3 @@ export const useViewportStore = create<ViewportStore>()(
     { enabled: devtoolsEnabled, name: "ViewportStore" }
   )
 );
-        setViewportReady: (ready: boolean): void =>
-          set((s) => {
-            s.viewportReady = ready;
-          }, false, "viewport/setViewportReady"),

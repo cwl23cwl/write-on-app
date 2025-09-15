@@ -23,6 +23,7 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
   const currentScale = useViewportStore((s) => s.viewport.scale);
   const scrollX = useViewportStore((s) => s.viewport.scrollX);
   const scrollY = useViewportStore((s) => s.viewport.scrollY);
+  const viewportReady = useViewportStore((s) => (s as any).viewportReady ?? false);
   const activeTool = useCanvasStore((s) => s.tools.activeTool);
   
   // Delta accumulation for fine zoom control
@@ -41,6 +42,8 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
       }
       return 0;
     }
+    // Quantize away near-zero drift
+    if (Math.abs(v) < 0.5) return 0;
     return v;
   };
 
@@ -68,7 +71,11 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
       const isZoomIntent = e.ctrlKey || e.metaKey;
       
       if (isZoomIntent) {
-        // Always prevent default for zoom intents
+        // If viewport not ready, skip zoom handling to avoid undefined scroll math
+        if (!viewportReady) {
+          return;
+        }
+        // Prevent default for zoom intents only when ready
         e.preventDefault();
         e.stopPropagation();
         
@@ -156,6 +163,7 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
 
     // Safari gesture events for pinch zoom
     const onGestureStart = (e: any): void => {
+      if (!viewportReady) return;
       e.preventDefault();
       e.stopPropagation();
       
@@ -171,6 +179,7 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
     };
 
     const onGestureChange = (e: any): void => {
+      if (!viewportReady) return;
       e.preventDefault();
       e.stopPropagation();
       

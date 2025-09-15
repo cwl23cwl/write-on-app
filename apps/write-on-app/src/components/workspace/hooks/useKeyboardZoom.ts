@@ -17,6 +17,7 @@ export function useKeyboardZoom(containerRef: React.RefObject<HTMLDivElement | n
   const viewportSize = useViewportStore((s) => s.viewport.viewportSize);
   const pageSize = useViewportStore((s) => s.viewport.pageSize);
   const virtualSize = useViewportStore((s) => s.viewport.virtualSize);
+  const viewportReady = useViewportStore((s) => (s as any).viewportReady ?? false);
   const rafSyncRef = useRef<number | null>(null);
   
   // Access to shared cumulative deviation tracking
@@ -42,7 +43,9 @@ export function useKeyboardZoom(containerRef: React.RefObject<HTMLDivElement | n
       const k = e.key;
       if (!(k === '+' || k === '=' || k === '-' || k === '_' || k === '0')) return;
       
-      // Always prevent default for zoom intents
+      // Gate zoom until viewport is hydrated
+      if (!viewportReady) return;
+      // Always prevent default for zoom intents when ready
       e.preventDefault();
       e.stopPropagation();
       
@@ -95,7 +98,11 @@ export function useKeyboardZoom(containerRef: React.RefObject<HTMLDivElement | n
       const newView = zoomAtClientPoint(clientX, clientY, nextScale, currentView, (viewportEl ?? rootEl), contentSize);
 
       // Sanity guard: reject junk scroll values
-      const sanitize = (v: number) => (!Number.isFinite(v) || Math.abs(v) > 100000) ? 0 : v;
+      const sanitize = (v: number) => {
+        if (!Number.isFinite(v) || Math.abs(v) > 100000) return 0;
+        if (Math.abs(v) < 0.5) return 0;
+        return v;
+      };
       const view = {
         scale: newView.scale,
         scrollX: sanitize(newView.scrollX),

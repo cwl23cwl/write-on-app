@@ -8,27 +8,10 @@ import { useEffect } from "react";
  */
 export function useControlStripEventBlock(): void {
   useEffect(() => {
-    const onWheel = (e: WheelEvent): void => {
-      const isZoomIntent = e.ctrlKey || e.metaKey;
-      
-      if (!isZoomIntent) {
-        // Not a zoom intent, let it proceed normally
-        return;
-      }
-
-      // Check if the event originated from the control strip
-      const target = e.target as Element;
-      const isFromControlStrip = target && target.closest('.control-strip');
-      
-      if (!isFromControlStrip) {
-        // Not from control strip, let other handlers deal with it
-        return;
-      }
-
-      // This is a control strip zoom event - block it completely
-      e.preventDefault();
-      e.stopPropagation();
-      // Do nothing - control strip is zoom-inert
+    const onWheel = (_e: WheelEvent): void => {
+      // Passive listener: never call preventDefault here.
+      // Plain wheel should bubble to scroll the page.
+      // Ctrl/Meta+wheel will be handled by the workspace root zoom listener.
     };
 
     const onKeyDown = (e: KeyboardEvent): void => {
@@ -52,7 +35,7 @@ export function useControlStripEventBlock(): void {
     };
 
     // Use capture phase to intercept before any other handlers
-    document.addEventListener('wheel', onWheel, { capture: true, passive: false });
+    document.addEventListener('wheel', onWheel, { capture: true, passive: true });
     document.addEventListener('keydown', onKeyDown, { capture: true });
 
     return () => {
