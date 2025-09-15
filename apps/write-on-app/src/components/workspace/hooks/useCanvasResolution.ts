@@ -90,6 +90,13 @@ export function useCanvasResolution(): void {
       canvases.forEach((cv) => {
         if ((cv as HTMLCanvasElement).width !== backingWidth) (cv as HTMLCanvasElement).width = backingWidth;
         if ((cv as HTMLCanvasElement).height !== backingHeight) (cv as HTMLCanvasElement).height = backingHeight;
+        // Ensure CSS box stays at container size; do not encode DPR in CSS
+        try {
+          (cv as HTMLCanvasElement).style.width = '100%';
+          (cv as HTMLCanvasElement).style.height = '100%';
+          (cv as HTMLCanvasElement).style.maxWidth = 'none';
+          (cv as HTMLCanvasElement).style.maxHeight = 'none';
+        } catch {}
         const ctx = (cv as HTMLCanvasElement).getContext('2d');
         if (ctx) {
           ctx.setTransform(effectiveDPR, 0, 0, effectiveDPR, 0, 0);

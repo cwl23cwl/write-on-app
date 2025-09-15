@@ -121,9 +121,11 @@ body {
 /* Scaled-size spacer and transform layer */
 .workspace-scaler {
   position: relative;
-  /* Spacer sized to scaled virtual size (page + padding) so scrollbars reflect visual size */
-  width: calc(var(--virtual-width, 1500px) * var(--workspace-zoom, 1));
-  height: calc(var(--virtual-height, 2550px) * var(--workspace-zoom, 1));
+  /* Spacer sized to UN-SCALED virtual size (page + padding) */
+  width: var(--virtual-width, 1500px);
+  height: var(--virtual-height, 2550px);
+  /* Apply zoom only via transform on the scaler */
+  transform: scale(var(--workspace-zoom, 1));
   transform-origin: top left;
 }
 
