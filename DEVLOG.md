@@ -1,5 +1,73 @@
 # Development Log - Write-On-App
 
+## Phase 5: Viewport + Excalidraw Stabilization
+
+### 2025-09-15 — Pointer-Centered Zoom, Single Scroll Source, Unified Readiness
+
+**Branch**: `canvas-api-done-no-tools`  
+**Latest Commit**: `49e17e3` — passive wheel on control strip; non-passive viewport wheel for zoom-intent; scaler transform-origin top-left
+
+#### Summary
+Stabilized the Excalidraw integration and the workspace viewport. Fixed runtime errors, unified readiness signaling, enforced a single interactive host, corrected DOM structure, centered the page via the viewport, made zoom/scroll behavior consistent and pointer-centered, and ensured crisp canvas rendering by applying DPI only to backing store. Also hid vendor UI overlays, preserved zero values with nullish coalescing, added real-bounds clamping with gutters, and introduced viewport readiness gating.
+
+---
+
+#### ✅ Stability and Error Handling
+- Fixed `ReferenceError: container is not defined` in `ExcalidrawAdapterMinimal` (use `containerRef.current`; guard `MutationObserver`).
+- Added an error boundary around the adapter in `ExcalidrawIsland` with a safe fallback UI.
+- Ensured consistent cleanup and made the adapter fill the island container.
+
+#### 🔄 Unified Readiness and Single Host
+- Replaced multiple events with a single `'island-ready'` event carrying `{ api, element }`.
+- Adapter gates readiness on the real Excalidraw API; guarded for React StrictEffects double-init.
+- Prevented multi-mount spam: `CanvasMount` mounts once and cleans up; enforce only one interactive host (`#excal-host`) at a time.
+
+#### 🧱 DOM Structure and Layout
+- Removed `#workspace-scale-layer`; updated CSS and tests; `page-wrapper` now contains only the white page and `CanvasMount`.
+- Centered the page horizontally via the viewport using flex (no margin hacks); fit-width uses full viewport width.
+
+#### 🖱️ Scroll and Zoom Policy
+- Designated `WorkspaceRoot` as the single scroll container; wrote scroll only to it.
+- Plain wheel scrolls; Ctrl/Meta+wheel and pinch perform zoom; handlers attach only to `WorkspaceRoot`.
+- Kept viewport wheel listener non-passive to detect zoom intent; made control strip wheel listener passive.
+
+#### 🎯 Pointer-Centered Zoom Math
+- Anchored zoom at the pointer using `workspace-viewport` bounding rect with `transform-origin: top left`.
+- Applied atomic scale+scroll updates in a single rAF; clamped with scaled content/viewport sizes.
+- Added small scrollable gutters to keep pointer anchoring at edges; quantized near-zero drift (abs(scroll) < 0.5 → 0).
+
+#### 🖼️ Canvas DPI and Crispness
+- Kept canvas CSS box at page size; set only canvas attributes (width/height) for DPI/backing-store based on `devicePixelRatio × scale`.
+- Recomputed backing store on zoom/resize; updated 2D context transforms; disabled image smoothing.
+
+#### 🧩 Vendor UI and Event Integrity
+- Hid Excalidraw vendor UI (layer-ui, menus, toolbars, etc.) so nothing overlays or steals events; ensured drawing canvas remains interactive.
+
+#### ⚙️ Robustness and Correctness
+- Replaced truthy fallbacks with nullish coalescing to preserve 0 values throughout zoom code.
+- Introduced `sanitizeScroll`, `clampScrollPosition`, and `applyViewAtomically` helpers; added `viewportReady` flag and hydration to (0,0) on mount; blocked zoom until ready.
+- Gated debug logs with `NEXT_PUBLIC_EXCALIDRAW_DEBUG=1`.
+
+#### 🧪 Tests and Follow-ups
+- Updated tests to remove `#workspace-scale-layer` references.
+- To add: tests for single scroll source, DPI/backing-store recomputation, and edge clamping with gutters.
+
+---
+
+#### Files of Note
+- `components/workspace`: `WorkspaceRoot.tsx`, `WorkspaceViewport.tsx`, `WorkspaceScaler.tsx`, `PageWrapper.tsx`, `Page.tsx`, `CanvasMount.tsx`, `ExcalidrawIsland.ts`
+- `components/workspace/excalidraw`: `ExcalidrawAdapterMinimal.tsx`, `ExcalidrawRef.tsx`, `useExcalidrawLifecycle.ts`
+- `components/workspace/hooks`: `useViewportEvents.ts`, `useKeyboardZoom.ts`, `useCanvasResolution.ts`, `useExcalidrawIsland.ts`
+- `state`: `useViewportStore.ts`, `useCanvasStore.ts`, `types/state.ts`
+- `app/globals.css`; tests updated for scaler removal
+
+---
+
+#### Next Steps
+- Run full test suite to validate DOM/zoom behavior after refactors.
+- Extend vendor UI hide selectors across Excalidraw versions if needed.
+- Consider a dev diagnostic ensuring a single `#excal-host` exists at runtime.
+
 ## Phase 4: Excalidraw Integration Contract
 
 ### 2025-01-XX - Steps 7-9 Complete: Full Read/Write Contract Implementation
