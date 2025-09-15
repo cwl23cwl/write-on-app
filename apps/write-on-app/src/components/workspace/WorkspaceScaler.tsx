@@ -9,15 +9,11 @@ import { useApplyZoomCssVar } from "@/components/workspace/hooks/useApplyZoomCss
 export function WorkspaceScaler({ children }: PropsWithChildren): JSX.Element {
   // Wrapper holds the scaled-size spacer; inner layer applies transform
   const wrapperRef = useRef<HTMLDivElement | null>(null);
-  const layerRef = useRef<HTMLDivElement | null>(null);
-  // Apply CSS var on both wrapper (for spacer sizing) and layer (to satisfy tests)
+  // Apply CSS var on wrapper (for spacer sizing)
   useApplyZoomCssVar(wrapperRef);
-  useApplyZoomCssVar(layerRef);
   return (
     <div ref={wrapperRef} className="workspace-scaler">
-      <div ref={layerRef} id="workspace-scale-layer" style={{ position: 'absolute', inset: 0 }}>
-        {children}
-      </div>
+      {children}
     </div>
   );
 }
