@@ -153,27 +153,33 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
       const container = containerRef.current;
       if (!container) return;
 
-      // Find and eliminate Stack_vertical overlays
-      const stackElements = container.querySelectorAll('[class*="Stack"]');
-      stackElements.forEach(el => {
+      // Hide known vendor UI overlays defensively
+      const selectors = [
+        '.layer-ui__wrapper',
+        '[class*="layer-ui"]',
+        '[class*="contextMenu"]',
+        '.context-menu-container',
+        '.FixedSideContainer',
+        '[class*="FixedSideContainer"]',
+        '[class*="popover"]',
+        '[class*="tooltip"]',
+        '[class*="menu"]',
+        '[class*="toolbar"]',
+        '[class*="panel"]',
+        '[class*="Stack"]',
+        '[class*="welcome"]',
+        '[class*="dialog"]',
+      ].join(',');
+      const uiElements = container.querySelectorAll(selectors);
+      uiElements.forEach(el => {
         if (el instanceof HTMLElement) {
           el.style.display = 'none';
-          el.style.visibility = 'hidden'; 
+          el.style.visibility = 'hidden';
           el.style.opacity = '0';
           el.style.pointerEvents = 'none';
           el.style.position = 'absolute';
           el.style.top = '-9999px';
           el.style.left = '-9999px';
-        }
-      });
-
-      // Find and eliminate any toolbar/UI elements
-      const uiElements = container.querySelectorAll('[class*="toolbar"], [class*="menu"], [class*="panel"], [class*="ui-"], [class*="overlay"]');
-      uiElements.forEach(el => {
-        if (el instanceof HTMLElement) {
-          el.style.display = 'none';
-          el.style.visibility = 'hidden';
-          el.style.pointerEvents = 'none';
         }
       });
     };
@@ -385,6 +391,7 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
   // DPI handling moved to export-only to avoid canvas interference
   const initializedRef = useRef(false);
   const excalidrawInnerRef = useRef<any>(null);
+  const setContainerRefStore = useCanvasStore((s) => s.setContainerRef);
   const handleApiReady = useCallback((api: ExcalidrawAPI | null): void => {
     if (DEBUG_EXCALIDRAW) console.log('[ExcalidrawAdapterMinimal] handleApiReady called', { hasApi: !!api });
     // Update external store reference regardless
@@ -548,6 +555,10 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
       data-testid={testId}
       style={{ position: "relative", width: "100%", height: "100%" }}
     >
+      {/* Register container with canvas store for resolution management */}
+      {useEffect(() => {
+        if (containerRef.current && setContainerRefStore) setContainerRefStore(containerRef.current);
+      }, [setContainerRefStore])}
       <ExcalidrawRef
         ref={receiveApiRef as any}
         excalidrawAPI={handleApiReady as any}

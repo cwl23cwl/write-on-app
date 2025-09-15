@@ -52,6 +52,33 @@ type ExcalidrawModule = {
     style.textContent = `
       :host { display: block; width: 100%; height: 100%; }
       .container { position: relative; width: 100%; height: 100%; display: block; }
+      /* Ensure canvas CSS box stays at page size (fill container) even if inline size is set */
+      .container canvas { width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important; }
+      .container .excalidraw, .container .excalidraw * { max-width: none !important; max-height: none !important; }
+      /* Hide vendor UI so nothing overlays or steals pointer/wheel */
+      .container .excalidraw .layer-ui__wrapper,
+      .container .excalidraw [class*="layer-ui"],
+      .container .excalidraw [class*="contextMenu"],
+      .container .excalidraw .context-menu-container,
+      .container .excalidraw .FixedSideContainer,
+      .container .excalidraw [class*="FixedSideContainer"],
+      .container .excalidraw [class*="popover"],
+      .container .excalidraw [class*="tooltip"],
+      .container .excalidraw [class*="menu"],
+      .container .excalidraw [class*="toolbar"],
+      .container .excalidraw [class*="panel"],
+      .container .excalidraw [class*="Stack"],
+      .container .excalidraw [class*="welcome"],
+      .container .excalidraw [class*="dialog"] {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+      }
+      /* Ensure the drawing canvas remains interactive */
+      .container .excalidraw__canvas,
+      .container .excalidraw__canvas canvas {
+        pointer-events: auto !important;
+      }
     `;
     this.shadowRoot?.appendChild(style);
     this.excalidrawRef = { current: null };
