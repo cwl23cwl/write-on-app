@@ -62,10 +62,10 @@ export function useKeyboardZoom(containerRef: React.RefObject<HTMLDivElement | n
       }
 
       // Compute new scale for zoom in/out using adaptive step
-      let nextScale = scale || 1;
+      let nextScale = scale ?? 1;
       const adaptiveStep = getAdaptiveZoomStep(nextScale);
-      if (k === '+' || k === '=') nextScale = (scale || 1) * (1 + adaptiveStep);
-      else if (k === '-' || k === '_') nextScale = (scale || 1) / (1 + adaptiveStep);
+      if (k === '+' || k === '=') nextScale = (scale ?? 1) * (1 + adaptiveStep);
+      else if (k === '-' || k === '_') nextScale = (scale ?? 1) / (1 + adaptiveStep);
       
       nextScale = Math.max(constraints.minScale, Math.min(nextScale, constraints.maxScale));
 
@@ -73,8 +73,7 @@ export function useKeyboardZoom(containerRef: React.RefObject<HTMLDivElement | n
       if (fitMode === 'fit-width') {
         // Calculate current fit-width scale for comparison
         if (viewportSize.w > 0 && pageSize.w > 0) {
-          const paddingX = 80; // Updated horizontal padding
-          const availableWidth = viewportSize.w - paddingX;
+          const availableWidth = viewportSize.w;
           const fitScale = availableWidth / pageSize.w;
           const clampedFitScale = Math.max(constraints.minScale, Math.min(fitScale, constraints.maxScale));
           
@@ -89,11 +88,17 @@ export function useKeyboardZoom(containerRef: React.RefObject<HTMLDivElement | n
       }
 
       // Use pointer-centered zoom anchored at viewport center with clamping
-      const currentView = { scale: scale || 1, scrollX: scrollX || 0, scrollY: scrollY || 0 };
+      const currentView = { scale: scale ?? 1, scrollX: scrollX ?? 0, scrollY: scrollY ?? 0 };
       const contentSize = { w: virtualSize.w, h: virtualSize.h };
       const newView = zoomAtClientPoint(clientX, clientY, nextScale, currentView, el, contentSize);
-      
-      setViewState(newView);
+
+      // Sanity guard: reject junk scroll values
+      const sanitize = (v: number) => (!Number.isFinite(v) || Math.abs(v) > 100000) ? 0 : v;
+      setViewState({
+        scale: newView.scale,
+        scrollX: sanitize(newView.scrollX),
+        scrollY: sanitize(newView.scrollY),
+      });
     };
     
     // Use capture phase to ensure we intercept before other handlers

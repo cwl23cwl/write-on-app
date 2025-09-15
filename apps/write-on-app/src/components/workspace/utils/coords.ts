@@ -2,8 +2,8 @@ export type ViewState = { scale: number; scrollX: number; scrollY: number };
 
 export function getWorldPoint(evt: { clientX: number; clientY: number }, hostEl: HTMLElement, view: ViewState): { x: number; y: number } {
   const rect = hostEl.getBoundingClientRect();
-  const x = (evt.clientX - rect.left) / (view.scale || 1) + (view.scrollX || 0);
-  const y = (evt.clientY - rect.top) / (view.scale || 1) + (view.scrollY || 0);
+  const x = (evt.clientX - rect.left) / (view.scale ?? 1) + (view.scrollX ?? 0);
+  const y = (evt.clientY - rect.top) / (view.scale ?? 1) + (view.scrollY ?? 0);
   return { x, y };
 }
 
@@ -62,7 +62,7 @@ export function zoomAtClientPoint(
   contentSize?: { w: number; h: number }
 ): { scale: number; scrollX: number; scrollY: number } {
   const rect = hostEl.getBoundingClientRect();
-  const oldScale = currentView.scale || 1;
+  const oldScale = currentView.scale ?? 1;
   
   console.log(`[zoomAtClientPoint] Element: ${hostEl.id || hostEl.className}`);
   console.log(`[zoomAtClientPoint] Client mouse: ${clientX}, ${clientY}`);
@@ -80,8 +80,8 @@ export function zoomAtClientPoint(
   // We want the world point under the cursor to stay in the same place
   // newScroll = (oldScroll + mousePos) * (newScale/oldScale) - mousePos
   const scaleRatio = newScale / oldScale;
-  let newScrollX = ((currentView.scrollX || 0) + mouseX) * scaleRatio - mouseX;
-  let newScrollY = ((currentView.scrollY || 0) + mouseY) * scaleRatio - mouseY;
+  let newScrollX = ((currentView.scrollX ?? 0) + mouseX) * scaleRatio - mouseX;
+  let newScrollY = ((currentView.scrollY ?? 0) + mouseY) * scaleRatio - mouseY;
   
   console.log(`[zoomAtClientPoint] Scale ratio: ${scaleRatio}`);
   console.log(`[zoomAtClientPoint] Calculated scroll: ${newScrollX}, ${newScrollY}`);

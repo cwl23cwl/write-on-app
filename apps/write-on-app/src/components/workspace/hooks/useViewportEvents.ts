@@ -30,6 +30,18 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
   const lastZoomTime = useRef(0);
   const fitWidthNudgeCount = useRef(0);
   const lastFitWidthNudgeTime = useRef(0);
+  const scrollWarnedRef = useRef(false);
+
+  const sanitizeScroll = (v: number): number => {
+    if (!Number.isFinite(v) || Math.abs(v) > 100000) {
+      if (!scrollWarnedRef.current) {
+        try { console.warn('[Scroll] Invalid scroll detected; resetting to 0'); } catch {}
+        scrollWarnedRef.current = true;
+      }
+      return 0;
+    }
+    return v;
+  };
 
   useEffect((): (() => void) | void => {
     const el = containerRef.current;
@@ -64,7 +76,7 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
         const factor = Math.exp(-dy * sensitivity);
         const min = constraints.minScale;
         const max = constraints.maxScale;
-        const preScale = currentScale || 1;
+        const preScale = currentScale ?? 1;
         const newScale = Math.max(min, Math.min(preScale * factor, max));
         
         // Epsilon filter: ignore tiny scale changes
@@ -78,8 +90,7 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
           const fitWidthState = useViewportStore.getState();
           const { viewportSize, pageSize } = fitWidthState.viewport;
           if (viewportSize.w > 0 && pageSize.w > 0) {
-            const paddingX = 80;
-            const availableWidth = viewportSize.w - paddingX;
+            const availableWidth = viewportSize.w;
             const fitScale = availableWidth / pageSize.w;
             const clampedFitScale = Math.max(min, Math.min(fitScale, max));
             
@@ -115,13 +126,17 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
         const newView = zoomAtClientPoint(e.clientX, e.clientY, newScale, currentView, el, contentSize);
         console.log(`[Zoom] New scroll: ${newView.scrollX}, ${newView.scrollY}`);
         
-        // Apply both scale and scroll position directly
-        setViewState(newView);
+        // Apply both scale and sanitized scroll position directly
+        setViewState({
+          scale: newView.scale,
+          scrollX: sanitizeScroll(newView.scrollX),
+          scrollY: sanitizeScroll(newView.scrollY),
+        });
         
         // CRITICAL: Force DOM scroll update immediately for smooth zoom-to-pointer
         requestAnimationFrame(() => {
-          el.scrollLeft = newView.scrollX;
-          el.scrollTop = newView.scrollY;
+          el.scrollLeft = sanitizeScroll(newView.scrollX);
+          el.scrollTop = sanitizeScroll(newView.scrollY);
         });
         return;
       }
@@ -136,7 +151,7 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
       
       // Record baseline for relative gesture scaling
       gestureBaseline.current = {
-        scale: currentScale || 1,
+        scale: currentScale ?? 1,
         clientX: e.clientX || window.innerWidth / 2,
         clientY: e.clientY || window.innerHeight / 2
       };
@@ -153,7 +168,7 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
       if (!baseline) return;
 
       // Calculate new scale from gesture
-      const gestureScale = e.scale || 1;
+      const gestureScale = e.scale ?? 1;
       const newScale = Math.max(
         constraints.minScale, 
         Math.min(baseline.scale * gestureScale, constraints.maxScale)
@@ -169,8 +184,7 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
         const fitWidthState = useViewportStore.getState();
         const { viewportSize, pageSize } = fitWidthState.viewport;
         if (viewportSize.w > 0 && pageSize.w > 0) {
-          const paddingX = 80;
-          const availableWidth = viewportSize.w - paddingX;
+          const availableWidth = viewportSize.w;
           const fitScale = availableWidth / pageSize.w;
           const clampedFitScale = Math.max(constraints.minScale, Math.min(fitScale, constraints.maxScale));
           
@@ -196,10 +210,14 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
       }
 
       // Use pointer-centered zoom with cached anchor point and content size
-      const currentView = { scale: currentScale || 1, scrollX, scrollY };
+      const currentView = { scale: currentScale ?? 1, scrollX, scrollY };
       const contentSize = { w: virtualSize.w, h: virtualSize.h };
       const newView = zoomAtClientPoint(baseline.clientX, baseline.clientY, newScale, currentView, el, contentSize);
-      setViewState(newView);
+      setViewState({
+        scale: newView.scale,
+        scrollX: sanitizeScroll(newView.scrollX),
+        scrollY: sanitizeScroll(newView.scrollY),
+      });
     };
 
     const onGestureEnd = (e: any): void => {
@@ -239,7 +257,7 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
 
     // Keep store in sync with DOM scroll (for focus math)
     const onScroll = (): void => {
-      setScroll(el.scrollLeft, el.scrollTop);
+      setScroll(sanitizeScroll(el.scrollLeft), sanitizeScroll(el.scrollTop));
     };
 
     // Browser-specific event handling

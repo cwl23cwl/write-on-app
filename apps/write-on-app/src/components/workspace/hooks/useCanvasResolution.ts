@@ -47,7 +47,7 @@ export function useCanvasResolution(): void {
 
     // Compute effectiveDPR with clamping
     const deviceDPR = typeof window !== "undefined" ? window.devicePixelRatio : 1;
-    const rawEffectiveDPR = deviceDPR * (scale || 1);
+  const rawEffectiveDPR = deviceDPR * (scale ?? 1);
     const effectiveDPR = Math.max(0.75, Math.min(rawEffectiveDPR, 3));
 
     // Compute integer backing dimensions
