@@ -7,8 +7,8 @@ import { WorkspaceScaler } from '@/components/workspace/WorkspaceScaler';
 import { WorkspaceProvider } from '@/components/workspace/WorkspaceProvider';
 import { useViewportStore } from '@/state';
 
-describe('Zoom CSS var scoped to #workspace-scale-layer', () => {
-  it('sets --workspace-zoom only on the scale layer, not toolbars', async () => {
+describe('Zoom CSS var scoped to .workspace-scaler', () => {
+  it('sets --workspace-zoom only on the scaler, not toolbars', async () => {
     function TestHarness() {
       const containerRef = React.useRef<HTMLDivElement | null>(null);
       return (
@@ -30,9 +30,9 @@ describe('Zoom CSS var scoped to #workspace-scale-layer', () => {
     useViewportStore.getState().setScale(1.42);
 
     await waitFor(() => {
-      const scaleLayer = container.querySelector('#workspace-scale-layer') as HTMLElement | null;
-      expect(scaleLayer).toBeTruthy();
-      expect(scaleLayer!.style.getPropertyValue('--workspace-zoom')).toBe('1.42');
+      const scaler = container.querySelector('.workspace-scaler') as HTMLElement | null;
+      expect(scaler).toBeTruthy();
+      expect(scaler!.style.getPropertyValue('--workspace-zoom')).toBe('1.42');
     });
 
     const strip = container.querySelector('.control-strip') as HTMLElement | null;
