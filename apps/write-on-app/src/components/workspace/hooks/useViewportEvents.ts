@@ -31,6 +31,7 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
   const fitWidthNudgeCount = useRef(0);
   const lastFitWidthNudgeTime = useRef(0);
   const scrollWarnedRef = useRef(false);
+  const rafSyncRef = useRef<number | null>(null);
 
   const sanitizeScroll = (v: number): number => {
     if (!Number.isFinite(v) || Math.abs(v) > 100000) {
@@ -43,10 +44,25 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
     return v;
   };
 
+  const applyViewAtomically = (
+    rootEl: HTMLElement,
+    view: { scale: number; scrollX: number; scrollY: number }
+  ) => {
+    // Cancel any pending frame and apply both state and DOM scroll together
+    if (rafSyncRef.current != null) cancelAnimationFrame(rafSyncRef.current);
+    rafSyncRef.current = requestAnimationFrame(() => {
+      setViewState(view);
+      rootEl.scrollLeft = view.scrollX;
+      rootEl.scrollTop = view.scrollY;
+      rafSyncRef.current = null;
+    });
+  };
+
   useEffect((): (() => void) | void => {
-    const el = containerRef.current;
-    if (!el) return;
-    const scaler = (el as HTMLElement).querySelector('.workspace-scaler') as HTMLElement | null;
+    const rootEl = containerRef.current;
+    if (!rootEl) return;
+    const viewportEl = rootEl.querySelector('#workspace-viewport') as HTMLElement | null;
+    const hostEl = viewportEl ?? rootEl;
 
     const onWheel = (e: WheelEvent): void => {
       const isZoomIntent = e.ctrlKey || e.metaKey;
@@ -121,22 +137,16 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
         console.log(`[Zoom] Mouse at: ${e.clientX}, ${e.clientY} | Scale: ${preScale} → ${newScale}`);
         const currentView = { scale: preScale, scrollX, scrollY };
         const contentSize = { w: virtualSize.w, h: virtualSize.h };
-        
+
         // Ensure we're using the viewport element for coordinate calculations
-        const newView = zoomAtClientPoint(e.clientX, e.clientY, newScale, currentView, el, contentSize);
+        const newView = zoomAtClientPoint(e.clientX, e.clientY, newScale, currentView, hostEl, contentSize);
         console.log(`[Zoom] New scroll: ${newView.scrollX}, ${newView.scrollY}`);
         
-        // Apply both scale and sanitized scroll position directly
-        setViewState({
+        // Apply scale + scroll atomically in the same frame
+        applyViewAtomically(rootEl, {
           scale: newView.scale,
           scrollX: sanitizeScroll(newView.scrollX),
           scrollY: sanitizeScroll(newView.scrollY),
-        });
-        
-        // CRITICAL: Force DOM scroll update immediately for smooth zoom-to-pointer
-        requestAnimationFrame(() => {
-          el.scrollLeft = sanitizeScroll(newView.scrollX);
-          el.scrollTop = sanitizeScroll(newView.scrollY);
         });
         return;
       }
@@ -212,8 +222,8 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
       // Use pointer-centered zoom with cached anchor point and content size
       const currentView = { scale: currentScale ?? 1, scrollX, scrollY };
       const contentSize = { w: virtualSize.w, h: virtualSize.h };
-      const newView = zoomAtClientPoint(baseline.clientX, baseline.clientY, newScale, currentView, el, contentSize);
-      setViewState({
+      const newView = zoomAtClientPoint(baseline.clientX, baseline.clientY, newScale, currentView, hostEl, contentSize);
+      applyViewAtomically(rootEl, {
         scale: newView.scale,
         scrollX: sanitizeScroll(newView.scrollX),
         scrollY: sanitizeScroll(newView.scrollY),
@@ -265,32 +275,32 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
     const wheelOptions = { passive: false, capture: true };
     
     // Disable overscroll behavior on custom scroller
-    el.style.overscrollBehavior = 'none';
-    el.style.touchAction = 'pan-x pan-y'; // Allow panning but block pinch
+    rootEl.style.overscrollBehavior = 'none';
+    rootEl.style.touchAction = 'pan-x pan-y'; // Allow panning but block pinch
     
     // Capture phase so we can intercept before inner libraries
-    el.addEventListener("wheel", onWheel as EventListener, wheelOptions);
-    el.addEventListener("scroll", onScroll as EventListener, { passive: true });
-    el.addEventListener("pointerdown", onPointerDown as EventListener, { passive: true });
-    el.addEventListener("pointermove", onPointerMove as EventListener, { passive: true });
-    el.addEventListener("pointerup", onPointerUp as EventListener, { passive: true });
-    el.addEventListener("pointercancel", onPointerUp as EventListener, { passive: true });
+    rootEl.addEventListener("wheel", onWheel as EventListener, wheelOptions);
+    rootEl.addEventListener("scroll", onScroll as EventListener, { passive: true });
+    rootEl.addEventListener("pointerdown", onPointerDown as EventListener, { passive: true });
+    rootEl.addEventListener("pointermove", onPointerMove as EventListener, { passive: true });
+    rootEl.addEventListener("pointerup", onPointerUp as EventListener, { passive: true });
+    rootEl.addEventListener("pointercancel", onPointerUp as EventListener, { passive: true });
     
     // Safari gesture events with proper preventDefault for edge cases
-    el.addEventListener("gesturestart", onGestureStart as EventListener, { passive: false, capture: true });
-    el.addEventListener("gesturechange", onGestureChange as EventListener, { passive: false, capture: true });
-    el.addEventListener("gestureend", onGestureEnd as EventListener, { passive: false, capture: true });
+    rootEl.addEventListener("gesturestart", onGestureStart as EventListener, { passive: false, capture: true });
+    rootEl.addEventListener("gesturechange", onGestureChange as EventListener, { passive: false, capture: true });
+    rootEl.addEventListener("gestureend", onGestureEnd as EventListener, { passive: false, capture: true });
 
     return () => {
-      el.removeEventListener("wheel", onWheel as EventListener, { capture: true } as EventListenerOptions);
-      el.removeEventListener("scroll", onScroll as EventListener);
-      el.removeEventListener("pointerdown", onPointerDown as EventListener);
-      el.removeEventListener("pointermove", onPointerMove as EventListener);
-      el.removeEventListener("pointerup", onPointerUp as EventListener);
-      el.removeEventListener("pointercancel", onPointerUp as EventListener);
-      el.removeEventListener("gesturestart", onGestureStart as EventListener, { capture: true } as EventListenerOptions);
-      el.removeEventListener("gesturechange", onGestureChange as EventListener, { capture: true } as EventListenerOptions);
-      el.removeEventListener("gestureend", onGestureEnd as EventListener, { capture: true } as EventListenerOptions);
+      rootEl.removeEventListener("wheel", onWheel as EventListener, { capture: true } as EventListenerOptions);
+      rootEl.removeEventListener("scroll", onScroll as EventListener);
+      rootEl.removeEventListener("pointerdown", onPointerDown as EventListener);
+      rootEl.removeEventListener("pointermove", onPointerMove as EventListener);
+      rootEl.removeEventListener("pointerup", onPointerUp as EventListener);
+      rootEl.removeEventListener("pointercancel", onPointerUp as EventListener);
+      rootEl.removeEventListener("gesturestart", onGestureStart as EventListener, { capture: true } as EventListenerOptions);
+      rootEl.removeEventListener("gesturechange", onGestureChange as EventListener, { capture: true } as EventListenerOptions);
+      rootEl.removeEventListener("gestureend", onGestureEnd as EventListener, { capture: true } as EventListenerOptions);
     };
   }, [containerRef, setScale, pan, constraints, currentScale, activeTool, scrollX, scrollY, setViewState, setFitMode, fitMode, fitWidth, viewportSize, virtualSize]);
 }

@@ -17,6 +17,7 @@ export function useKeyboardZoom(containerRef: React.RefObject<HTMLDivElement | n
   const viewportSize = useViewportStore((s) => s.viewport.viewportSize);
   const pageSize = useViewportStore((s) => s.viewport.pageSize);
   const virtualSize = useViewportStore((s) => s.viewport.virtualSize);
+  const rafSyncRef = useRef<number | null>(null);
   
   // Access to shared cumulative deviation tracking
   const cumulativeDeviationFromFit = useRef<number>(0);
@@ -45,11 +46,12 @@ export function useKeyboardZoom(containerRef: React.RefObject<HTMLDivElement | n
       e.preventDefault();
       e.stopPropagation();
       
-      const el = containerRef.current as HTMLDivElement | null;
-      if (!el) return;
+      const rootEl = containerRef.current as HTMLDivElement | null;
+      if (!rootEl) return;
+      const viewportEl = rootEl.querySelector('#workspace-viewport') as HTMLElement | null;
       
       // Use viewport center for keyboard zoom anchoring
-      const rect = el.getBoundingClientRect();
+      const rect = (viewportEl ?? rootEl).getBoundingClientRect();
       const clientX = rect.left + rect.width / 2;
       const clientY = rect.top + rect.height / 2;
 
@@ -90,14 +92,22 @@ export function useKeyboardZoom(containerRef: React.RefObject<HTMLDivElement | n
       // Use pointer-centered zoom anchored at viewport center with clamping
       const currentView = { scale: scale ?? 1, scrollX: scrollX ?? 0, scrollY: scrollY ?? 0 };
       const contentSize = { w: virtualSize.w, h: virtualSize.h };
-      const newView = zoomAtClientPoint(clientX, clientY, nextScale, currentView, el, contentSize);
+      const newView = zoomAtClientPoint(clientX, clientY, nextScale, currentView, (viewportEl ?? rootEl), contentSize);
 
       // Sanity guard: reject junk scroll values
       const sanitize = (v: number) => (!Number.isFinite(v) || Math.abs(v) > 100000) ? 0 : v;
-      setViewState({
+      const view = {
         scale: newView.scale,
         scrollX: sanitize(newView.scrollX),
         scrollY: sanitize(newView.scrollY),
+      };
+      if (rafSyncRef.current != null) cancelAnimationFrame(rafSyncRef.current);
+      rafSyncRef.current = requestAnimationFrame(() => {
+        setViewState(view);
+        // Also update DOM scroll on rootEl to keep in sync
+        rootEl.scrollLeft = view.scrollX;
+        rootEl.scrollTop = view.scrollY;
+        rafSyncRef.current = null;
       });
     };
     

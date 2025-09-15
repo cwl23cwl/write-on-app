@@ -124,6 +124,7 @@ body {
   /* Spacer sized to scaled virtual size (page + padding) so scrollbars reflect visual size */
   width: calc(var(--virtual-width, 1500px) * var(--workspace-zoom, 1));
   height: calc(var(--virtual-height, 2550px) * var(--workspace-zoom, 1));
+  transform-origin: top left;
 }
 
 /* Removed #workspace-scale-layer; scaling handled by engine/viewport */
