@@ -10,42 +10,32 @@ export function getWorldPoint(evt: { clientX: number; clientY: number }, hostEl:
 /**
  * Clamps scroll position during zoom with edge dead-zones to prevent jitter
  */
+const EDGE_GUTTER = 0; // set to small positive value to allow tiny negative slack
+
 export function clampScrollPosition(
   scrollX: number,
   scrollY: number,
   scale: number,
   viewportSize: { w: number; h: number },
   contentSize: { w: number; h: number },
-  deadZone: number = 12
+  gutter: number = EDGE_GUTTER
 ): { scrollX: number; scrollY: number } {
-  // Calculate scaled content dimensions
+  // Scaled content dimensions based on base page size and current scale
   const scaledContentW = contentSize.w * scale;
   const scaledContentH = contentSize.h * scale;
-  
-  console.log(`[clampScrollPosition] Scale: ${scale}, Viewport: ${viewportSize.w}x${viewportSize.h}`);
-  console.log(`[clampScrollPosition] Base content: ${contentSize.w}x${contentSize.h}`);
-  console.log(`[clampScrollPosition] Scaled content: ${scaledContentW}x${scaledContentH}`);
-  
-  // Calculate max scroll bounds (content can extend beyond viewport)
+
+  // Real bounds: content may be smaller than viewport -> no scroll
   const maxScrollX = Math.max(0, scaledContentW - viewportSize.w);
   const maxScrollY = Math.max(0, scaledContentH - viewportSize.h);
-  
-  console.log(`[clampScrollPosition] Max scroll bounds: ${maxScrollX}, ${maxScrollY}`);
-  
-  // Apply dead zones at edges to prevent jitter
-  const minScrollX = -deadZone;
-  const minScrollY = -deadZone;
-  const maxScrollXWithDeadZone = maxScrollX + deadZone;
-  const maxScrollYWithDeadZone = maxScrollY + deadZone;
-  
-  console.log(`[clampScrollPosition] Clamp range: X[${minScrollX}, ${maxScrollXWithDeadZone}], Y[${minScrollY}, ${maxScrollYWithDeadZone}]`);
-  console.log(`[clampScrollPosition] Input scroll: ${scrollX}, ${scrollY}`);
-  
-  const clampedX = Math.max(minScrollX, Math.min(scrollX, maxScrollXWithDeadZone));
-  const clampedY = Math.max(minScrollY, Math.min(scrollY, maxScrollYWithDeadZone));
-  
-  console.log(`[clampScrollPosition] Output scroll: ${clampedX}, ${clampedY}`);
-  
+
+  const minX = 0 - gutter;
+  const minY = 0 - gutter;
+  const maxX = maxScrollX + gutter;
+  const maxY = maxScrollY + gutter;
+
+  const clampedX = Math.max(minX, Math.min(scrollX, maxX));
+  const clampedY = Math.max(minY, Math.min(scrollY, maxY));
+
   return { scrollX: clampedX, scrollY: clampedY };
 }
 
