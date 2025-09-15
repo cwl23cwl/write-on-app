@@ -115,6 +115,7 @@ body {
   /* Center the scaled paper horizontally */
   display: flex;
   justify-content: center;
+  align-items: flex-start; /* do not vertically center */
 }
 
 /* Scaled-size spacer and transform layer */

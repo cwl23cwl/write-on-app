@@ -54,9 +54,8 @@ export function WorkspaceViewport({ className, children }: Props): JSX.Element {
   // Phase 3 Step 2: Initial fit width calculation and auto-refit on resize
   useEffect(() => {
     if (viewportSize.w > 0 && pageSize.w > 0 && fitMode === 'fit-width') {
-      // Calculate fit scale accounting for horizontal padding (80px total: 40px each side)
-      const paddingX = 80;
-      const availableWidth = viewportSize.w - paddingX;
+      // Calculate fit scale based on actual viewport width; horizontal centering handled via CSS
+      const availableWidth = viewportSize.w;
       const fitScale = availableWidth / pageSize.w;
       
       // Clamp to constraints
@@ -96,8 +95,6 @@ export function WorkspaceViewport({ className, children }: Props): JSX.Element {
       id="workspace-viewport"
       className={`workspace-viewport flex-1 ${className ?? ""}`.trim()}
       style={{
-        paddingLeft: 'var(--page-padding-x)',
-        paddingRight: 'var(--page-padding-x)',
         paddingTop: '8px', // Minimal tight gap between PageIndicator and canvas
       }}
     >
