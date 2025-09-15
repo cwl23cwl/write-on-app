@@ -17,6 +17,8 @@ import { useViewportStore } from "@/state";
 export function WorkspaceRoot(): JSX.Element {
   const rootRef = useRef<HTMLDivElement | null>(null);
   const setPageSize = useViewportStore((s) => s.setPageSize);
+  const setScroll = useViewportStore((s) => s.setScroll);
+  const setViewportReady = useViewportStore((s) => (s as any).setViewportReady ?? (() => {}));
   const { mode, writeScope, baseScene, overlayScene, routeType, workspaceId, isReadonly, initialScene } = useWorkspaceRoute();
   
   useKeyboardShortcuts();
@@ -26,6 +28,18 @@ export function WorkspaceRoot(): JSX.Element {
   useEffect(() => {
     setPageSize(1200, 2200);
   }, [setPageSize]);
+
+  // Initialize scroll on the WorkspaceRoot and hydrate store; then mark viewport ready
+  useEffect(() => {
+    const el = rootRef.current;
+    if (!el) return;
+    try {
+      el.scrollLeft = 0;
+      el.scrollTop = 0;
+    } catch {}
+    setScroll(0, 0);
+    try { setViewportReady(true); } catch {}
+  }, [setScroll, setViewportReady]);
 
   // Guardrail: ensure the fixed control strip never ends up inside the scaler
   useEffect(() => {

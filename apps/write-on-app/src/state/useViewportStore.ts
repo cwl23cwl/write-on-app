@@ -8,7 +8,7 @@ import type { ViewportStore } from "@/types/state";
 const getDpr = (): number =>
   typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 3) : 1;
 
-const initialState: Pick<ViewportStore, "viewport" | "interactions" | "constraints"> = {
+const initialState: Pick<ViewportStore, "viewport" | "interactions" | "constraints" | "viewportReady"> = {
   viewport: {
     scale: 1,
     offsetX: 0,
@@ -27,6 +27,7 @@ const initialState: Pick<ViewportStore, "viewport" | "interactions" | "constrain
     fitMode: 'fit-width' as const,
     step: 0.1,
   },
+  viewportReady: false,
   interactions: {
     isPanning: false,
     isZooming: false,
@@ -176,9 +177,8 @@ export const useViewportStore = create<ViewportStore>()(
             const { viewportSize, pageSize } = s.viewport;
             if (viewportSize.w <= 0 || pageSize.w <= 0) return;
             
-            // Calculate fit scale accounting for horizontal padding (80px total)
-            const paddingX = 80; // 40px each side
-            const availableWidth = viewportSize.w - paddingX;
+            // Calculate fit scale using full viewport width; horizontal centering is handled by CSS
+            const availableWidth = viewportSize.w;
             const fitScale = availableWidth / pageSize.w;
             
             const { minScale, maxScale } = s.constraints;
@@ -228,3 +228,7 @@ export const useViewportStore = create<ViewportStore>()(
     { enabled: devtoolsEnabled, name: "ViewportStore" }
   )
 );
+        setViewportReady: (ready: boolean): void =>
+          set((s) => {
+            s.viewportReady = ready;
+          }, false, "viewport/setViewportReady"),

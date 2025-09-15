@@ -38,6 +38,10 @@ export interface ConstraintSlice {
   };
 }
 
+export interface ViewportMeta {
+  viewportReady: boolean;
+}
+
 export interface ViewportActions {
   setScale: (scale: number) => void;
   pan: (deltaX: number, deltaY: number) => void;
@@ -55,9 +59,10 @@ export interface ViewportActions {
   getScaledPageW: () => number;
   getScaledPageH: () => number;
   getZoomPercent: () => number;
+  setViewportReady?: (ready: boolean) => void;
 }
 
-export type ViewportStore = ViewportSlice & InteractionSlice & ConstraintSlice & ViewportActions;
+export type ViewportStore = ViewportSlice & InteractionSlice & ConstraintSlice & ViewportMeta & ViewportActions;
 
 // Unified view state contract used across adapters
 export type ViewState = { scale: number; scrollX: number; scrollY: number };
