@@ -24,11 +24,11 @@ type ExcalidrawModule = {
   ExcalidrawContractAPI: any;
 };
 
-class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
-  private reactRoot: any = null;
-  private excalidrawRef: React.RefObject<any> = null;
-  private isInitialized = false;
-  private currentScale = 1;
+  class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
+    private reactRoot: any = null;
+    private excalidrawRef: React.RefObject<any> = null;
+    private isInitialized = false;
+    private currentScale = 1;
   private currentMode: ViewMode = 'teacher';
   private currentWriteScope: WriteScope = 'teacher-base';
   private currentBaseScene: unknown = null;
@@ -37,13 +37,32 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
   
   // HMR tracking for dev environment
   private hmrVersion = 0;
-  private lastModuleTimestamp = 0;
+    private lastModuleTimestamp = 0;
+    // Listener cleanup management
+    private disposers: Array<() => void> = [];
+    private containerEl: HTMLDivElement | null = null;
+    private lastReadyApi: any | null = null;
 
   constructor() {
     super();
     // Create shadow DOM for isolation
     this.attachShadow({ mode: 'open' });
+    // Ensure host and inner container fill available space
+    const style = document.createElement('style');
+    style.textContent = `
+      :host { display: block; width: 100%; height: 100%; }
+      .container { position: relative; width: 100%; height: 100%; display: block; }
+    `;
+    this.shadowRoot?.appendChild(style);
     this.excalidrawRef = { current: null };
+  }
+
+  private addListener(target: EventTarget | null, type: string, handler: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions) {
+    if (!target) return;
+    target.addEventListener(type, handler, options as any);
+    this.disposers.push(() => {
+      try { target.removeEventListener(type, handler, options as any); } catch {}
+    });
   }
 
   static get observedAttributes() {
@@ -173,24 +192,15 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
 
   private async initializeExcalidraw(): Promise<void> {
     try {
-      console.log('[ExcalidrawIsland] Starting initialization...');
+      if (process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1') console.log('[ExcalidrawIsland] Starting initialization...');
       
       // Step 10: Environment-specific module loading
       const excalidrawModule = await this.loadExcalidrawModule();
-      console.log('[ExcalidrawIsland] Loading module...');
+      if (process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1') console.log('[ExcalidrawIsland] Loading module...');
       
       await this.mountReactComponent(excalidrawModule);
-      console.log('[ExcalidrawIsland] Module loaded, mounting React component...');
-      
-      this.isInitialized = true;
-      
-      // Emit ready event
-      this.dispatchEvent(new CustomEvent('island-ready', {
-        bubbles: true,
-        detail: { element: this }
-      }));
-      console.log('[ExcalidrawIsland] Dispatching island-ready event');
-      console.log('[ExcalidrawIsland] Initialization complete!');
+      if (process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1') console.log('[ExcalidrawIsland] Module loaded, mounting React component...');
+      // Note: readiness is now gated by adapter's onReady callback
       
     } catch (error) {
       console.error('[ExcalidrawIsland] Initialization failed:', error);
@@ -211,7 +221,7 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
   }
 
   private async loadDevModule(): Promise<ExcalidrawModule> {
-    console.log('[ExcalidrawIsland] Dev module loaded successfully');
+    if (process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1') console.log('[ExcalidrawIsland] Dev module loaded successfully');
     const module = await import('./excalidraw/ExcalidrawAdapterMinimal');
     return {
       ExcalidrawAdapterMinimal: module.ExcalidrawAdapterMinimal,
@@ -238,10 +248,23 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
 
     if (!this.shadowRoot) return;
 
-    // Create container for React component
-    const container = document.createElement('div');
-    container.style.cssText = 'width: 100%; height: 100%; position: relative;';
-    this.shadowRoot.appendChild(container);
+    // Ensure a single container inside shadow root (idempotent mount)
+    // Unmount existing React root if present
+    if (this.reactRoot) {
+      try { this.reactRoot.unmount(); } catch {}
+      this.reactRoot = null;
+    }
+    // Reuse or create container
+    let container = this.shadowRoot.querySelector('[data-exc-island-root]') as HTMLDivElement | null;
+    if (!container) {
+      container = document.createElement('div');
+      container.className = 'container';
+      container.setAttribute('data-exc-island-root', '');
+      this.shadowRoot.appendChild(container);
+    } else {
+      container.innerHTML = '';
+    }
+    this.containerEl = container;
 
     // Create React root
     this.reactRoot = ReactDOM.createRoot(container);
@@ -249,6 +272,26 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
     // Render Excalidraw adapter with composite scene
     this.updateComposition();
     
+    // Small error boundary to prevent unhandled render crashes
+    class ErrorBoundary extends (React as any).Component<{ children: any }, { hasError: boolean }> {
+      constructor(props: any) {
+        super(props);
+        this.state = { hasError: false };
+      }
+      static getDerivedStateFromError() {
+        return { hasError: true };
+      }
+      componentDidCatch(error: any, info: any) {
+        console.error('[ExcalidrawIsland] An error occurred in the Excalidraw adapter component.', { error, info });
+      }
+      render() {
+        if (this.state.hasError) {
+          return React.createElement('div', { style: { color: '#b91c1c', padding: '8px' } }, 'Canvas failed to load. Check console.');
+        }
+        return this.props.children;
+      }
+    }
+
     const ExcalidrawComponent = React.createElement(
       excalidrawModule.ExcalidrawAdapterMinimal,
       {
@@ -259,10 +302,25 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
         writeScope: this.currentWriteScope,
         currentStudentId: this.getCurrentStudentId(),
         onReady: (api: any) => {
-          console.log('[ExcalidrawIsland] Excalidraw API ready');
-          this.dispatchEvent(new CustomEvent('excalidraw-ready', {
+          const ready = Boolean(api);
+          // Guard against double-wiring in StrictEffects: skip identical ready state
+          if (ready && this.isInitialized && this.lastReadyApi === api) {
+            return;
+          }
+          if (!ready && !this.isInitialized) {
+            // Already not initialized; no-op
+            return;
+          }
+          if (ready) {
+            console.log('[ExcalidrawIsland] Excalidraw API ready');
+          } else {
+            console.log('[ExcalidrawIsland] Excalidraw API destroyed');
+          }
+          this.isInitialized = ready;
+          this.lastReadyApi = api ?? null;
+          this.dispatchEvent(new CustomEvent('island-ready', {
             bubbles: true,
-            detail: { api, element: this }
+            detail: { api: api ?? null, element: this }
           }));
         },
         className: 'excalidraw-island-content',
@@ -270,7 +328,8 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
       }
     );
 
-    this.reactRoot.render(ExcalidrawComponent);
+    const Wrapped = React.createElement(ErrorBoundary as any, null, ExcalidrawComponent);
+    this.reactRoot.render(Wrapped);
   }
 
   private async remountForHMR(excalidrawModule: ExcalidrawModule): Promise<void> {
@@ -287,14 +346,14 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
     // Remount with new module
     await this.mountReactComponent(excalidrawModule);
     
-    console.log('[ExcalidrawIsland] HMR remount complete');
+    if (process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1') console.log('[ExcalidrawIsland] HMR remount complete');
   }
 
   private updateScale(): void {
     // Sync scale to Excalidraw instance
     if (this.excalidrawRef?.current) {
       // Scale is handled by viewport store integration in the adapter
-      console.log(`[ExcalidrawIsland] Scale updated to ${this.currentScale}`);
+      if (process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1') console.log(`[ExcalidrawIsland] Scale updated to ${this.currentScale}`);
     }
   }
 
@@ -306,7 +365,7 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
 
   private updateWriteScope(): void {
     // Update write permissions - requires remounting for significant scope changes
-    console.log(`[ExcalidrawIsland] Write scope updated to ${this.currentWriteScope}`);
+    if (process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1') console.log(`[ExcalidrawIsland] Write scope updated to ${this.currentWriteScope}`);
     if (this.isInitialized) {
       this.reinitialize();
     }
@@ -320,7 +379,7 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
     if (this.excalidrawRef?.current && this.compositeScene) {
       try {
         this.excalidrawRef.current.setScene(this.compositeScene);
-        console.log('[ExcalidrawIsland] Composite scene updated');
+        if (process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1') console.log('[ExcalidrawIsland] Composite scene updated');
       } catch (error) {
         console.warn('[ExcalidrawIsland] Composite scene update failed:', error);
       }
@@ -373,7 +432,7 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
       files: combinedFiles
     };
     
-    console.log(`[ExcalidrawIsland] Composited ${baseElements.length} base + ${overlayElements.length} overlay elements with ownership tags`);
+    if (process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1') console.log(`[ExcalidrawIsland] Composited ${baseElements.length} base + ${overlayElements.length} overlay elements with ownership tags`);
     
     // Emit layersready event when composition completes (optional API)
     this.dispatchEvent(new CustomEvent('layersready', {
@@ -470,13 +529,9 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
       </div>
     `;
 
-    // Add retry functionality
+    // Add retry functionality (tracked for cleanup)
     const retryBtn = this.shadowRoot.querySelector('#retry-btn');
-    if (retryBtn) {
-      retryBtn.addEventListener('click', () => {
-        this.reinitialize();
-      });
-    }
+    this.addListener(retryBtn, 'click', () => this.reinitialize());
   }
 
   private async reinitialize(): Promise<void> {
@@ -486,6 +541,12 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
   }
 
   private cleanup(): void {
+    // Remove registered listeners
+    if (this.disposers.length) {
+      for (const dispose of this.disposers.splice(0)) {
+        try { dispose(); } catch {}
+      }
+    }
     if (this.reactRoot) {
       try {
         this.reactRoot.unmount();
@@ -494,6 +555,11 @@ class ExcalidrawIsland extends HTMLElement implements ExcalidrawIslandElement {
       }
       this.reactRoot = null;
     }
+    // Clear API reference
+    if (this.excalidrawRef) {
+      this.excalidrawRef.current = null;
+    }
+    this.containerEl = null;
     
     if (this.shadowRoot) {
       this.shadowRoot.innerHTML = '';

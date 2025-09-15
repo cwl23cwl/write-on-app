@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useImperativeHandle, forwardRef } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState, useImperativeHandle, forwardRef } from "react";
 import ExcalidrawRef from "@/components/excalidraw/ExcalidrawRef";
 import { EXCALIDRAW_PROPS, INITIAL_APP_STATE } from "@/components/workspace/excalidraw/excalidrawConfig";
 import type { ExcalidrawAPI, ExcalidrawComponentProps } from "@/components/workspace/excalidraw/types";
@@ -133,6 +133,8 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
   { initialData, readOnly, onReady, className, testId, mode = 'teacher', writeScope = 'teacher-base', currentStudentId = 'current-student-id' }, 
   ref
 ) {
+  const DEBUG_EXCALIDRAW = process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1';
+  if (DEBUG_EXCALIDRAW) console.log('[ExcalidrawAdapterMinimal] Render start');
   const apiRef = useRef<ExcalidrawAPI | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [ready, setReady] = useState(false);
@@ -143,7 +145,8 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
   const scale = useViewportStore((s) => s.viewport.scale);
 
   // CRITICAL: Continuously eliminate any UI overlays that might appear
-  useEffect(() => {
+  // Use layout effect to ensure DOM observers are in place before paint
+  useLayoutEffect(() => {
     if (!ready || !containerRef.current) return;
 
     const eliminateUIOverlays = () => {
@@ -181,12 +184,15 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
     
     // Also run on DOM mutations
     const observer = new MutationObserver(eliminateUIOverlays);
-    observer.observe(container, { 
-      childList: true, 
-      subtree: true, 
-      attributes: true,
-      attributeFilter: ['class', 'style']
-    });
+    const container = containerRef.current;
+    if (container) {
+      observer.observe(container, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['class', 'style']
+      });
+    }
 
     return () => {
       clearInterval(interval);
@@ -377,72 +383,51 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
 
   // Step 8: Container ref no longer needed for DPI management
   // DPI handling moved to export-only to avoid canvas interference
-
+  const initializedRef = useRef(false);
+  const excalidrawInnerRef = useRef<any>(null);
   const handleApiReady = useCallback((api: ExcalidrawAPI | null): void => {
-    apiRef.current = api;
-    setExcalidrawAPI(api); // Step 8: Update canvas store API reference
-    
-    if (api) {
-      console.log('API ready');
-      
-      // Step 7: Force internal zoom to 1.0 to disable internal zoom
-      try {
-        const anyApi = api as any;
-        if (typeof anyApi.setZoom === 'function') {
-          anyApi.setZoom(1);
-        }
-      } catch (error) {
-        console.warn('Could not set initial zoom:', error);
-      }
-      
-      emitCustomEvent(containerRef.current, 'ready', { api });
+    if (DEBUG_EXCALIDRAW) console.log('[ExcalidrawAdapterMinimal] handleApiReady called', { hasApi: !!api });
+    // Update external store reference regardless
+    setExcalidrawAPI(api);
+
+    // If API is null, mark not ready and allow future initialization
+    if (!api) {
+      apiRef.current = null;
+      setReady(false);
+      initializedRef.current = false;
+      // Notify listeners that API is no longer ready
+      emitCustomEvent(containerRef.current, 'ready', { api: null });
       onReady(api);
+      return;
     }
+
+    // Guard against double-initialization in React StrictEffects
+    if (initializedRef.current) {
+      apiRef.current = api;
+      return;
+    }
+
+    apiRef.current = api;
+    if (DEBUG_EXCALIDRAW) console.log('[ExcalidrawAdapterMinimal] API ready');
+
+    // Do not force setZoom(1) here; host scaler manages zoom externally
+
+    // Mark adapter as ready only after we have an API instance
+    setReady(true);
+    initializedRef.current = true;
+    emitCustomEvent(containerRef.current, 'ready', { api });
+    onReady(api);
   }, [onReady, setExcalidrawAPI]);
 
-  // Step 7: Keep internal zoom locked at 1.0
-  useEffect(() => {
-    if (!apiRef.current) return;
-    
-    const api = apiRef.current as any;
-    if (typeof api.setZoom !== 'function') return;
-    
-    // Force zoom to 1 periodically to counteract any internal changes
-    const forceZoom = () => {
-      try {
-        api.setZoom(1);
-      } catch (error) {
-        console.warn('Zoom lock failed:', error);
-      }
-    };
-    
-    // Also listen for scroll changes to reset zoom
-    let unsubscribe: (() => void) | null = null;
-    if (typeof api.onScrollChange === 'function') {
-      unsubscribe = api.onScrollChange((_scrollX: number, _scrollY: number, zoom: { value: number }) => {
-        if (zoom && zoom.value !== 1) {
-          try {
-            api.setZoom(1);
-          } catch (error) {
-            console.warn('Zoom reset failed:', error);
-          }
-        }
-      });
+  // Callback ref to reliably receive API and bridge to our handler
+  const receiveApiRef = useCallback((instance: any) => {
+    excalidrawInnerRef.current = instance;
+    if (!initializedRef.current || instance == null) {
+      handleApiReady(instance as any);
     }
-    
-    const interval = setInterval(forceZoom, 500); // Check every 500ms (less frequent)
-    
-    return () => {
-      clearInterval(interval);
-      if (unsubscribe) {
-        try {
-          unsubscribe();
-        } catch (error) {
-          console.warn('Unsubscribe failed:', error);
-        }
-      }
-    };
-  }, [ready]); // Use ready instead of apiRef.current
+  }, [handleApiReady]);
+
+  // Do not lock internal zoom here; host scaler manages zoom externally
 
   // TEMP: Disable event interception to allow Excalidraw interactions
   // Step 7: Intercept zoom/pan events - DISABLED FOR DEBUGGING
@@ -452,11 +437,7 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
   }, []);
   */
 
-  useEffect(() => {
-    if (containerRef.current && !ready) {
-      setReady(true);
-    }
-  }, [ready]);
+  // Ready state is gated by Excalidraw API readiness (via handleApiReady)
 
   const data = initialData ?? { 
     elements: [], 
@@ -549,6 +530,17 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
     }
   }, [writeScope, currentStudentId]);
 
+  // Cleanup symmetry: dispose API ref and initialization flag on unmount
+  useEffect(() => {
+    return () => {
+      apiRef.current = null;
+      initializedRef.current = false;
+      setExcalidrawAPI(null);
+    };
+  }, [setExcalidrawAPI]);
+
+  // No manual dynamic import; rely on ExcalidrawRef which handles client-only import and CSS.
+
   return (
     <div
       ref={containerRef}
@@ -556,20 +548,22 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
       data-testid={testId}
       style={{ position: "relative", width: "100%", height: "100%" }}
     >
+      <ExcalidrawRef
+        ref={receiveApiRef as any}
+        excalidrawAPI={handleApiReady as any}
+        initialData={data}
+        onChange={onChange}
+        onPointerUpdate={onPointerUpdate}
+        {...EXCALIDRAW_PROPS}
+        style={{ width: '100%', height: '100%' }}
+      />
       {!ready && (
-        <div className="flex items-center justify-center h-full text-gray-500">
+        <div
+          className="flex items-center justify-center text-gray-500"
+          style={{ position: 'absolute', inset: 0 }}
+        >
           Loading...
         </div>
-      )}
-      {ready && (
-        <ExcalidrawRef
-          ref={handleApiReady}
-          initialData={data}
-          onChange={onChange}
-          onPointerUpdate={onPointerUpdate}
-          {...EXCALIDRAW_PROPS}
-          style={{ width: "100%", height: "100%" }}
-        />
       )}
     </div>
   );

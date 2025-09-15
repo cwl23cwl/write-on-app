@@ -62,9 +62,13 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
   } = options;
 
   const islandRef = useRef<ExcalidrawIslandElement>(null);
+  const DEBUG_EXCALIDRAW = process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1';
+  const mountedRef = useRef<boolean>(false);
   const [island, setIsland] = useState<ExcalidrawIslandElement | null>(null);
   const [excalidrawAPI, setExcalidrawAPI] = useState<any>(null);
   const [isReady, setIsReady] = useState(false);
+  const lastReadyRef = useRef<boolean>(false);
+  const lastApiRef = useRef<any>(null);
 
   // Viewport store integration
   const scale = useViewportStore((state) => state.viewport.scale);
@@ -98,6 +102,10 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
 
   // Mount island in container
   const mount = useCallback(() => {
+    // Guard against multi-mount spam
+    if (mountedRef.current) {
+      return;
+    }
     if (!containerRef.current) {
       console.warn('[useExcalidrawIsland] No container available for mounting');
       return;
@@ -116,8 +124,9 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
       
       islandRef.current = islandElement;
       setIsland(islandElement);
+      mountedRef.current = true;
       
-      console.log('[useExcalidrawIsland] Island mounted');
+      if (DEBUG_EXCALIDRAW) console.log('[useExcalidrawIsland] Island mounted');
     }).catch(error => {
       console.error('[useExcalidrawIsland] Failed to load island:', error);
     });
@@ -135,12 +144,13 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
     setIsland(null);
     setExcalidrawAPI(null);
     setIsReady(false);
-    console.log('[useExcalidrawIsland] Island unmounted');
+    mountedRef.current = false;
+    if (DEBUG_EXCALIDRAW) console.log('[useExcalidrawIsland] Island unmounted');
   }, [containerRef]);
 
   // Remount island (for HMR)
   const remount = useCallback(() => {
-    console.log('[useExcalidrawIsland] Remounting island...');
+    if (DEBUG_EXCALIDRAW) console.log('[useExcalidrawIsland] Remounting island...');
     unmount();
     // Small delay to ensure cleanup
     setTimeout(mount, 100);
@@ -150,7 +160,7 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
   useEffect(() => {
     if (island && island.scale !== scale) {
       island.scale = scale;
-      console.log(`[useExcalidrawIsland] Scale synced to ${scale}`);
+      if (DEBUG_EXCALIDRAW) console.log(`[useExcalidrawIsland] Scale synced to ${scale}`);
     }
   }, [island, scale]);
 
@@ -158,7 +168,7 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
   useEffect(() => {
     if (island && island.mode !== mode) {
       island.mode = mode;
-      console.log(`[useExcalidrawIsland] Mode synced to ${mode}`);
+      if (DEBUG_EXCALIDRAW) console.log(`[useExcalidrawIsland] Mode synced to ${mode}`);
     }
   }, [island, mode]);
 
@@ -166,7 +176,7 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
   useEffect(() => {
     if (island && island.writeScope !== writeScope) {
       island.writeScope = writeScope;
-      console.log(`[useExcalidrawIsland] Write scope synced to ${writeScope}`);
+      if (DEBUG_EXCALIDRAW) console.log(`[useExcalidrawIsland] Write scope synced to ${writeScope}`);
     }
   }, [island, writeScope]);
 
@@ -176,7 +186,7 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
       const sceneJson = JSON.stringify(baseScene);
       if (island.baseScene !== sceneJson) {
         island.baseScene = sceneJson;
-        console.log('[useExcalidrawIsland] Base scene synced');
+        if (DEBUG_EXCALIDRAW) console.log('[useExcalidrawIsland] Base scene synced');
       }
     }
   }, [island, baseScene]);
@@ -187,45 +197,58 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
       const sceneJson = JSON.stringify(overlayScene);
       if (island.overlayScene !== sceneJson) {
         island.overlayScene = sceneJson;
-        console.log('[useExcalidrawIsland] Overlay scene synced');
+        if (DEBUG_EXCALIDRAW) console.log('[useExcalidrawIsland] Overlay scene synced');
       }
     }
   }, [island, overlayScene]);
 
-  // Event listeners for island lifecycle
+  // Event listeners for island lifecycle (single ready event with everything)
   useEffect(() => {
     if (!island) return;
 
     const handleIslandReady = (event: Event) => {
       const customEvent = event as CustomEvent;
-      const element = customEvent.detail.element as ExcalidrawIslandElement;
-      setIsReady(true);
-      console.log('[useExcalidrawIsland] Island ready');
-      onReady?.(element);
+      const { element, api } = customEvent.detail as { element: ExcalidrawIslandElement; api: any | null };
+      const ready = Boolean(api);
+      setIsReady(ready);
+      setExcalidrawAPI(api ?? null);
+      // Guard duplicate wiring/logs for identical state
+      const sameState = ready === lastReadyRef.current && (ready ? lastApiRef.current === api : true);
+      if (!sameState) {
+        if (DEBUG_EXCALIDRAW) console.log('[useExcalidrawIsland] Island ready state changed', { ready });
+        onReady?.(element);
+        if (api) onExcalidrawReady?.(api);
+        lastReadyRef.current = ready;
+        lastApiRef.current = api;
+      }
     };
 
-    const handleExcalidrawReady = (event: Event) => {
-      const customEvent = event as CustomEvent;
-      const api = customEvent.detail.api;
-      setExcalidrawAPI(api);
-      console.log('[useExcalidrawIsland] Excalidraw API ready');
-      onExcalidrawReady?.(api);
-    };
-
-    // Listen for events
     island.addEventListener('island-ready', handleIslandReady);
-    island.addEventListener('excalidraw-ready', handleExcalidrawReady);
 
     // Check if island is already initialized (race condition fix)
     if ((island as any).isInitialized) {
-      console.log('[useExcalidrawIsland] Island already initialized, setting ready state');
-      setIsReady(true);
-      onReady?.(island);
+      try {
+        const api = (island as any).getExcalidrawAPI?.();
+        const ready = Boolean(api);
+        const sameState = ready === lastReadyRef.current && (ready ? lastApiRef.current === api : true);
+        if (!sameState && DEBUG_EXCALIDRAW) {
+          console.log('[useExcalidrawIsland] Island already initialized, setting ready state', { ready });
+        }
+        setIsReady(ready);
+        if (api) {
+          setExcalidrawAPI(api);
+          if (!sameState) onExcalidrawReady?.(api);
+        }
+        if (!sameState) onReady?.(island);
+        lastReadyRef.current = ready;
+        lastApiRef.current = api;
+      } catch {
+        setIsReady(false);
+      }
     }
 
     return () => {
       island.removeEventListener('island-ready', handleIslandReady);
-      island.removeEventListener('excalidraw-ready', handleExcalidrawReady);
     };
   }, [island, onReady, onExcalidrawReady]);
 
@@ -234,7 +257,7 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
     if (process.env.NODE_ENV === 'development') {
       // Listen for HMR updates
       const handleHMR = () => {
-        console.log('[useExcalidrawIsland] HMR update detected, remounting...');
+        if (DEBUG_EXCALIDRAW) console.log('[useExcalidrawIsland] HMR update detected, remounting...');
         remount();
       };
 
