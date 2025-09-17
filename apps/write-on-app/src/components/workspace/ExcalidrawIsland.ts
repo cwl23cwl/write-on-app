@@ -50,10 +50,41 @@ type ExcalidrawModule = {
     // Ensure host and inner container fill available space
     const style = document.createElement('style');
     style.textContent = `
-      :host { display: block; width: 100%; height: 100%; }
+      :host { display: block; width: var(--page-width, 1200px); height: var(--page-height, 2200px); }
       .container { position: relative; width: 100%; height: 100%; display: block; }
-      /* Ensure canvas CSS box stays at page size (fill container) even if inline size is set */
-      .container canvas { width: 100% !important; height: 100% !important; max-width: none !important; max-height: none !important; }
+      /* Ensure full-height ancestor chain so wrapper doesn't collapse */
+      .excalidraw { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; }
+      .excalidraw > * { height: 100% !important; }
+      .excalidraw__container { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; }
+      /* Shadow DOM: ensure wrapper is fixed size and canvases overlay absolutely */
+      .excalidraw__canvas-wrapper { position: relative !important; width: 100% !important; height: 100% !important; min-height: 100% !important; }
+      .excalidraw__canvas-wrapper > canvas.excalidraw__canvas { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; display: block !important; }
+      .excalidraw__container { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; }
+      /* Neutralize flex/grid on Excalidraw containers to prevent drift */
+      .excalidraw, .excalidraw *[class*="container"], .excalidraw__container {
+        display: block !important;
+        align-items: initial !important;
+        justify-content: initial !important;
+        gap: 0 !important;
+      }
+      .excalidraw, .excalidraw__container, .excalidraw__canvas-wrapper {
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: content-box !important;
+        overflow: hidden !important;
+        line-height: 0 !important;
+      }
+      canvas.excalidraw__canvas.static, canvas.excalidraw__canvas.interactive {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+      }
+      /* Do not set per-canvas CSS sizes; wrapper controls page-size box */
       .container .excalidraw, .container .excalidraw * { max-width: none !important; max-height: none !important; }
       /* Hide vendor UI so nothing overlays or steals pointer/wheel */
       .container .excalidraw .layer-ui__wrapper,

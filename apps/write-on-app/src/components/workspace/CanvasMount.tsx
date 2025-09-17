@@ -91,11 +91,11 @@ export function CanvasMount({
           position: 'absolute',
           top: 0,
           left: 0,
-          width: '100%', 
+          // Fill the page wrapper exactly; parent does centering
+          width: '100%',
           height: '100%',
-          zIndex: 1,  // Above the white page background
-          pointerEvents: 'none',  // Allow clicks through to page, re-enable for canvas
-          // Canvas mount positioned above page surface
+          zIndex: 1,
+          pointerEvents: 'none',
           boxSizing: 'border-box'
         }}
       >
@@ -105,11 +105,14 @@ export function CanvasMount({
           ref={containerRef}
           className="excalidraw-island-container"
           style={{
+            // Children inherit page box from parent wrapper; island fills wrapper
+            position: 'absolute',
+            left: 0,
+            top: 0,
             width: '100%',
             height: '100%',
             background: '#ffffff',
-            position: 'relative',
-            pointerEvents: 'auto'  // Re-enable pointer events for Excalidraw
+            pointerEvents: 'auto'
           }}
         />
       

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState, useImperativeHandle, forwardRef } from "react";
+import { installCanvasGuards } from "@/components/workspace/excalidraw/debugCanvasGuards";
 import ExcalidrawRef from "@/components/excalidraw/ExcalidrawRef";
 import { EXCALIDRAW_PROPS, INITIAL_APP_STATE } from "@/components/workspace/excalidraw/excalidrawConfig";
 import type { ExcalidrawAPI, ExcalidrawComponentProps } from "@/components/workspace/excalidraw/types";
@@ -423,6 +424,10 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
     setReady(true);
     initializedRef.current = true;
     emitCustomEvent(containerRef.current, 'ready', { api });
+    // Feed Excalidraw sane page constants to avoid container-derived sizes
+    try {
+      (api as any)?.updateScene?.({ appState: { width: 1200, height: 2200, zoom: { value: 1 } } });
+    } catch {}
     onReady(api);
   }, [onReady, setExcalidrawAPI]);
 
@@ -546,6 +551,11 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
     };
   }, [setExcalidrawAPI]);
 
+  // Dev-only: install guards to detect runaway canvas sizing writes
+  useEffect(() => {
+    installCanvasGuards();
+  }, []);
+
   // No manual dynamic import; rely on ExcalidrawRef which handles client-only import and CSS.
 
   return (
@@ -566,7 +576,6 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
         onChange={onChange}
         onPointerUpdate={onPointerUpdate}
         {...EXCALIDRAW_PROPS}
-        style={{ width: '100%', height: '100%' }}
       />
       {!ready && (
         <div

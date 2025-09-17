@@ -214,7 +214,21 @@ export const useViewportStore = create<ViewportStore>()(
       })),
       {
         name: "writeon-viewport",
-        version: 2,
+        version: 3,
+        migrate: (state: any, version: number) => {
+          try {
+            const min = state?.constraints?.minScale ?? 0.5;
+            const max = state?.constraints?.maxScale ?? 3.0;
+            const prev = state?.viewport?.scale ?? 1;
+            const clamped = Math.max(min, Math.min(prev, max));
+            if (state?.viewport) {
+              state.viewport.scale = clamped;
+              // recompute dpr from current device DPR if available at runtime; fall back to 1
+              state.viewport.devicePixelRatio = 1;
+            }
+          } catch {}
+          return state as any;
+        },
         partialize: (s) => ({
           // persist user-meaningful viewport prefs
           viewport: {

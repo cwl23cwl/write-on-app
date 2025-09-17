@@ -33,12 +33,11 @@ export function useCanvasResolution(): void {
     // Ensure container exists
     if (!container) return;
     // Determine page wrapper for logical (unscaled) dimensions
-    const pageEl = (container as HTMLElement).closest('.page-wrapper') as HTMLElement | null;
-    const sizeEl = pageEl ?? (container as HTMLElement);
-
-    // Get logical (unscaled) dimensions using clientWidth/Height
-    const logicalWidth = Math.max(0, Math.round(sizeEl.clientWidth));
-    const logicalHeight = Math.max(0, Math.round(sizeEl.clientHeight));
+    // Never derive logical page size from DOM: use constants
+    const PAGE_WIDTH = 1200;
+    const PAGE_HEIGHT = 2200;
+    const logicalWidth = PAGE_WIDTH;
+    const logicalHeight = PAGE_HEIGHT;
 
     if (logicalWidth === 0 || logicalHeight === 0) return;
 
@@ -85,18 +84,13 @@ export function useCanvasResolution(): void {
     lastComputedRef.current = { backingWidth, backingHeight, effectiveDPR };
 
     try {
-      // Update all canvases inside the Excalidraw container (static + interactive)
-      const canvases = (container as HTMLElement).querySelectorAll('canvas');
+      // Update only the interactive canvas inside Excalidraw container
+      // Avoid touching the static canvas which Excalidraw manages internally
+      const canvases = (container as HTMLElement).querySelectorAll('canvas.excalidraw__canvas.interactive');
       canvases.forEach((cv) => {
         if ((cv as HTMLCanvasElement).width !== backingWidth) (cv as HTMLCanvasElement).width = backingWidth;
         if ((cv as HTMLCanvasElement).height !== backingHeight) (cv as HTMLCanvasElement).height = backingHeight;
-        // Ensure CSS box stays at container size; do not encode DPR in CSS
-        try {
-          (cv as HTMLCanvasElement).style.width = '100%';
-          (cv as HTMLCanvasElement).style.height = '100%';
-          (cv as HTMLCanvasElement).style.maxWidth = 'none';
-          (cv as HTMLCanvasElement).style.maxHeight = 'none';
-        } catch {}
+        // Do not set per-canvas CSS sizes; wrapper controls CSS box
         const ctx = (cv as HTMLCanvasElement).getContext('2d');
         if (ctx) {
           ctx.setTransform(effectiveDPR, 0, 0, effectiveDPR, 0, 0);
@@ -122,28 +116,24 @@ export function useCanvasResolution(): void {
       }
 
     } catch (error) {
-      // Safari fallback: if canvas dimension setting fails
+      // Fallback: if canvas dimension setting fails, try a conservative update on interactive canvas
       if (process.env.NODE_ENV === 'development') {
         console.warn('[CanvasResolution] Canvas dimension setting failed, trying fallback:', error);
       }
-      
-      // Try with reduced dimensions
-      const safeDPR = Math.max(0.75, Math.min(effectiveDPR * 0.8, 2));
-      const safeWidth = Math.round(logicalWidth * safeDPR);
-      const safeHeight = Math.round(logicalHeight * safeDPR);
-      
-      try {
-        canvasElement.width = safeWidth;
-        canvasElement.height = safeHeight;
-        const ctx = canvasElement.getContext('2d');
-        if (ctx) ctx.setTransform(safeDPR, 0, 0, safeDPR, 0, 0);
-      } catch {
-        // Last resort: use minimal DPR
-        canvasElement.width = logicalWidth;
-        canvasElement.height = logicalHeight;
-        const ctx = canvasElement.getContext('2d');
-        if (ctx) ctx.setTransform(1, 0, 0, 1, 0, 0);
-      }
+
+      const safeDPR = 1;
+      const safeWidth = Math.max(1, Math.round(logicalWidth * safeDPR));
+      const safeHeight = Math.max(1, Math.round(logicalHeight * safeDPR));
+      const canvases = (container as HTMLElement).querySelectorAll('canvas.excalidraw__canvas.interactive');
+      canvases.forEach((cv) => {
+        try {
+          const c = cv as HTMLCanvasElement;
+          if (c.width !== safeWidth) c.width = safeWidth;
+          if (c.height !== safeHeight) c.height = safeHeight;
+          const ctx = c.getContext('2d');
+          if (ctx) ctx.setTransform(safeDPR, 0, 0, safeDPR, 0, 0);
+        } catch {}
+      });
     }
   };
 
@@ -193,6 +183,51 @@ export function useCanvasResolution(): void {
       }
     };
   }, []);
+
+  // Effect: Guard canvas styles against runaway writes; clear inline CSS sizes on both canvases
+  useEffect(() => {
+    if (!container) return;
+    const host = container as HTMLElement;
+    const MAX_ATTR_WIDTH = 16384;
+    const MAX_ATTR_HEIGHT = 32768;
+    const onMutations: MutationCallback = (mutations) => {
+      for (const m of mutations) {
+        const el = m.target as HTMLElement;
+        if (!(el instanceof HTMLCanvasElement)) continue;
+        const isCanvas = el.classList.contains('excalidraw__canvas');
+        const isInteractive = isCanvas && el.classList.contains('interactive');
+        const isStatic = isCanvas && el.classList.contains('static');
+        if (!isCanvas) continue;
+        try {
+          // Attribute clamp: apply only to interactive canvas backing store
+          if (isInteractive && m.type === 'attributes' && (m.attributeName === 'height' || m.attributeName === 'width')) {
+            const h = (el as HTMLCanvasElement).height;
+            const w = (el as HTMLCanvasElement).width;
+            let changed = false;
+            if (h > MAX_ATTR_HEIGHT) { (el as HTMLCanvasElement).height = MAX_ATTR_HEIGHT; changed = true; }
+            if (w > MAX_ATTR_WIDTH) { (el as HTMLCanvasElement).width = MAX_ATTR_WIDTH; changed = true; }
+            if (changed) {
+              const ctx = (el as HTMLCanvasElement).getContext('2d');
+              if (ctx) ctx.setTransform(1, 0, 0, 1, 0, 0);
+            }
+          }
+          if (m.type === 'attributes' && m.attributeName === 'style') {
+            const style = (el as HTMLCanvasElement).style;
+            const num = (v: string) => {
+              const n = parseFloat(v || '');
+              return isFinite(n) ? n : 0;
+            };
+            // Clear inline style sizes on both static and interactive canvases
+            if (num(style.height) > 0) style.height = '';
+            if (num(style.width) > 0) style.width = '';
+          }
+        } catch {}
+      }
+    };
+    const mo = new MutationObserver(onMutations);
+    mo.observe(host, { subtree: true, attributes: true, attributeFilter: ['height', 'width', 'style'] });
+    return () => mo.disconnect();
+  }, [container]);
 
   // Effect: container resize observer
   useEffect(() => {
