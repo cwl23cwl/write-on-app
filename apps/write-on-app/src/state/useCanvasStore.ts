@@ -89,13 +89,28 @@ export const useCanvasStore = create<CanvasStore>()(
         const container = state.refs.containerElement ?? canvas?.parentElement ?? null;
         if (!canvas || !container) return;
 
-        const rect = (container as HTMLElement).getBoundingClientRect();
-        const logicalWidth = Math.max(0, Math.round(rect.width));
-        const logicalHeight = Math.max(0, Math.round(rect.height));
+        // Never derive logical page size from DOM; use constants
+        const PAGE_WIDTH = 1200;
+        const PAGE_HEIGHT = 2200;
+        const logicalWidth = PAGE_WIDTH;
+        const logicalHeight = PAGE_HEIGHT;
         const dpr = getDpr();
         const zoom = (() => { try { const z = useViewportStore.getState().viewport.scale; return (z ?? 1); } catch { return 1; } })();
-        const physicalWidth = Math.max(0, Math.round(logicalWidth * dpr * zoom));
-        const physicalHeight = Math.max(0, Math.round(logicalHeight * dpr * zoom));
+        let physicalWidth = Math.max(0, Math.round(logicalWidth * dpr * zoom));
+        let physicalHeight = Math.max(0, Math.round(logicalHeight * dpr * zoom));
+        // GPU caps (same as useCanvasResolution)
+        const MAX_CANVAS_DIMENSION = 16384;
+        const MAX_CANVAS_PIXELS = 268435456; // 256MP
+        const totalPixels = physicalWidth * physicalHeight;
+        if (physicalWidth > MAX_CANVAS_DIMENSION || physicalHeight > MAX_CANVAS_DIMENSION || totalPixels > MAX_CANVAS_PIXELS) {
+          const dimRatio = Math.min(
+            MAX_CANVAS_DIMENSION / Math.max(physicalWidth, physicalHeight),
+            Math.sqrt(MAX_CANVAS_PIXELS / Math.max(1, totalPixels)),
+          );
+          const fallbackDPR = Math.max(0.75, Math.min(dpr * zoom * dimRatio, 3));
+          physicalWidth = Math.round(logicalWidth * fallbackDPR);
+          physicalHeight = Math.round(logicalHeight * fallbackDPR);
+        }
 
         set((s) => {
           s.resolution.logicalWidth = logicalWidth;

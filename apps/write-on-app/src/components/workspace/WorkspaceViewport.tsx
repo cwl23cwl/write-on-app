@@ -97,9 +97,6 @@ export function WorkspaceViewport({ className, children }: Props): JSX.Element {
       ref={containerRef}
       id="workspace-viewport"
       className={`workspace-viewport flex-1 ${className ?? ""}`.trim()}
-      style={{
-        paddingTop: '8px', // Minimal tight gap between PageIndicator and canvas
-      }}
     >
       {children}
       <span className="workspace-marker hidden" aria-hidden />

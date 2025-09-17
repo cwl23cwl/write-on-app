@@ -10,6 +10,7 @@ import { useCanvasStore, useViewportStore } from "@/state";
 import type { ToolType } from "@/types/state";
 import { normalizedDeltaY } from "@/components/workspace/utils/events";
 import { useCanvasResolution } from "@/components/workspace/hooks/useCanvasResolution";
+import { installCanvasGuards } from "@/components/workspace/excalidraw/debugCanvasGuards";
 // Dynamic imports to avoid SSR issues with devicePixelRatio
 // import { exportToSvg, exportToBlob } from "@excalidraw/excalidraw";
 
@@ -266,6 +267,11 @@ export const ExcalidrawAdapter = forwardRef<ExcalidrawContractAPI, Props>(functi
       // Step 7: Emit ready event
       emitCustomEvent(containerRef.current, 'ready', { api } as ReadyEventDetail);
       
+      // Feed Excalidraw sane page constants to avoid container-derived sizes
+      try {
+        (api as any)?.updateScene?.({ appState: { width: 1200, height: 2200, zoom: { value: 1 } } });
+      } catch {}
+
       onReady(api);
     } else {
       console.warn('[ExcalidrawAdapter] API not ready, deferring operation');
@@ -277,6 +283,11 @@ export const ExcalidrawAdapter = forwardRef<ExcalidrawContractAPI, Props>(functi
 
   // Phase 3 Step 3: Enhanced DPR-aware canvas resolution management
   useCanvasResolution();
+
+  // Dev-only: install guards to detect runaway canvas sizing writes
+  useEffect(() => {
+    installCanvasGuards();
+  }, []);
 
   // Full lifecycle: mount, resolution updates, resize observer, unmount
   useExcalidrawLifecycle({ containerRef, apiRef, initialData, onReady });
@@ -428,7 +439,6 @@ export const ExcalidrawAdapter = forwardRef<ExcalidrawContractAPI, Props>(functi
           {...base}
           {...onChange}
           excalidrawAPI={handleApiReady as unknown as (api: unknown) => void}
-          style={{ width: "100%", height: "100%" }}
         />
       )}
       <span className="workspace-marker hidden" aria-hidden />

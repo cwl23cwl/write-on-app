@@ -88,11 +88,9 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
       islandElement.overlayScene = JSON.stringify(overlayScene);
     }
 
-    // Style the island to fill container
+    // Style: let host CSS define exact pixel size; avoid percent-based stretch
     islandElement.style.cssText = `
       display: block;
-      width: 100%;
-      height: 100%;
       border: none;
       background: transparent;
     `;
