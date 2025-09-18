@@ -126,8 +126,9 @@ body {
   /* Spacer sized to UN-SCALED virtual size (page + padding) */
   width: var(--virtual-width, 1500px);
   height: var(--virtual-height, 2550px);
-  /* Apply zoom only via transform on the scaler */
-  transform: scale(var(--workspace-zoom, 1));
+  /* Apply zoom while compensating for visual width shrink/growth */
+  --workspace-center-offset: calc((1 - var(--workspace-zoom, 1)) * var(--virtual-width, 1500px) / 2);
+  transform: translateX(var(--workspace-center-offset, 0px)) scale(var(--workspace-zoom, 1));
   transform-origin: top left;
 }
 
