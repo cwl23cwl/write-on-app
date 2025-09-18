@@ -1,12 +1,9 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import React, { forwardRef, memo } from 'react';
-import type {
-  ExcalidrawProps,
-  ExcalidrawImperativeAPI,
-} from '@excalidraw/excalidraw/types';
-import '@excalidraw/excalidraw/index.css';
+import dynamic from "next/dynamic";
+import React, { forwardRef, memo, MutableRefObject } from "react";
+import type { ExcalidrawImperativeAPI, ExcalidrawProps } from "@excalidraw/excalidraw/types";
+import "@excalidraw/excalidraw/index.css";
 
 type ExcalidrawComponent = React.ForwardRefExoticComponent<
   React.PropsWithoutRef<ExcalidrawProps> &
@@ -15,45 +12,58 @@ type ExcalidrawComponent = React.ForwardRefExoticComponent<
 
 const ExcalidrawC = dynamic(async () => {
   try {
-    const m = await import('@excalidraw/excalidraw');
-    return m.Excalidraw;
-  } catch (e) {
-    console.error('[ExcalidrawAdapter] Failed to import Excalidraw. Check vendor/excalidraw', e);
-    const Fallback = React.forwardRef(function ExcalidrawFallback() {
+    const excalidrawModule = await import("@excalidraw/excalidraw");
+    return excalidrawModule.Excalidraw;
+  } catch (error) {
+    console.error("[ExcalidrawAdapter] Failed to import Excalidraw. Check vendor/excalidraw", error);
+    const Fallback = React.forwardRef<ExcalidrawImperativeAPI, ExcalidrawProps>(function ExcalidrawFallback() {
       return null;
-    }) as unknown as ExcalidrawComponent;
+    }) as ExcalidrawComponent;
     return Fallback;
   }
 }, { ssr: false }) as ExcalidrawComponent;
 
-const DEBUG_EXCALIDRAW = process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1';
+const DEBUG_EXCALIDRAW = process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === "1";
 
 const ExcalidrawRef = memo(
   forwardRef<ExcalidrawImperativeAPI, ExcalidrawProps>((props, ref) => {
-    const { excalidrawAPI, ...rest } = props as any;
-    const wrappedApiCallback = (api: ExcalidrawImperativeAPI | null) => {
+    const { excalidrawAPI: excalidrawApiProp, ...rest } = props;
+
+    const wrappedApiCallback = (api: ExcalidrawImperativeAPI | null): void => {
       if (DEBUG_EXCALIDRAW) {
-        try { console.log('[ExcalidrawRef] excalidrawAPI callback invoked', { hasApi: !!api }); } catch {}
+        try {
+          console.log("[ExcalidrawRef] excalidrawAPI callback invoked", { hasApi: Boolean(api) });
+        } catch {
+          // Ignore logging failures
+        }
       }
-      if (typeof excalidrawAPI === 'function') {
-        excalidrawAPI(api);
-      }
+
+      excalidrawApiProp?.(api);
     };
-    const wrappedRef = (instance: ExcalidrawImperativeAPI | null) => {
+
+    const wrappedRef = (instance: ExcalidrawImperativeAPI | null): void => {
       if (DEBUG_EXCALIDRAW) {
-        try { console.log('[ExcalidrawRef] ref set', { hasInstance: !!instance }); } catch {}
+        try {
+          console.log("[ExcalidrawRef] ref set", { hasInstance: Boolean(instance) });
+        } catch {
+          // Ignore logging failures
+        }
       }
-      if (typeof ref === 'function') {
+
+      if (typeof ref === "function") {
         ref(instance);
-      } else if (ref && typeof (ref as any) === 'object') {
-        (ref as any).current = instance;
+      } else if (ref && typeof ref === "object") {
+        (ref as MutableRefObject<ExcalidrawImperativeAPI | null>).current = instance;
       }
-      // Also invoke the API callback to maximize compatibility
+
       wrappedApiCallback(instance);
     };
-    return <ExcalidrawC ref={wrappedRef} excalidrawAPI={wrappedApiCallback as any} {...(rest as any)} />;
+
+    return <ExcalidrawC ref={wrappedRef} excalidrawAPI={wrappedApiCallback} {...rest} />;
   }),
 );
 
-ExcalidrawRef.displayName = 'ExcalidrawRef';
+ExcalidrawRef.displayName = "ExcalidrawRef";
 export default ExcalidrawRef;
+
+
