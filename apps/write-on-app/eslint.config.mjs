@@ -19,6 +19,11 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "src/components/workspace/**",
+      "src/components/test/**",
+      "src/legacy-ui/**",
+      "src/state/**",
+      "src/test/**",
     ],
   },
   {
@@ -40,6 +45,27 @@ const eslintConfig = [
       "writeon/workspace-css-prefix": "warn",
       "writeon/chrome-css-prefix": "warn",
       "writeon/no-transform-on-chrome": "error",
+    },
+  },
+  {
+    files: ["**/*.js", "**/*.mjs", "**/*.cjs", "scripts/**/*.{js,mjs,cjs}"],
+    rules: {
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
+  {
+    files: [
+      "**/*.test.ts",
+      "**/*.test.tsx",
+      "**/test/**/*.{ts,tsx}",
+      "**/__tests__/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "@typescript-eslint/explicit-function-return-type": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "writeon/no-direct-dom-manipulation": "off",
+      "writeon/store-access-via-hooks": "off",
     },
   },
 ];

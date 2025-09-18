@@ -7,8 +7,8 @@ import { useEffect } from "react";
  * Control strip should be completely zoom-inert - no functionality, no effects.
  */
 export function useControlStripEventBlock(): void {
-  useEffect(() => {
-    const onWheel = (_e: WheelEvent): void => {
+  useEffect((): () => void => {
+    const onWheel = (): void => {
       // Passive listener: never call preventDefault here.
       // Plain wheel should bubble to scroll the page.
       // Ctrl/Meta+wheel will be handled by the workspace root zoom listener.
@@ -44,3 +44,5 @@ export function useControlStripEventBlock(): void {
     };
   }, []);
 }
+
+

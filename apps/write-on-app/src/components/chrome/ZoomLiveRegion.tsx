@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useViewportStore } from "@/state";
@@ -15,7 +15,7 @@ export function ZoomLiveRegion(): JSX.Element {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Debounced announcement to avoid rapid-fire updates during smooth zoom
-  const announceZoom = useCallback((newScale: number, newFitMode: 'fit-width' | 'free') => {
+  const announceZoom = useCallback((newScale: number, newFitMode: 'fit-width' | 'free'): void => {
     // Clear any pending announcement
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -37,7 +37,7 @@ export function ZoomLiveRegion(): JSX.Element {
     });
   }, []);
 
-  useEffect(() => {
+  useEffect((): () => void => {
     announceZoom(scale, fitMode);
     
     return () => {
@@ -52,7 +52,7 @@ export function ZoomLiveRegion(): JSX.Element {
       role="status"
       aria-live="polite"
       aria-atomic="true"
-      className="sr-only"
+      className="sr-only chrome-zoom-live-region"
       style={{ 
         position: 'absolute', 
         width: 1, 
@@ -67,3 +67,7 @@ export function ZoomLiveRegion(): JSX.Element {
     </div>
   );
 }
+
+
+
+
