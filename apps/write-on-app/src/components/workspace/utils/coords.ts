@@ -1,9 +1,22 @@
 export type ViewState = { scale: number; scrollX: number; scrollY: number };
 
+const computeCenterOffset = (scale: number, baseWidth: number): number => {
+  if (!Number.isFinite(scale) || !Number.isFinite(baseWidth)) return 0;
+  return (1 - scale) * baseWidth / 2;
+};
+
 export function getWorldPoint(evt: { clientX: number; clientY: number }, hostEl: HTMLElement, view: ViewState): { x: number; y: number } {
   const rect = hostEl.getBoundingClientRect();
-  const x = (evt.clientX - rect.left) / (view.scale ?? 1) + (view.scrollX ?? 0);
-  const y = (evt.clientY - rect.top) / (view.scale ?? 1) + (view.scrollY ?? 0);
+  const scale = view.scale ?? 1;
+  const safeScale = scale === 0 ? Number.EPSILON : scale;
+  const scrollX = view.scrollX ?? 0;
+  const scrollY = view.scrollY ?? 0;
+  const mouseX = evt.clientX - rect.left;
+  const mouseY = evt.clientY - rect.top;
+  const unscaledWidth = hostEl.scrollWidth || (rect.width / safeScale) || 0;
+  const offsetX = computeCenterOffset(safeScale, unscaledWidth);
+  const x = (mouseX - offsetX) / safeScale + scrollX;
+  const y = mouseY / safeScale + scrollY;
   return { x, y };
 }
 
@@ -57,6 +70,13 @@ export function zoomAtClientPoint(
 ): { scale: number; scrollX: number; scrollY: number } {
   const rect = hostEl.getBoundingClientRect();
   const oldScale = currentView.scale ?? 1;
+  const safeOldScale = oldScale === 0 ? Number.EPSILON : oldScale;
+  const safeNewScale = newScale === 0 ? Number.EPSILON : newScale;
+  const scrollX = currentView.scrollX ?? 0;
+  const scrollY = currentView.scrollY ?? 0;
+  const baseWidth = hostEl.scrollWidth || (rect.width / safeOldScale) || 0;
+  const oldOffsetX = computeCenterOffset(safeOldScale, baseWidth);
+  const newOffsetX = computeCenterOffset(safeNewScale, baseWidth);
   
   console.log(`[zoomAtClientPoint] Element: ${hostEl.id || hostEl.className}`);
   console.log(`[zoomAtClientPoint] Client mouse: ${clientX}, ${clientY}`);
@@ -73,11 +93,12 @@ export function zoomAtClientPoint(
   // For CSS transform-based zoom, the formula is different:
   // We want the world point under the cursor to stay in the same place
   // newScroll = (oldScroll + mousePos) * (newScale/oldScale) - mousePos
-  const scaleRatio = newScale / oldScale;
-  let newScrollX = ((currentView.scrollX ?? 0) + mouseX) * scaleRatio - mouseX;
-  let newScrollY = ((currentView.scrollY ?? 0) + mouseY) * scaleRatio - mouseY;
+  const scaleRatio = safeNewScale / safeOldScale;
+  let newScrollX = scrollX + (mouseX - oldOffsetX) / safeOldScale - (mouseX - newOffsetX) / safeNewScale;
+  let newScrollY = (scrollY + mouseY) * scaleRatio - mouseY;
   
   console.log(`[zoomAtClientPoint] Scale ratio: ${scaleRatio}`);
+  console.log(`[zoomAtClientPoint] Offsets: old=${oldOffsetX}, new=${newOffsetX}`);
   console.log(`[zoomAtClientPoint] Calculated scroll: ${newScrollX}, ${newScrollY}`);
   
   // Apply clamping if content size is provided
