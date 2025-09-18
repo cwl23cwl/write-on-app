@@ -158,7 +158,8 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
         return;
       }
       
-      // Non-zoom: let normal scroll happen, never preventDefault
+      // Non-zoom: allow page scroll, but stop propagation so Excalidraw can't block it
+      e.stopPropagation();
     };
 
     // Safari gesture events for pinch zoom
