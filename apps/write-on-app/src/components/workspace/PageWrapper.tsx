@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { ReactNode } from 'react';
+import type { JSX, ReactNode } from 'react';
 
 interface Props {
   children: ReactNode;
@@ -8,13 +8,14 @@ interface Props {
 
 export function PageWrapper({ children }: Props): JSX.Element {
   return (
-    <div 
+    <div
       className="page-wrapper"
       style={{
+        position: 'absolute',
+        left: 'var(--page-padding-x)',
+        top: 'var(--page-padding-top)',
         width: 'var(--page-width)',
-        height: 'var(--page-height)', 
-        position: 'relative',  // Positioning context for absolute children
-        // Page wrapper provides positioning context
+        height: 'var(--page-height)',
         boxSizing: 'border-box'
       }}
     >

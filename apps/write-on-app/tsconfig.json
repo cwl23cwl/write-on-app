@@ -19,6 +19,9 @@
       "@/components/*": [
         "./src/components/*"
       ],
+      "@/stores/*": [
+        "./src/stores/*"
+      ],
       "@/state/*": [
         "./src/state/*"
       ],

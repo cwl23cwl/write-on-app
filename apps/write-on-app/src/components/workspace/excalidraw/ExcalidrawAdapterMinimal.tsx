@@ -392,44 +392,85 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
   // DPI handling moved to export-only to avoid canvas interference
   const initializedRef = useRef(false);
   const excalidrawInnerRef = useRef<any>(null);
+  const readyEventFiredRef = useRef(false);
+  const pendingFrameRef = useRef<number | null>(null);
+  const isMountedRef = useRef(false);
   const setContainerRefStore = useCanvasStore((s) => s.setContainerRef);
-  const handleApiReady = useCallback((api: ExcalidrawAPI | null): void => {
-    if (DEBUG_EXCALIDRAW) console.log('[ExcalidrawAdapterMinimal] handleApiReady called', { hasApi: !!api });
-    // Update external store reference regardless
-    setExcalidrawAPI(api);
 
-    // If API is null, mark not ready and allow future initialization
-    if (!api) {
-      apiRef.current = null;
-      setReady(false);
-      initializedRef.current = false;
-      // Notify listeners that API is no longer ready
-      emitCustomEvent(containerRef.current, 'ready', { api: null });
-      onReady(api);
-      return;
-    }
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (pendingFrameRef.current !== null) {
+        cancelAnimationFrame(pendingFrameRef.current);
+        pendingFrameRef.current = null;
+      }
+    };
+  }, []);
 
-    // Guard against double-initialization in React StrictEffects
-    if (initializedRef.current) {
+  const flushApiReady = useCallback(
+    (api: ExcalidrawAPI): void => {
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      // Guard against duplicate init in StrictMode
+      if (initializedRef.current && apiRef.current === api) {
+        return;
+      }
+
       apiRef.current = api;
-      return;
-    }
+      setExcalidrawAPI(api);
 
-    apiRef.current = api;
-    if (DEBUG_EXCALIDRAW) console.log('[ExcalidrawAdapterMinimal] API ready');
+      if (DEBUG_EXCALIDRAW) console.log('[ExcalidrawAdapterMinimal] API ready');
 
-    // Do not force setZoom(1) here; host scaler manages zoom externally
+      setReady(true);
+      initializedRef.current = true;
 
-    // Mark adapter as ready only after we have an API instance
-    setReady(true);
-    initializedRef.current = true;
-    emitCustomEvent(containerRef.current, 'ready', { api });
-    // Feed Excalidraw sane page constants to avoid container-derived sizes
-    try {
-      (api as any)?.updateScene?.({ appState: { width: 1200, height: 2200, zoom: { value: 1 } } });
-    } catch {}
-    onReady(api);
-  }, [onReady, setExcalidrawAPI]);
+      if (!readyEventFiredRef.current) {
+        readyEventFiredRef.current = true;
+        emitCustomEvent(containerRef.current, 'ready', { api });
+        onReady(api);
+      }
+
+      try {
+        (api as any)?.updateScene?.({ appState: { width: 1200, height: 2200, zoom: { value: 1 } } });
+      } catch {}
+    },
+    [DEBUG_EXCALIDRAW, onReady, setExcalidrawAPI],
+  );
+
+  const handleApiReady = useCallback(
+    (api: ExcalidrawAPI | null): void => {
+      if (DEBUG_EXCALIDRAW) console.log('[ExcalidrawAdapterMinimal] handleApiReady called', { hasApi: !!api });
+
+      if (pendingFrameRef.current !== null) {
+        cancelAnimationFrame(pendingFrameRef.current);
+        pendingFrameRef.current = null;
+      }
+
+      if (!api) {
+        apiRef.current = null;
+        readyEventFiredRef.current = false;
+        initializedRef.current = false;
+        if (isMountedRef.current) {
+          setExcalidrawAPI(null);
+          setReady(false);
+        }
+        emitCustomEvent(containerRef.current, 'ready', { api: null });
+        if (isMountedRef.current) {
+          onReady(api);
+        }
+        return;
+      }
+
+      pendingFrameRef.current = requestAnimationFrame(() => {
+        pendingFrameRef.current = null;
+        flushApiReady(api);
+      });
+    },
+    [DEBUG_EXCALIDRAW, flushApiReady, setExcalidrawAPI],
+  );
 
   // Callback ref to reliably receive API and bridge to our handler
   const receiveApiRef = useCallback((instance: any) => {
@@ -441,13 +482,26 @@ export const ExcalidrawAdapterMinimal = forwardRef<ExcalidrawContractAPI, Props>
 
   // Do not lock internal zoom here; host scaler manages zoom externally
 
-  // TEMP: Disable event interception to allow Excalidraw interactions
-  // Step 7: Intercept zoom/pan events - DISABLED FOR DEBUGGING
-  /*
+  // Prevent native Excalidraw hotkeys from firing; host handles keyboard controls.
   useEffect(() => {
-    // Event blocking disabled - let Excalidraw handle all events
-  }, []);
-  */
+    const container = containerRef.current;
+    if (!container) return;
+
+    const interceptKeyboard = (event: KeyboardEvent): void => {
+      if (!container.contains(event.target as Node | null)) {
+        return;
+      }
+      event.stopPropagation();
+    };
+
+    container.addEventListener('keydown', interceptKeyboard, true);
+    container.addEventListener('keyup', interceptKeyboard, true);
+
+    return () => {
+      container.removeEventListener('keydown', interceptKeyboard, true);
+      container.removeEventListener('keyup', interceptKeyboard, true);
+    };
+  }, [containerRef]);
 
   // Ready state is gated by Excalidraw API readiness (via handleApiReady)
 

@@ -1,7 +1,8 @@
 "use client";
 
-import { WorkspaceRoot } from "@/components/workspace/WorkspaceRoot";
+import type { JSX } from "react";
 import { Suspense } from "react";
+import { WorkspaceRoot } from "@/components/workspace/WorkspaceRoot";
 
 export default function Home(): JSX.Element {
   return (

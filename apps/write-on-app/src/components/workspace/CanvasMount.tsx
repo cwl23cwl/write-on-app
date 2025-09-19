@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type JSX, type RefObject } from 'react';
 import { useExcalidrawIsland } from '@/components/workspace/hooks/useExcalidrawIsland';
+import { useWorkspaceStore } from '@/stores/useWorkspaceStore';
 
 type Props = { 
   className?: string;
@@ -25,7 +26,7 @@ export function CanvasMount({
   readonly = false, 
   initialScene 
 }: Props): JSX.Element {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const DEBUG_EXCALIDRAW = process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1';
   const loggedReadyRef = useRef<boolean>(false);
   const loggedApiRef = useRef<boolean>(false);
@@ -34,10 +35,9 @@ export function CanvasMount({
     mount,
     unmount,
     isReady,
-    island,
     excalidrawAPI
   } = useExcalidrawIsland({
-    containerRef,
+    containerRef: containerRef as unknown as RefObject<HTMLElement | null>,
     mode,
     writeScope,
     baseScene: baseScene || initialScene, // Legacy support
@@ -55,6 +55,15 @@ export function CanvasMount({
       }
     }
   });
+
+  const setWorkspaceApi = useWorkspaceStore((s) => s.setExcalidrawAPI);
+
+  useEffect(() => {
+    setWorkspaceApi(excalidrawAPI ?? null);
+    return () => {
+      setWorkspaceApi(null);
+    };
+  }, [excalidrawAPI, setWorkspaceApi]);
 
   // Mount island once on component mount, cleanup on unmount
   useEffect(() => {
@@ -85,18 +94,17 @@ export function CanvasMount({
   }, []);
 
   return (
-      <div 
-        className={`workspace-canvas-mount ${className ?? ""}`.trim()} 
-        style={{ 
+      <div
+        className={`workspace-canvas-mount ${className ?? ""}`.trim()}
+        style={{
           position: 'absolute',
           top: 0,
           left: 0,
-          // Fill the page wrapper exactly; parent does centering
           width: '100%',
           height: '100%',
-          zIndex: 1,
+          zIndex: 0,
           pointerEvents: 'none',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
         }}
       >
         {/* Step 10: Island container - will be filled by excalidraw-island Web Component */}
@@ -105,14 +113,14 @@ export function CanvasMount({
           ref={containerRef}
           className="excalidraw-island-container"
           style={{
-            // Children inherit page box from parent wrapper; island fills wrapper
             position: 'absolute',
             left: 0,
             top: 0,
             width: '100%',
             height: '100%',
             background: '#ffffff',
-            pointerEvents: 'auto'
+            pointerEvents: 'auto',
+            zIndex: 0,
           }}
         />
       

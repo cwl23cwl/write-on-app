@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type JSX } from "react";
 import { WorkspaceProvider } from "@/components/workspace/WorkspaceProvider";
 import { WorkspaceViewport } from "@/components/workspace/WorkspaceViewport";
 import { WorkspaceScaler } from "@/components/workspace/WorkspaceScaler";
@@ -45,7 +45,7 @@ export function WorkspaceRoot(): JSX.Element {
   useEffect(() => {
     const ctrl = document.querySelector('.control-strip') as HTMLElement | null;
     if (ctrl && ctrl.closest('.workspace-scaler')) {
-      console.warn("Control strip is inside a scaler — move it out!", ctrl);
+      console.warn("Control strip is inside a scaler â€” move it out!", ctrl);
     }
   }, []);
 
@@ -98,15 +98,16 @@ export function WorkspaceRoot(): JSX.Element {
             ['--h-stack' as any]: 'calc(var(--h-chrome) + var(--gap-header-top) + var(--gap-top-opts) + var(--gap-indicator-above) + var(--h-indicator) + var(--gap-indicator-below))',
             // Composite height vars are CSS-owned in globals.css
             // Spacing defaults
-            ['--page-padding' as any]: '32px',
+            ['--page-padding-x' as any]: '40px',
+            ['--page-padding-top' as any]: '40px',
+            ['--page-padding-bottom' as any]: '40px',
             // z-index tokens
-            ['--z-header' as any]: '1000',
-            ['--z-toolbar' as any]: '900',
-            ['--z-indicator' as any]: '40',
+            ['--z-control-strip' as any]: '3200',
+            ['--z-header' as any]: '3100',
+            ['--z-toolbar' as any]: '3000',
+            ['--z-indicator' as any]: '2900',
             // Scroller behavior & containment
             overscrollBehavior: 'contain',
-            contain: 'layout',
-            isolation: 'isolate',
             // Opaque background to prevent transparency artifacts under sticky chrome
             backgroundColor: 'var(--workspace-bg, #ffffff)',
             // Page indicator tokens (solid surface)

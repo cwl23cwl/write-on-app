@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, type JSX } from "react";
 import {
   ChevronDown,
   Eraser,
@@ -79,20 +79,6 @@ const TOOL_CONFIG: ToolConfig[] = [
   },
 ];
 
-const QUICK_TEXT_COLORS = [
-  { label: "Slate", value: "#111827" },
-  { label: "Blue", value: "#2563eb" },
-  { label: "Gold", value: "#facc15" },
-  { label: "Emerald", value: "#10b981" },
-  { label: "Rose", value: "#f43f5e" },
-];
-
-const QUICK_HIGHLIGHT_COLORS = [
-  { label: "Lemon", value: "#fef08a" },
-  { label: "Mint", value: "#bbf7d0" },
-  { label: "Sky", value: "#bae6fd" },
-  { label: "Lavender", value: "#e9d5ff" },
-];
 
 export function TopToolbar(): JSX.Element {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -140,19 +126,16 @@ export function TopToolbar(): JSX.Element {
     });
   };
 
-  const handleQuickColor = (context: "text" | "highlight", hex: string): void => {
-    console.log(`TODO: apply ${context} color ${hex}`);
-  };
-
   return (
     <div
       ref={ref}
       className="chrome-top-toolbar top-toolbar w-full"
       style={{
-        contain: "layout paint",
         backgroundColor: "transparent",
         marginTop: "var(--gap-header-top)",
         marginBottom: 0,
+        position: "relative",
+        zIndex: "var(--z-toolbar, 1900)",
       }}
     >
       <nav className="w-full border-b bg-white shadow-sm" data-toolbar="true">
@@ -212,39 +195,6 @@ export function TopToolbar(): JSX.Element {
                   </button>
                 );
               })}
-            </div>
-
-            <div className="hidden items-center gap-3 lg:flex">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Text</span>
-                <div className="flex items-center gap-1">
-                  {QUICK_TEXT_COLORS.map((color) => (
-                    <button
-                      key={color.value}
-                      type="button"
-                      onClick={() => handleQuickColor("text", color.value)}
-                      className="h-7 w-7 rounded-full border border-gray-200 shadow-sm transition-transform hover:scale-110"
-                      style={{ backgroundColor: color.value }}
-                      title={`${color.label} text color`}
-                    />
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">Highlight</span>
-                <div className="flex items-center gap-1">
-                  {QUICK_HIGHLIGHT_COLORS.map((color) => (
-                    <button
-                      key={color.value}
-                      type="button"
-                      onClick={() => handleQuickColor("highlight", color.value)}
-                      className="h-7 w-7 rounded-full border border-gray-200 shadow-sm transition-transform hover:scale-110"
-                      style={{ backgroundColor: color.value }}
-                      title={`${color.label} highlight color`}
-                    />
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
 
