@@ -1,6 +1,17 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type JSX,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import type { ExcalidrawAPI } from "@/components/workspace/excalidraw/types";
 import { TOOL_MAP } from "@/components/workspace/excalidraw/excalidrawConfig";
 import type { ToolType } from "@/types/state";
@@ -8,7 +19,7 @@ import { useCanvasStore } from "@/state";
 
 export type WorkspaceContextValue = {
   // The root DOM element wrapping the workspace (unscaled container)
-  containerRef: React.RefObject<HTMLDivElement | null>;
+  containerRef: RefObject<HTMLDivElement | null>;
   // Excalidraw API wiring
   exApi: ExcalidrawAPI | null;
   setExApi: (api: ExcalidrawAPI | null) => void;
@@ -18,7 +29,7 @@ export type WorkspaceContextValue = {
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
 
-export function WorkspaceProvider({ value, children }: { value: { containerRef: React.RefObject<HTMLDivElement | null> }; children: React.ReactNode }): JSX.Element {
+export function WorkspaceProvider({ value, children }: { value: { containerRef: RefObject<HTMLDivElement | null> }; children: ReactNode }): JSX.Element {
   const [exApi, setExApiState] = useState<ExcalidrawAPI | null>(null);
   const apiRef = useRef<ExcalidrawAPI | null>(null);
   const setActiveToolStore = useCanvasStore((s) => s.setActiveTool);

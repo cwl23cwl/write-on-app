@@ -14,7 +14,7 @@ import type { ExcalidrawIslandElement } from '@/components/workspace/ExcalidrawI
 
 interface UseExcalidrawIslandOptions {
   /** Container element where island will be mounted */
-  containerRef: React.RefObject<HTMLElement>;
+  containerRef: React.RefObject<HTMLElement | null>;
   /** View mode: who is viewing the canvas */
   mode?: 'teacher' | 'student';
   /** Write scope: which layer is writable */

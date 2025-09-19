@@ -1,7 +1,6 @@
 "use client";
 
-import type { PropsWithChildren } from "react";
-import { useRef } from "react";
+import { useRef, type JSX, type PropsWithChildren } from "react";
 import { useApplyZoomCssVar } from "@/components/workspace/hooks/useApplyZoomCssVar";
 
 // WorkspaceScaler: in Phase 2 this does not apply transforms.

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 :root {
   --background: #ffffff;
@@ -95,7 +95,7 @@ body {
 .options-toolbar {
   transform: none !important;
   will-change: auto;
-  contain: layout paint;
+  contain: none;
 }
 
 /* Top offset is applied in WorkspaceViewport using --h-stack;
@@ -111,37 +111,32 @@ body {
 
 /* Viewport owns scrolling; inner scale layer owns zoom */
 #workspace-viewport {
+  position: relative;
   overflow: auto;
-  /* Center the scaled paper horizontally */
-  display: flex;
-  justify-content: center;
-  align-items: flex-start; /* do not vertically center */
   padding: 0 !important;
   margin: 0 !important;
 }
 
 /* Scaled-size spacer and transform layer */
 .workspace-scaler {
-  position: relative;
-  /* Spacer sized to UN-SCALED virtual size (page + padding) */
-  width: var(--virtual-width, 1500px);
-  height: var(--virtual-height, 2550px);
-  /* Apply zoom while compensating for visual width shrink/growth */
-  --workspace-center-offset: calc((1 - var(--workspace-zoom, 1)) * var(--virtual-width, 1500px) / 2);
-  transform: translateX(var(--workspace-center-offset, 0px)) scale(var(--workspace-zoom, 1));
-  transform-origin: top left;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--virtual-width);
+  height: var(--virtual-height);
+  transform: translate(-50%, -50%) scale(var(--workspace-zoom, 1));
+  transform-origin: center;
 }
 
 /* Removed #workspace-scale-layer; scaling handled by engine/viewport */
 
 .page-wrapper {
-  width: var(--page-width);   /* basePageSize.w */
-  height: var(--page-height);  /* basePageSize.h */
   position: absolute;
-  /* Center page within virtual space using calc to account for padding */
-  left: calc((var(--virtual-width) - var(--page-width)) / 2);
-  top: calc((var(--virtual-height) - var(--page-height)) / 2);
-  box-sizing: content-box; /* ensure padding doesn't shrink the paper */
+  left: var(--page-padding-x);
+  top: var(--page-padding-top);
+  width: var(--page-width);
+  height: var(--page-height);
+  box-sizing: content-box;
 }
 
 /* Ensure indicator and strip pin to top and never transform */
@@ -197,7 +192,13 @@ body {
   outline: 1px solid #3b82f6; /* blue */
 }
 .debug-layout .workspace-scaler {
-  outline: 1px solid #22c55e; /* green */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--virtual-width);
+  height: var(--virtual-height);
+  transform: translate(-50%, -50%) scale(var(--workspace-zoom, 1));
+  transform-origin: center;
 }
 .debug-layout .workspace-canvas-mount {
   outline: 1px solid #fb923c; /* orange */
@@ -227,7 +228,13 @@ body {
 
 /* Workspace scaler sits directly below control strip with no extra gap */
 .workspace-scaler {
-  margin-top: 0;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--virtual-width);
+  height: var(--virtual-height);
+  transform: translate(-50%, -50%) scale(var(--workspace-zoom, 1));
+  transform-origin: center;
 }
 
 /* Fix pointer events conflicts between top/left menu and Excalidraw canvas */

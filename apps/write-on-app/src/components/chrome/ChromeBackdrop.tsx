@@ -1,5 +1,7 @@
 "use client";
 
+import type { JSX } from "react";
+
 // Sticky backdrop that spans the full chrome height (header + toolbars + indicator)
 // and sits behind all chrome; non-interactive.
 export function ChromeBackdrop(): JSX.Element {
@@ -16,8 +18,7 @@ export function ChromeBackdrop(): JSX.Element {
         height: 'var(--h-stack, 160px)',
         lineHeight: 0,
         backgroundColor: 'var(--chrome-bg, #fff)',
-        zIndex: 800,
-        contain: 'layout paint',
+        zIndex: 2800,
         borderBottom: '1px solid var(--border-subtle, #e5e7eb)',
       }}
       aria-hidden

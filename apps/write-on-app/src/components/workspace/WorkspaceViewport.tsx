@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type JSX, type ReactNode } from "react";
 import { useViewportEvents } from "@/components/workspace/hooks/useViewportEvents";
 import { useInitialHorizontalCenter } from "@/components/workspace/hooks/useInitialHorizontalCenter";
 import { useKeyboardZoom } from "@/components/workspace/hooks/useKeyboardZoom";
@@ -9,7 +9,7 @@ import { useViewportStore } from "@/state";
 
 type Props = {
   className?: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
 };
 
 // WorkspaceViewport: no transforms are applied here in Phase 2.

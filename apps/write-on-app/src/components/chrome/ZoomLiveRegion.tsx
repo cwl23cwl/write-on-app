@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, type JSX } from "react";
 import { useViewportStore } from "@/state";
 import { roundZoomPercent } from "@/components/workspace/utils/coords";
 
