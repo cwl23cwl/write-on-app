@@ -80,6 +80,17 @@ const TOOL_CONFIG: ToolConfig[] = [
   },
 ];
 
+// Tool-colored outline mapping for active state (glow outline + colored icon)
+const ACTIVE_RING_BY_TOOL: Record<ToolId, string> = {
+  none: "ring-gray-300",
+  select: "ring-blue-400",
+  draw: "ring-gray-400",
+  highlighter: "ring-yellow-400",
+  text: "ring-green-400",
+  erase: "ring-red-400",
+  shapes: "ring-purple-400",
+};
+
 
 export function TopToolbar(): JSX.Element {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -185,11 +196,12 @@ export function TopToolbar(): JSX.Element {
                     key={tool.id}
                     type="button"
                     onClick={() => handleToolClick(tool)}
-                    className={`group relative flex flex-col items-center justify-center rounded-lg px-4 py-3 text-xs font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                    className={`group relative flex flex-col items-center justify-center rounded-lg px-4 py-3 text-xs font-medium transition-all duration-200 focus:outline-none ${
+                      // soft gray glow on hover/focus; neutral gray outline by default
                       isActive
-                        ? `bg-white shadow-sm ring-1 ring-gray-200 ${tool.badgeClass}`
-                        : "text-gray-600 hover:bg-white hover:text-gray-700 hover:shadow-sm"
-                    } ${isExpanded ? "ring-2 ring-blue-300 bg-blue-50" : ""}`}
+                        ? `${tool.badgeClass} ring-2 ${ACTIVE_RING_BY_TOOL[tool.id] ?? "ring-gray-400"} shadow-sm border border-transparent bg-transparent`
+                        : `text-gray-700 border border-gray-300 bg-transparent hover:-translate-y-px hover:shadow-sm hover:ring-1 hover:ring-gray-300 focus:ring-2 focus:ring-gray-300 focus:shadow-sm`
+                    } ${isExpanded ? "ring-2 ring-blue-300" : ""}`}
                     aria-label={`${tool.label} tool`}
                     aria-pressed={isActive}
                     title={tool.description}
