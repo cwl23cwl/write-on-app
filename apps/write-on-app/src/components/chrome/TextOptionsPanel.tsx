@@ -244,26 +244,27 @@ export function TextOptionsPanel({ activeTool }: TextOptionsPanelProps): JSX.Ele
   const toggleBackground = () => {
     const next = !backgroundEnabled;
     setBackgroundEnabled(next);
-    applyTextStyleToSelection?.({ backgroundColor: next ? backgroundColor : null });
+    applyTextStyleToSelection?.({ backgroundColor: next ? (backgroundColor ?? "transparent") : undefined });
     updateToolPref?.("textBackground", next);
   };
 
   const setBackgroundSwatch = (hex: string | null) => {
     setBackgroundColor(hex);
-    applyTextStyleToSelection?.({ backgroundColor: hex });
+    const effective = hex ?? "transparent";
+    applyTextStyleToSelection?.({ backgroundColor: effective });
     updateToolPref?.("textBackgroundColor", hex);
   };
 
   const toggleBorder = () => {
     const next = !borderEnabled;
     setBorderEnabled(next);
-    applyTextStyleToSelection?.({ strokeColor: next ? borderColor : undefined, strokeWidth: next ? 1 : 0 });
+    applyTextStyleToSelection?.({ borderEnabled: next, borderColor: next ? borderColor : undefined });
     updateToolPref?.("textBorder", next);
   };
 
   const setBorderSwatch = (hex: string) => {
     setBorderColor(hex);
-    applyTextStyleToSelection?.({ strokeColor: hex, strokeWidth: 1 });
+    applyTextStyleToSelection?.({ borderColor: hex, borderEnabled: true });
     updateToolPref?.("textBorderColor", hex);
   };
 
@@ -419,7 +420,7 @@ export function TextOptionsPanel({ activeTool }: TextOptionsPanelProps): JSX.Ele
           aria-label="Custom text color"
           className="ml-1 h-8 rounded-md border border-gray-200 bg-white px-2 text-xs shadow-sm"
         >
-          <Palette className="inline h-3.5 w-3.5" /> Custom
+          <Palette className="inline h-3.5 w-3.5" />
         </button>
       </div>
 
@@ -453,7 +454,7 @@ export function TextOptionsPanel({ activeTool }: TextOptionsPanelProps): JSX.Ele
               aria-label="Custom background color"
               className="h-8 rounded-md border border-gray-200 bg-white px-2 text-xs shadow-sm"
             >
-              <Palette className="inline h-3.5 w-3.5" /> Custom
+              <Palette className="inline h-3.5 w-3.5" />
             </button>
           </div>
         )}
@@ -487,7 +488,7 @@ export function TextOptionsPanel({ activeTool }: TextOptionsPanelProps): JSX.Ele
               aria-label="Custom border color"
               className="h-8 rounded-md border border-gray-200 bg-white px-2 text-xs shadow-sm"
             >
-              <Palette className="inline h-3.5 w-3.5" /> Custom
+              <Palette className="inline h-3.5 w-3.5" />
             </button>
           </div>
         )}
