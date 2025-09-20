@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import {
-  ChevronDown,
   Eraser,
   Highlighter,
   MousePointer2,
@@ -196,7 +195,7 @@ export function TopToolbar(): JSX.Element {
                     key={tool.id}
                     type="button"
                     onClick={() => handleToolClick(tool)}
-                    className={`group relative flex flex-col items-center justify-center rounded-lg px-4 py-3 text-xs font-medium transition-all duration-200 focus:outline-none ${
+                    className={`group relative flex flex-col items-center justify-center rounded-lg px-4 py-3 text-xs font-medium transition-all duration-200 focus:outline-none w-[65px] ${
                       // soft gray glow on hover/focus; neutral gray outline by default
                       isActive
                         ? `${tool.badgeClass} ring-2 ${ACTIVE_RING_BY_TOOL[tool.id] ?? "ring-gray-400"} shadow-sm border border-transparent bg-transparent`
@@ -208,14 +207,6 @@ export function TopToolbar(): JSX.Element {
                   >
                     <div className="relative mb-1 flex items-center justify-center">
                       <Icon className="h-7 w-7" strokeWidth={2} aria-hidden="true" />
-                      {tool.hasDropdown && (
-                        <ChevronDown
-                          className={`absolute -bottom-1 -right-1 h-3 w-3 transition-transform ${
-                            isExpanded ? "rotate-180 text-blue-600" : "text-gray-400"
-                          }`}
-                          strokeWidth={2}
-                        />
-                      )}
                     </div>
                     <span className="hidden sm:block">{tool.label}</span>
                   </button>
