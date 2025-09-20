@@ -244,26 +244,26 @@ export function TextOptionsPanel({ activeTool }: TextOptionsPanelProps): JSX.Ele
   const toggleBackground = () => {
     const next = !backgroundEnabled;
     setBackgroundEnabled(next);
-    applyTextStyleToSelection?.({ backgroundColor: next ? backgroundColor ?? "#ffffff" : undefined });
+    applyTextStyleToSelection?.({ backgroundColor: next ? backgroundColor : null });
     updateToolPref?.("textBackground", next);
   };
 
   const setBackgroundSwatch = (hex: string | null) => {
     setBackgroundColor(hex);
-    applyTextStyleToSelection?.({ backgroundColor: hex ?? undefined });
+    applyTextStyleToSelection?.({ backgroundColor: hex });
     updateToolPref?.("textBackgroundColor", hex);
   };
 
   const toggleBorder = () => {
     const next = !borderEnabled;
     setBorderEnabled(next);
-    applyTextStyleToSelection?.({ borderEnabled: next, borderColor: next ? borderColor : undefined });
+    applyTextStyleToSelection?.({ strokeColor: next ? borderColor : undefined, strokeWidth: next ? 1 : 0 });
     updateToolPref?.("textBorder", next);
   };
 
   const setBorderSwatch = (hex: string) => {
     setBorderColor(hex);
-    applyTextStyleToSelection?.({ borderColor: hex, borderEnabled: true });
+    applyTextStyleToSelection?.({ strokeColor: hex, strokeWidth: 1 });
     updateToolPref?.("textBorderColor", hex);
   };
 
@@ -284,9 +284,8 @@ export function TextOptionsPanel({ activeTool }: TextOptionsPanelProps): JSX.Ele
   };
 
   return (
-    <div className="chrome-text-options-panel contents" role="toolbar" aria-label="Text options">
-      {/* Left slot */}
-      <div className="flex items-center gap-3 px-6 py-3">
+    <div className="chrome-text-options-panel flex w-full items-center justify-between gap-3 px-6 py-3" role="toolbar" aria-label="Text options">
+      <div className="flex items-center gap-3">
         <div className="relative">
           <button
             type="button"
@@ -399,8 +398,7 @@ export function TextOptionsPanel({ activeTool }: TextOptionsPanelProps): JSX.Ele
         </div>
       </div>
 
-      {/* Center slot */}
-      <div className="flex items-center gap-2 px-6 py-3 justify-center">
+      <div className="flex items-center gap-2">
         <div className="grid grid-cols-7 gap-2">
           {TEXT_SWATCHES.map((swatch) => (
             <button
@@ -425,8 +423,7 @@ export function TextOptionsPanel({ activeTool }: TextOptionsPanelProps): JSX.Ele
         </button>
       </div>
 
-      {/* Right slot */}
-      <div className="flex items-center justify-end gap-2 px-6 py-3">
+      <div className="flex items-center justify-end gap-2">
         <button
           aria-label="Toggle text background"
           onClick={toggleBackground}

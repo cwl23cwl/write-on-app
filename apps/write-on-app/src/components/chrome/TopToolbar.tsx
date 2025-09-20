@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, type JSX } from "react";
+import { useEffect, useMemo, useRef, useState, type JSX } from "react";
 import {
   ChevronDown,
   Eraser,
@@ -14,9 +14,10 @@ import {
   Type as TypeIcon,
 } from "lucide-react";
 import { useMeasureCssVar } from "@/components/workspace/hooks/useMeasureCssVar";
+import { useToolbarStore, type ToolId as GlobalToolId } from "@/state/useToolbarStore";
 
 interface ToolConfig {
-  id: ToolId;
+  id: GlobalToolId;
   label: string;
   description: string;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
@@ -24,7 +25,7 @@ interface ToolConfig {
   hasDropdown: boolean;
 }
 
-type ToolId = "select" | "draw" | "highlighter" | "text" | "erase" | "shapes";
+type ToolId = GlobalToolId;
 
 type SaveState = "saved" | "saving" | "error";
 
@@ -84,7 +85,8 @@ export function TopToolbar(): JSX.Element {
   const ref = useRef<HTMLDivElement | null>(null);
   useMeasureCssVar(ref, "--h-top");
 
-  const [activeTool, setActiveTool] = useState<ToolId>("select");
+  const activeTool = useToolbarStore((s) => s.activeTool);
+  const setActiveTool = useToolbarStore((s) => s.setActiveTool);
   const [expandedTool, setExpandedTool] = useState<ToolId | null>(null);
   const [saveState] = useState<SaveState>("saved");
 
@@ -116,15 +118,27 @@ export function TopToolbar(): JSX.Element {
   };
 
   const handleToolClick = (tool: ToolConfig): void => {
-    console.log(`TODO: activate ${tool.id} tool`);
-    setActiveTool(tool.id);
+    const nextIsToggleOff = activeTool === tool.id;
+    const nextTool = nextIsToggleOff ? ("none" as ToolId) : tool.id;
+    setActiveTool(nextTool);
     setExpandedTool((prev) => {
-      if (!tool.hasDropdown) {
-        return null;
-      }
-      return prev === tool.id ? null : tool.id;
+      if (nextIsToggleOff) return null; // close dropdown when deselecting
+      if (!tool.hasDropdown) return null; // no dropdown for this tool
+      return prev === tool.id ? null : tool.id; // toggle dropdown for this tool
     });
   };
+
+  // Global ESC clears active tool selection (sets to 'none')
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setActiveTool("none");
+        setExpandedTool(null);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [setActiveTool]);
 
   return (
     <div
