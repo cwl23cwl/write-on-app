@@ -10,6 +10,7 @@ import {
   Plus,
   Palette,
   ChevronDown,
+  PaintBucket,
   RectangleHorizontal as BorderAll,
 } from "lucide-react";
 
@@ -285,7 +286,7 @@ export function TextOptionsPanel({ activeTool }: TextOptionsPanelProps): JSX.Ele
   };
 
   return (
-    <div className="chrome-text-options-panel flex w-full items-center justify-between gap-3 px-6 py-3" role="toolbar" aria-label="Text options">
+  <div className="chrome-text-options-panel flex w-full items-center justify-between gap-3 px-6 py-3 text-black" role="toolbar" aria-label="Text options">
       <div className="flex items-center gap-3">
         <div className="relative">
           <button
@@ -432,7 +433,7 @@ export function TextOptionsPanel({ activeTool }: TextOptionsPanelProps): JSX.Ele
             backgroundEnabled ? "border-blue-500 bg-blue-50 text-blue-600" : "border-gray-200 bg-white"
           }`}
         >
-          <Palette className="mx-auto h-4 w-4" />
+          <PaintBucket className="mx-auto h-4 w-4" />
         </button>
         {backgroundEnabled && (
           <div className="flex items-center gap-2">

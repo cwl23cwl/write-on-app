@@ -89,3 +89,55 @@ applyTo: '**'
 - 2025-02-15: Implemented Zustand workspace store (toolPrefs, activeTool sync) and shared SimplifiedColorPicker with new color utils.
 - 2025-02-15: Committed workspace/legacy toolbar experiments to 'workspace-store-experiments' branch for future work.
 
+
+
+## Critical Guardrails
+
+- **Zoom Handling**
+  - Never modify or re-enable Excalidraw’s internal zoom/pan/scroll.
+  - Zoom logic only exists in the host `WorkspaceScaler` via `useViewportStore`.
+  - Canvas zoom must always be disabled inside Excalidraw — only external scaling applies.
+  - Page size is fixed (1200 × 2200 CSS pixels). Do not derive dimensions from DOM.
+
+- **Control Strip**
+  - The control strip (AppHeader, TopToolbar, OptionsToolbar, PageIndicator) is frozen.
+  - It must never scale, zoom, or move with the canvas.
+  - DOM placement: must remain a direct sibling above `<WorkspaceRoot>`, never inside `<WorkspaceScaler>`.
+  - Allowed changes: **UI/visual design only** (colors, typography, spacing).  
+    No layout/DOM restructuring.
+
+- **DOM Structure & Nesting**
+  - All core containers must stay intact and correctly nested:
+    ```
+    <AppRoot>
+      <AppHeader/>
+      <TopToolbar/>
+      <OptionsToolbar/>
+      <PageIndicator/>
+      <WorkspaceRoot>
+        <WorkspaceViewport>
+          <WorkspaceScaler>
+            <CanvasMount>
+              <Page/>
+            </CanvasMount>
+          </WorkspaceScaler>
+        </WorkspaceViewport>
+      </WorkspaceRoot>
+    </AppRoot>
+    ```
+  - Sticky chrome (control strip) must remain **outside** the scaler.
+  - Never apply `transform`, `filter`, `backdrop-filter`, or `perspective` on sticky chrome ancestors.
+
+- **Non-negotiables**
+  - Page scroll must always work, even over the canvas.
+  - Control strip must remain visible and pinned.
+  - No overlays may block pointer/scroll events on the canvas.
+  - Excalidraw island stays isolated; host owns toolbars and UI.
+  - Do not alter island mount/unmount patterns, API contracts, or ready event wiring.
+
+- **Scope of Work**
+  - For contributors other than the lead developer:  
+    - Allowed: **UI and design** improvements only (colors, typography, spacing, visual polish).  
+    - Not allowed: architectural changes to zoom handling, state stores, DOM hierarchy, or Excalidraw island.  
+  - For the lead developer (project owner):  
+    - May adjust architecture, wire Excalidraw API, sync tools/state, and continue implementing phases as defined in `CANVAS ARCHITECTURE.md`.
