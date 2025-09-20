@@ -92,7 +92,8 @@ export function WorkspaceRoot(): JSX.Element {
             ['--gap-top-opts' as any]: '8px',
             ['--gap-indicator-above' as any]: '8px',
             ['--gap-indicator-below' as any]: '0',
-            // Workspace content sits directly below control strip
+            ['--control-strip-gap' as any]: '12px',
+            // Workspace content sits below the control strip with configured clearance
             // Composite stack heights (CSS calc on the same node as backdrop)
             ['--h-chrome' as any]: 'calc(var(--h-header) + var(--h-top) + var(--h-opts))',
             ['--h-stack' as any]: 'calc(var(--h-chrome) + var(--gap-header-top) + var(--gap-top-opts) + var(--gap-indicator-above) + var(--h-indicator) + var(--gap-indicator-below))',
