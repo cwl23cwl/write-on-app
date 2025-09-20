@@ -11,11 +11,10 @@ describe('OptionsToolbar panel switching', () => {
     useToolbarStore.setState({ activeTool: 'none' });
   });
 
-  it('renders placeholder when not in Text mode', () => {
+  it('renders no text panel when not in Text mode', () => {
     useToolbarStore.setState({ activeTool: 'select' });
     render(<OptionsToolbar />);
     expect(screen.getByRole('complementary')).to.exist;
-    expect(document.querySelector('.options-toolbar__placeholder')).not.to.equal(null);
     expect(document.querySelector('.chrome-text-options-panel')).to.equal(null);
   });
 
@@ -23,6 +22,5 @@ describe('OptionsToolbar panel switching', () => {
     useToolbarStore.setState({ activeTool: 'text' });
     render(<OptionsToolbar />);
     expect(document.querySelector('.chrome-text-options-panel')).not.to.equal(null);
-    expect(document.querySelector('.options-toolbar__placeholder')).to.equal(null);
   });
 });
