@@ -104,8 +104,8 @@ body {
   /* The viewport height varies on mobile browsers; prefer dynamic dvh with vh fallback */
   height: 100vh;
   height: 100dvh;
-  /* Offset content by the fixed control strip height */
-  padding-top: var(--control-strip-height, 200px); /* Increased default fallback */
+  /* Offset content by the fixed control strip height plus clearance */
+  padding-top: var(--control-strip-offset, calc(var(--control-strip-height, 200px) + var(--control-strip-gap, 12px)));
   overflow-y: auto;
 }
 
@@ -211,6 +211,7 @@ body {
   --gap-top-opts: 8px;
   --gap-indicator-above: 8px;
   --gap-indicator-below: 0; /* no gap below PageIndicator */
+  --control-strip-gap: 12px;
   --h-indicator: 40px;
   /* computed stacks */
   --h-chrome: calc(var(--h-header) + var(--h-top) + var(--h-opts));
@@ -224,6 +225,7 @@ body {
   );
   /* Alias: control strip total height used by scroll container padding */
   --control-strip-height: var(--h-stack);
+  --control-strip-offset: calc(var(--control-strip-height) + var(--control-strip-gap));
 }
 
 /* Workspace scaler sits directly below control strip with no extra gap */
@@ -241,7 +243,7 @@ body {
 .FixedSideContainer_side_top {
   pointer-events: none;
   position: sticky;
-  top: var(--h-stack);
+  top: var(--control-strip-offset, var(--h-stack));
   z-index: 50;
 }
 
@@ -253,7 +255,7 @@ body {
 
 /* Constrain left menu */
 .App-menu_top__left {
-  max-height: calc(100vh - var(--h-stack));
+  max-height: calc(100vh - var(--control-strip-offset, var(--h-stack)));
   overflow: auto;
   align-self: flex-start;
   background: transparent;

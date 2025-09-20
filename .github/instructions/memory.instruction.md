@@ -11,7 +11,10 @@ applyTo: '**'
 - Communication style: Concise updates, actionable steps
 
 ## Project Context
-- Current task: Integrate legacy SimplifiedColorPicker into workspace toolbar (2025-02-17).
+- Current task: Refine AppHeader padding for branding and workspace label (2025-02-18).
+- Recent task: Update AppHeader branding and dynamic student workspace label (2025-02-18).
+- Recent task: Add 12px padding below Excalidraw control strip before canvas drawing region (2025-02-18).
+- Recent task: Integrate legacy SimplifiedColorPicker into workspace toolbar (2025-02-17).
 - Recent task: Remove quick text/highlight palettes from TopToolbar UI (2025-02-17).
 - Recent task: Update PageIndicator UI using legacy design while keeping usePageStore integration (2025-02-16).
 - Previous task: Rebuild toolbar UI (TopToolbar, OptionsToolbar) using legacy blueprint; new components render UI with stubbed actions (2025-02-14).
@@ -28,6 +31,7 @@ applyTo: '**'
 - Documentation style: Inline JSDoc minimal
 
 ## Context7 Research History
+- 2025-02-18: Context7 search for Excalidraw canvas padding returned dynamic Next.js shell; no accessible static docs.
 - 2025-02-17: Context7 search for Simplified Color Picker returned dynamic Next.js shell with no accessible data; proceeded with legacy implementation.
 - 2025-02-16: Context7 search for Excalidraw scaling returned JS shell; relying on internal architecture notes for canvas-scaler alignment.
 - 2025-02-16: Attempted Context7 search for Lucide pagination patterns (JS-rendered results inaccessible); sourced lucide.dev package usage docs instead.
@@ -44,6 +48,11 @@ applyTo: '**'
  - New findings: Runaway height not tied to zoom handler; fires during initial mount from React effect/Excalidraw init. Our `useCanvasResolution` and `useCanvasStore.updateResolution` were writing canvas attributes based on container/clientHeight, potentially propagating runaway sizes to Excalidraw canvases.
 
 ## Notes
+- 2025-02-18: Tweaked AppHeader spacing with Tailwind padding (`pl-6`, `pr-6`) after feedback for neater layout; lint rerun still blocks on pre-existing errors in OptionsToolbar/useWorkspaceStore.
+- 2025-02-18: Updated AppHeader copy to "Write on English" with enlarged typography and dynamic `'Name's Workspace'` label driven by useWorkspaceRoute; wraps label in single quotes.
+- 2025-02-18: `pnpm --filter write-on-app lint` fails due to pre-existing lint errors in OptionsToolbar and useWorkspaceStore; recorded for awareness.
+- 2025-02-18: Ran `pnpm test controlStripDom` after control strip offset update; tests passed with no regressions.
+- 2025-02-18: DuckDuckGo search for "Excalidraw canvas padding" yielded no explicit guidance; proceeding with custom CSS gap (12px) under control strip.
 - 2025-02-17: Raised chrome z-index, removed stacking contexts, and dropped Excalidraw host z-order to keep toolbars visible.
 - 2025-02-17: Introduced workspace Zustand store syncing Excalidraw API for toolbar integration.
 - 2025-02-17: Added legacy SimplifiedColorPicker to workspace components and reimplemented color conversion helpers.
