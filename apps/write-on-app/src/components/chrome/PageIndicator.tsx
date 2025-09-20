@@ -81,29 +81,29 @@ export function PageIndicator(): JSX.Element {
           type="button"
           onClick={handlePrevious}
           disabled={!canGoPrevious}
-          className={`flex items-center justify-center w-10 h-10 transition-all duration-200 ${canGoPrevious ? "text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500" : "text-gray-300 cursor-not-allowed"}`}
+          className={`flex items-center justify-center w-8 h-8 transition-all duration-200 ${canGoPrevious ? "text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500" : "text-gray-300 cursor-not-allowed"}`}
           title={canGoPrevious ? "Previous page" : "No previous page"}
           aria-label="Previous page"
         >
-          <ChevronLeft className="w-4 h-4" strokeWidth={2.5} aria-hidden />
+          <ChevronLeft className="w-3 h-3" strokeWidth={2.5} aria-hidden />
         </button>
 
         <button
           type="button"
           onClick={handleToggleDropdown}
-          className={`flex items-center justify-center px-4 h-10 min-w-[80px] text-sm font-semibold text-gray-800 transition-all duration-200 ${hasMultiplePages ? "hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500" : "cursor-default"}`}
+          className={`relative flex items-center justify-center px-3 h-8 min-w-[56px] text-sm font-semibold text-gray-800 transition-all duration-200 ${hasMultiplePages ? "hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500" : "cursor-default"}`}
           aria-haspopup={hasMultiplePages ? "listbox" : undefined}
           aria-expanded={hasMultiplePages ? dropdownOpen : undefined}
           aria-label={hasMultiplePages ? "Select page" : "Page number"}
           disabled={!hasMultiplePages}
         >
-          <span className="tabular-nums">
+          <span className="tabular-nums w-full text-center">
             {safeCurrent} / {safeTotal}
           </span>
 
           {hasMultiplePages && (
             <ChevronDown
-              className={`ml-2 w-3 h-3 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
+              className={`absolute right-2 w-2.5 h-2.5 transition-transform duration-200 ${dropdownOpen ? "rotate-180" : ""}`}
               strokeWidth={2.5}
               aria-hidden
             />
@@ -114,11 +114,11 @@ export function PageIndicator(): JSX.Element {
           type="button"
           onClick={handleNext}
           disabled={!canGoNext}
-          className={`flex items-center justify-center w-10 h-10 transition-all duration-200 ${canGoNext ? "text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500" : "text-gray-300 cursor-not-allowed"}`}
+          className={`flex items-center justify-center w-8 h-8 transition-all duration-200 ${canGoNext ? "text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500" : "text-gray-300 cursor-not-allowed"}`}
           title={canGoNext ? "Next page" : "No next page"}
           aria-label="Next page"
         >
-          <ChevronRight className="w-4 h-4" strokeWidth={2.5} aria-hidden />
+          <ChevronRight className="w-3 h-3" strokeWidth={2.5} aria-hidden />
         </button>
       </div>
 
