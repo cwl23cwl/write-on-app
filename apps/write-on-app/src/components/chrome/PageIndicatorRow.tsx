@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type JSX, type ReactNode } from "react";
+import { useEffect, useRef, type JSX, type ReactNode } from "react";
 import { useMeasureCssVar } from "@/components/workspace/hooks/useMeasureCssVar";
 
 // Sticky centered row that hosts the PageIndicator pill.
@@ -8,6 +8,17 @@ export function PageIndicatorRow({ children }: { children: ReactNode }): JSX.Ele
   const ref = useRef<HTMLDivElement | null>(null);
   // Measure to expose --h-indicator for the backdrop height calc
   useMeasureCssVar(ref, "--h-indicator");
+  // Notify workspace to recompute offsets when this row's size changes
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const dispatch = () => window.dispatchEvent(new Event('control-strip:recompute'));
+    const ro = new ResizeObserver(() => dispatch());
+    ro.observe(el);
+    return () => {
+      try { ro.disconnect(); } catch {}
+    };
+  }, []);
   return (
     <div
       ref={ref}

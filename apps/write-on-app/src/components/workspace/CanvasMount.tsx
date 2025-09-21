@@ -26,7 +26,9 @@ export function CanvasMount({
   readonly = false, 
   initialScene 
 }: Props): JSX.Element {
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  // We'll mount the island directly into the nearest .page-wrapper
+  const anchorRef = useRef<HTMLSpanElement | null>(null);
+  const containerRef = useRef<HTMLElement | null>(null);
   const DEBUG_EXCALIDRAW = process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1';
   const loggedReadyRef = useRef<boolean>(false);
   const loggedApiRef = useRef<boolean>(false);
@@ -76,12 +78,22 @@ export function CanvasMount({
       w.__WRITEON_CANVAS_HOST_MOUNTED__ = true;
       // Dev sanity: warn if duplicate hosts exist in DOM
       try {
-        const hosts = document.querySelectorAll('#excal-host');
+        const hosts = document.querySelectorAll('excalidraw-island');
         if (hosts.length > 1 && DEBUG_EXCALIDRAW) {
-          console.warn('[CanvasMount] Detected multiple #excal-host elements in DOM:', hosts.length);
+          console.warn('[CanvasMount] Detected multiple excalidraw-island elements in DOM:', hosts.length);
         }
       } catch {}
     }
+
+    // Find the nearest .page-wrapper to mount into
+    try {
+      const pageWrapper = anchorRef.current?.closest('.page-wrapper') as HTMLElement | null;
+      if (!pageWrapper) {
+        if (DEBUG_EXCALIDRAW) console.warn('[CanvasMount] Could not locate .page-wrapper for mounting');
+      } else {
+        containerRef.current = pageWrapper;
+      }
+    } catch {}
 
     mount();
     return () => {
@@ -94,36 +106,8 @@ export function CanvasMount({
   }, []);
 
   return (
-      <div
-        className={`workspace-canvas-mount ${className ?? ""}`.trim()}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          zIndex: 0,
-          pointerEvents: 'none',
-          boxSizing: 'border-box',
-        }}
-      >
-        {/* Step 10: Island container - will be filled by excalidraw-island Web Component */}
-        <div
-          id="excal-host"
-          ref={containerRef}
-          className="excalidraw-island-container"
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            width: '100%',
-            height: '100%',
-            background: '#ffffff',
-            pointerEvents: 'auto',
-            zIndex: 0,
-          }}
-        />
-      
+      <div className={`workspace-canvas-mount ${className ?? ""}`.trim()} style={{ position:'relative', width:'100%', height:'100%' }}>
+        <span ref={anchorRef} style={{ display: 'contents' }}>
       {/* Loading state */}
       {!isReady && (
         <div 
@@ -164,6 +148,7 @@ export function CanvasMount({
           Island Ready
         </div>
       )}
-    </div>
+        </span>
+      </div>
   );
 }

@@ -31,7 +31,7 @@ interface UseExcalidrawIslandOptions {
 
 interface UseExcalidrawIslandReturn {
   /** Island element reference */
-  islandRef: React.RefObject<ExcalidrawIslandElement>;
+  islandRef: React.RefObject<ExcalidrawIslandElement | null>;
   /** Current island element */
   island: ExcalidrawIslandElement | null;
   /** Excalidraw API (when ready) */
@@ -61,7 +61,7 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
     onExcalidrawReady
   } = options;
 
-  const islandRef = useRef<ExcalidrawIslandElement>(null);
+  const islandRef = useRef<ExcalidrawIslandElement>(null as any);
   const DEBUG_EXCALIDRAW = process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === '1';
   const mountedRef = useRef<boolean>(false);
   const [island, setIsland] = useState<ExcalidrawIslandElement | null>(null);
@@ -113,9 +113,6 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
     import('@/components/workspace/ExcalidrawIsland').then(() => {
       if (!containerRef.current) return;
 
-      // Clear container
-      containerRef.current.innerHTML = '';
-
       // Create and mount island
       const islandElement = createIsland();
       containerRef.current.appendChild(islandElement);
@@ -135,10 +132,7 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
     if (islandRef.current && islandRef.current.parentNode) {
       islandRef.current.parentNode.removeChild(islandRef.current);
     }
-    if (containerRef.current) {
-      containerRef.current.innerHTML = '';
-    }
-    islandRef.current = null;
+  islandRef.current = null as any;
     setIsland(null);
     setExcalidrawAPI(null);
     setIsReady(false);
@@ -204,7 +198,7 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
   useEffect(() => {
     if (!island) return;
 
-    const handleIslandReady = (event: Event) => {
+  const handleIslandReady = (event: Event) => {
       const customEvent = event as CustomEvent;
       const { element, api } = customEvent.detail as { element: ExcalidrawIslandElement; api: any | null };
       const ready = Boolean(api);
@@ -251,42 +245,23 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
   }, [island, onReady, onExcalidrawReady]);
 
   // HMR support in development
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      // Listen for HMR updates
-      const handleHMR = () => {
-        if (DEBUG_EXCALIDRAW) console.log('[useExcalidrawIsland] HMR update detected, remounting...');
-        remount();
-      };
-
-      // Simple HMR detection via module timestamp changes
-      let lastCheck = Date.now();
-      const hmrInterval = setInterval(() => {
-        const now = Date.now();
-        if (now - lastCheck > 2000) { // Check every 2 seconds
-          // This is a simple approach; in a real HMR system you'd hook into webpack HMR
-          lastCheck = now;
-        }
-      }, 2000);
-
-      // Cleanup interval
-      return () => clearInterval(hmrInterval);
-    }
-  }, [remount]);
+  // Dev HMR: rely on React Fast Refresh; explicit polling removed
+  useEffect(() => {}, []);
 
   // Imperative API methods
   const requestExport = useCallback(async (options: { type: 'png' | 'svg'; dpi?: number }) => {
     if (!island) {
       throw new Error('Island not ready');
     }
-    return await island.requestExport(options);
+    // Delegate to web component API
+    return await (island as any).requestExport(options);
   }, [island]);
 
   const setScene = useCallback(async (scene: unknown) => {
     if (!island) {
       throw new Error('Island not ready');
     }
-    return await island.setScene(scene);
+    return await (island as any).setScene(scene);
   }, [island]);
 
   return {
