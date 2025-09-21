@@ -48,6 +48,9 @@ applyTo: '**'
  - New findings: Runaway height not tied to zoom handler; fires during initial mount from React effect/Excalidraw init. Our `useCanvasResolution` and `useCanvasStore.updateResolution` were writing canvas attributes based on container/clientHeight, potentially propagating runaway sizes to Excalidraw canvases.
 
 ## Notes
+- 2025-09-20: Reintroduced a lightweight `.workspace-canvas-mount` wrapper inside `CanvasMount` to maintain backward-compatible test selectors while keeping the island mounted directly under `.page-wrapper`. The wrapper is `position:relative; width/height:100%` and non-intrusive (span anchor remains `display:contents`).
+- 2025-09-20: Increased spacing so page surface starts 15px below PageIndicator; set `--control-strip-gap` to 15px in `globals.css` and `WorkspaceRoot` inline defaults. Added guardrails to verify the control strip is outside any ancestor with `transform`, `filter`, or `backdrop-filter`. Implemented dynamic recompute of `--control-strip-height` on window resize, font load, row show/hide mutations, and PageIndicator size changes via a custom `control-strip:recompute` event.
+ - 2025-09-20: Exposed spacer CSS vars: `--control-strip-height` (header+top+opts), `--pageindicator-bottom-offset` (gap-above + pill height + 15px), and `--workspace-top-pad` (sum). Wired `.workspace-root` padding to `--workspace-top-pad` and compute all at runtime in `WorkspaceRoot`.
 - 2025-02-18: Tweaked AppHeader spacing with Tailwind padding (`pl-6`, `pr-6`) after feedback for neater layout; lint rerun still blocks on pre-existing errors in OptionsToolbar/useWorkspaceStore.
 - 2025-02-18: Updated AppHeader copy to "Write on English" with enlarged typography and dynamic `'Name's Workspace'` label driven by useWorkspaceRoute; wraps label in single quotes.
 - 2025-02-18: `pnpm --filter write-on-app lint` fails due to pre-existing lint errors in OptionsToolbar and useWorkspaceStore; recorded for awareness.

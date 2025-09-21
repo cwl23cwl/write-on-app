@@ -18,7 +18,7 @@ const OptionsToolbar = (): JSX.Element => {
   return (
     <aside
       ref={ref}
-      className="chrome-options-toolbar options-toolbar w-full px-3"
+      className="chrome-options-toolbar options-toolbar w-full px-4"
       style={{
         backgroundColor: "transparent",
         marginTop: "var(--gap-top-opts)",

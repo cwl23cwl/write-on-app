@@ -44,28 +44,104 @@ export function WorkspaceRoot(): JSX.Element {
   // Guardrail: ensure the fixed control strip never ends up inside the scaler
   useEffect(() => {
     const ctrl = document.querySelector('.control-strip') as HTMLElement | null;
-    if (ctrl && ctrl.closest('.workspace-scaler')) {
-      console.warn("Control strip is inside a scaler â€” move it out!", ctrl);
-    }
+    if (!ctrl) return;
+
+    const hasForbiddenAncestor = (el: HTMLElement): { node: Element; prop: string; value: string } | null => {
+      let cur: Element | null = el.parentElement;
+      while (cur) {
+        const cs = window.getComputedStyle(cur);
+        if (cs.transform && cs.transform !== 'none') return { node: cur, prop: 'transform', value: cs.transform };
+        // backdrop-filter may be returned as 'none' when unsupported; check both
+        const backdrop = (cs as any).backdropFilter ?? cs.getPropertyValue('backdrop-filter');
+        if (backdrop && backdrop !== 'none') return { node: cur, prop: 'backdrop-filter', value: String(backdrop) };
+        if (cs.filter && cs.filter !== 'none') return { node: cur, prop: 'filter', value: cs.filter };
+        cur = cur.parentElement;
+      }
+      return null;
+    };
+
+    const check = () => {
+      // Specific guard: never inside scaler
+      if (ctrl.closest('.workspace-scaler')) {
+        console.warn('Control strip is inside a scaler — move it out!', ctrl);
+      }
+      // General guard: no transform/filter/backdrop-filter on ancestors
+      const offender = hasForbiddenAncestor(ctrl);
+      if (offender) {
+        console.warn(
+          `Control strip has a transformed/filtered ancestor; this breaks guardrails: ${offender.prop}=${offender.value}`,
+          offender.node,
+        );
+      }
+    };
+
+    check();
+    window.addEventListener('resize', check, { passive: true });
+    return () => {
+      window.removeEventListener('resize', check);
+    };
   }, []);
 
-  // One-way dependency: control strip height -> workspace padding
+  // One-way dependency: control strip height -> workspace padding (composed spacer)
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
     const ctrl = document.querySelector('.control-strip') as HTMLElement | null;
     if (!ctrl) return;
+    let rafId = 0 as number | undefined as unknown as number;
     const apply = () => {
-      const h = ctrl.offsetHeight;
-      if (h > 0) root.style.setProperty('--control-strip-height', `${h}px`);
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const h = ctrl.offsetHeight;
+        if (h > 0) {
+          // control strip stack (header + top + opts)
+          root.style.setProperty('--control-strip-height', `${h}px`);
+          // compute composed workspace padding
+          const getPxVar = (name: string, fallback = 0): number => {
+            const v = getComputedStyle(root).getPropertyValue(name).trim();
+            if (!v) return fallback;
+            const m = v.match(/(-?\d+(?:\.\d+)?)px/);
+            return m ? parseFloat(m[1]) : fallback;
+          };
+          const gapAbove = getPxVar('--gap-indicator-above', 0);
+          const pillH = getPxVar('--h-indicator', 40);
+          const bottomOffset = gapAbove + pillH + 15; // 15px clearance below pill
+          root.style.setProperty('--pageindicator-bottom-offset', `${bottomOffset}px`);
+          root.style.setProperty('--workspace-top-pad', `${h + bottomOffset}px`);
+        }
+      });
     };
+    // Initial compute
     apply();
+    // Recompute on control strip box-size changes
     const ro = new ResizeObserver(() => apply());
     ro.observe(ctrl);
-    window.addEventListener('resize', apply, { passive: true });
+    // Recompute on subtree mutations (show/hide rows, zoom% label updates)
+    const mo = new MutationObserver(() => apply());
+    mo.observe(ctrl, { attributes: true, childList: true, characterData: true, subtree: true });
+    // Window resize
+    const onResize = () => apply();
+    window.addEventListener('resize', onResize, { passive: true });
+    // Custom app events for explicit recalculation hooks
+    const onRecompute = () => apply();
+    window.addEventListener('control-strip:recompute', onRecompute as EventListener);
+    // Font load events can change header/toolbars height
+    const fonts = (document as any).fonts as FontFaceSet | undefined;
+    const onFontsDone = () => apply();
+    if (fonts) {
+      try { fonts.addEventListener?.('loadingdone', onFontsDone as EventListener); } catch {}
+      // Also run once fonts are ready
+      fonts?.ready?.then(onFontsDone).catch(() => {});
+    }
     return () => {
       try { ro.disconnect(); } catch {}
-      window.removeEventListener('resize', apply);
+      try { mo.disconnect(); } catch {}
+      window.removeEventListener('resize', onResize);
+      window.removeEventListener('control-strip:recompute', onRecompute as EventListener);
+      if (fonts) {
+        try { fonts.removeEventListener?.('loadingdone', onFontsDone as EventListener); } catch {}
+      }
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }, []);
 
@@ -92,7 +168,8 @@ export function WorkspaceRoot(): JSX.Element {
             ['--gap-top-opts' as any]: '8px',
             ['--gap-indicator-above' as any]: '8px',
             ['--gap-indicator-below' as any]: '0',
-            ['--control-strip-gap' as any]: '12px',
+            ['--control-strip-gap' as any]: '15px',
+            ['--pageindicator-bottom-offset' as any]: 'calc(var(--gap-indicator-above) + var(--h-indicator, 40px) + 15px)',
             // Workspace content sits below the control strip with configured clearance
             // Composite stack heights (CSS calc on the same node as backdrop)
             ['--h-chrome' as any]: 'calc(var(--h-header) + var(--h-top) + var(--h-opts))',
@@ -123,9 +200,7 @@ export function WorkspaceRoot(): JSX.Element {
           <WorkspaceViewport>
             <WorkspaceScaler>
               <PageWrapper>
-                <Page>
-                  {/* Page content goes here */}
-                </Page>
+                <Page>{null}</Page>
                 <CanvasMount 
                   mode={mode}
                   writeScope={writeScope}
