@@ -1,4 +1,4 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 
 :root {
   --background: #ffffff;
@@ -19,12 +19,17 @@
   --virtual-height: calc(var(--page-height) + var(--page-padding-top) + var(--page-padding-bottom));
 
   /* Control strip spacer variables */
-  /* Total stacked height of AppHeader + TopToolbar + OptionsToolbar (no pill row) */
-  --control-strip-height: 152px; /* default: 56 + 8 + 48 + 8 + 40? adjust at runtime */
-  /* Distance from bottom of OptionsToolbar to bottom edge of PageIndicator pill */
-  --pageindicator-bottom-offset: 15px; /* default gap below pill */
-  /* Computed top padding for workspace: updated at runtime */
-  --workspace-top-pad: calc(var(--control-strip-height) + var(--pageindicator-bottom-offset));
+  --top-toolbar-height: 64px;
+  --options-toolbar-height: 56px;
+  --page-indicator-height: 40px;
+  --gap-header-top: 8px;
+  --gap-top-opts: 4px;
+  --gap-indicator-above: 8px;
+  --gap-indicator-below: 12px;
+  --control-strip-separator: 1px;
+  --viewport-top-gap: 12px;
+  /* Fallback reserved height until runtime measurement updates */
+  --control-strip-height: 249px;
 }
 
 @theme inline {
@@ -46,6 +51,7 @@ html, body {
   margin: 0;
   padding: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 body {
@@ -72,6 +78,25 @@ body {
   touch-action: none;
 }
 
+.workspace-canvas-mount {
+  position: relative;
+  display: block;
+  flex: 0 0 auto;
+  width: var(--page-width, 1200px);
+  height: var(--page-height, 2200px);
+}
+
+
+/* Workspace app root wraps chrome + scroll container */
+.workspace-app-root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Phase-2: pin control strip and offset content */
 .control-strip {
   /* Guardrail: freeze positioning to prevent regressions */
@@ -85,8 +110,7 @@ body {
   flex-direction: column;
   /* Provide a solid surface behind chrome to prevent content bleed-through */
   background-color: var(--chrome-bg, #ffffff);
-  /* Optional subtle bottom border for separation */
-  border-bottom: 1px solid var(--border-subtle, #e5e7eb);
+  overflow: visible;
 }
 
 /* Respect device safe areas on the top header area so measurements include the inset */
@@ -106,45 +130,66 @@ body {
   contain: none;
 }
 
-/* Top offset is applied in WorkspaceViewport using --h-stack;
-   avoid duplicating here to prevent double spacing. */
+/* Control-strip offset is handled via --control-strip-height at runtime. */
 .workspace-root {
-  /* The viewport height varies on mobile browsers; prefer dynamic dvh with vh fallback */
+  position: relative;
+  width: 100%;
   height: 100vh;
   height: 100dvh;
-  /* Offset content by the composed spacer variable */
-  padding-top: var(--workspace-top-pad, calc(var(--control-strip-height, 200px) + var(--pageindicator-bottom-offset, 15px)));
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable both-edges;
+  box-sizing: border-box;
+  background-color: var(--workspace-bg, #ffffff);
+  transform: none !important;
 }
 
-/* Viewport owns scrolling; inner scale layer owns zoom */
+/* WorkspaceRoot owns scrolling; viewport stays transform-free and observes size */
 #workspace-viewport {
   position: relative;
-  overflow: auto;
-  padding: 0 !important;
-  margin: 0 !important;
+  width: 100%;
+  min-height: 100%;
   display: flex;
-  justify-content: center; /* horizontal centering only */
-  align-items: flex-start;  /* prevent vertical centering */
+  flex: 1;
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding-top: calc(var(--control-strip-height, 0px) + var(--viewport-top-gap, 12px));
+  padding-right: 0;
+  padding-bottom: var(--page-padding-bottom, 40px);
+  padding-left: 0;
+  margin: 0 !important;
+  box-sizing: border-box;
+  overflow: visible;
+  gap: 0;
+  transform: none !important;
 }
 
 /* Scaled-size spacer and transform layer */
 .workspace-scaler {
   position: relative; /* flex item so it can be centered horizontally */
+  display: block;
+  flex: 0 0 auto;
   width: var(--page-width, 1200px);
   height: var(--page-height, 2200px);
-  transform: scale(var(--workspace-zoom, 1));
   transform-origin: 0 0;
   will-change: transform;
 }
 
 /* Removed #workspace-scale-layer; scaling handled by engine/viewport */
 
-.page-wrapper {
+.canvas-page {
   position: relative;
-  width: var(--page-width, 1200px);
-  height: var(--page-height, 2200px);
+  width: 1200px;
+  height: 2200px;
   box-sizing: border-box;
+}
+
+
+.page-host,
+#excal-host {
+  display: contents;
 }
 
 /* Ensure indicator and strip pin to top and never transform */
@@ -200,9 +245,10 @@ body {
 }
 .debug-layout .workspace-scaler {
   position: relative;
+  display: block;
+  flex: 0 0 auto;
   width: var(--page-width, 1200px);
   height: var(--page-height, 2200px);
-  transform: scale(var(--workspace-zoom, 1));
   transform-origin: 0 0;
   will-change: transform;
 }
@@ -214,39 +260,36 @@ body {
 [data-workspace-root] {
   /* default gaps and indicator height */
   --gap-header-top: 8px;
-  --gap-top-opts: 8px;
+  --gap-top-opts: 4px;
   --gap-indicator-above: 8px;
-  --gap-indicator-below: 0; /* no gap below PageIndicator */
-  --control-strip-gap: 15px;
-  --h-indicator: 40px;
+  --gap-indicator-below: 12px;
+  --control-strip-separator: 1px;
+  --options-toolbar-height: 56px;
+  --h-opts: var(--options-toolbar-height);
+  --h-indicator: var(--page-indicator-height, 40px);
   /* computed stacks */
-  --h-chrome: calc(var(--h-header) + var(--h-top) + var(--h-opts));
-  --h-stack: calc(
-    var(--h-chrome)
+  --h-chrome: calc(var(--h-header) + var(--gap-header-top) + var(--h-top) + var(--gap-top-opts) + var(--h-opts));
+  --control-strip-height: calc(
+    var(--h-header)
     + var(--gap-header-top)
+    + var(--h-top)
     + var(--gap-top-opts)
+    + var(--h-opts)
     + var(--gap-indicator-above)
     + var(--h-indicator)
     + var(--gap-indicator-below)
+    + var(--control-strip-separator)
   );
-  /* Aliases and composed spacer variables */
-  /* Total height of AppHeader + TopToolbar + OptionsToolbar (no PageIndicator row) */
-  --control-strip-height: var(--h-chrome);
-  /* Distance from bottom of OptionsToolbar to bottom edge of the PageIndicator pill,
-     plus required clearance below the pill (15px) so the page surface starts below it. */
-  --pageindicator-bottom-offset: calc(var(--gap-indicator-above) + var(--h-indicator) + 15px);
-  /* Computed top padding for the workspace */
-  --workspace-top-pad: calc(var(--control-strip-height) + var(--pageindicator-bottom-offset));
-  /* Back-compat: map legacy offset var to the new composed spacer */
-  --control-strip-offset: var(--workspace-top-pad);
+  --viewport-top-gap: var(--gap-indicator-below);
 }
 
 /* Workspace scaler sits directly below control strip with no extra gap */
 .workspace-scaler {
   position: relative;
+  display: block;
+  flex: 0 0 auto;
   width: var(--page-width, 1200px);
   height: var(--page-height, 2200px);
-  transform: scale(var(--workspace-zoom, 1));
   transform-origin: 0 0;
   will-change: transform;
 }
@@ -255,7 +298,7 @@ body {
 .FixedSideContainer_side_top {
   pointer-events: none;
   position: sticky;
-  top: var(--control-strip-offset, var(--h-stack));
+  top: var(--control-strip-height, 249px);
   z-index: 50;
 }
 
@@ -267,14 +310,18 @@ body {
 
 /* Constrain left menu */
 .App-menu_top__left {
-  max-height: calc(100vh - var(--control-strip-offset, var(--h-stack)));
+  max-height: calc(100vh - var(--control-strip-height, 249px));
   overflow: auto;
   align-self: flex-start;
   background: transparent;
 }
 
 /* Ensure workspace layers have proper z-index */
-.workspace-root,
+.workspace-root {
+  position: relative;
+  z-index: 0;
+}
+
 .workspace-canvas-mount {
   position: relative;
   z-index: 0;
@@ -392,7 +439,15 @@ excalidraw-island {
 }
 
 /* Mount the web component to fill the page wrapper */
-.page-wrapper > excalidraw-island {
+.canvas-page > excalidraw-island {
   position: absolute;
   inset: 0;
 }
+
+
+
+
+
+
+
+
