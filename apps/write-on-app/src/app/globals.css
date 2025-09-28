@@ -71,11 +71,18 @@ body {
 }
 
 /* Input guardrails */
-.workspace-root, .workspace-canvas-mount, canvas {
+.workspace-root,
+.workspace-canvas-mount,
+canvas {
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
-  touch-action: none;
+}
+
+.workspace-root,
+.workspace-canvas-mount,
+canvas {
+  touch-action: pan-y;
 }
 
 .workspace-canvas-mount {
@@ -136,43 +143,63 @@ body {
   width: 100%;
   height: 100vh;
   height: 100dvh;
-  display: flex;
-  flex-direction: column;
+  min-height: 0;
+  display: block;
+  padding-top: calc(var(--control-strip-height, 0px) + var(--viewport-top-gap, 12px));
+  padding-bottom: var(--viewport-bottom-gap, max(10vh, 80px));
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable both-edges;
   box-sizing: border-box;
   background-color: var(--workspace-bg, #ffffff);
   transform: none !important;
+  overscroll-behavior: contain;
 }
+
+
 
 /* WorkspaceRoot owns scrolling; viewport stays transform-free and observes size */
 #workspace-viewport {
   position: relative;
-  width: 100%;
-  min-height: 100%;
-  display: flex;
-  flex: 1;
-  justify-content: flex-start;
-  align-items: flex-start;
-  padding-top: calc(var(--control-strip-height, 0px) + var(--viewport-top-gap, 12px));
-  padding-right: 0;
-  padding-bottom: var(--page-padding-bottom, 40px);
-  padding-left: 0;
+  inline-size: 100%;
+  display: grid;
+  place-content: start center;
+  padding: 0 0 var(--viewport-bottom-gap, max(10vh, 80px));
   margin: 0 !important;
   box-sizing: border-box;
   overflow: visible;
   gap: 0;
   transform: none !important;
+  min-height: calc(100vh - var(--control-strip-height, 0px));
+  min-height: calc(100dvh - var(--control-strip-height, 0px));
 }
 
+
+.workspace-viewport * {
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+
+
 /* Scaled-size spacer and transform layer */
-.workspace-scaler {
-  position: relative; /* flex item so it can be centered horizontally */
+.workspace-sizer {
+  position: relative;
   display: block;
-  flex: 0 0 auto;
   width: var(--page-width, 1200px);
   height: var(--page-height, 2200px);
+  min-width: 0;
+  min-height: 0;
+  overflow: visible;
+}
+
+.workspace-scaler {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--page-width, 1200px);
+  height: var(--page-height, 2200px);
+  transform: scale(var(--workspace-zoom, 1));
   transform-origin: 0 0;
   will-change: transform;
 }
@@ -243,14 +270,11 @@ body {
 .debug-layout .workspace-viewport {
   outline: 1px solid #3b82f6; /* blue */
 }
+.debug-layout .workspace-sizer {
+  outline: 1px dashed #22d3ee; /* cyan */
+}
 .debug-layout .workspace-scaler {
-  position: relative;
-  display: block;
-  flex: 0 0 auto;
-  width: var(--page-width, 1200px);
-  height: var(--page-height, 2200px);
-  transform-origin: 0 0;
-  will-change: transform;
+  outline: 1px solid #2563eb; /* indigo */
 }
 .debug-layout .workspace-canvas-mount {
   outline: 1px solid #fb923c; /* orange */
@@ -281,17 +305,6 @@ body {
     + var(--control-strip-separator)
   );
   --viewport-top-gap: var(--gap-indicator-below);
-}
-
-/* Workspace scaler sits directly below control strip with no extra gap */
-.workspace-scaler {
-  position: relative;
-  display: block;
-  flex: 0 0 auto;
-  width: var(--page-width, 1200px);
-  height: var(--page-height, 2200px);
-  transform-origin: 0 0;
-  will-change: transform;
 }
 
 /* Fix pointer events conflicts between top/left menu and Excalidraw canvas */
@@ -443,6 +456,18 @@ excalidraw-island {
   position: absolute;
   inset: 0;
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

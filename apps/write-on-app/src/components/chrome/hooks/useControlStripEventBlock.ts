@@ -8,10 +8,16 @@ import { useEffect } from "react";
  */
 export function useControlStripEventBlock(): void {
   useEffect((): () => void => {
-    const onWheel = (): void => {
-      // Passive listener: never call preventDefault here.
-      // Plain wheel should bubble to scroll the page.
-      // Ctrl/Meta+wheel will be handled by the workspace root zoom listener.
+    const onWheel = (e: WheelEvent): void => {
+      const isZoomIntent = e.ctrlKey || e.metaKey;
+      if (!isZoomIntent) return;
+
+      const target = e.target as HTMLElement | null;
+      const isFromControlStrip = target?.closest('.control-strip');
+      if (!isFromControlStrip) return;
+
+      e.preventDefault();
+      e.stopPropagation();
     };
 
     const onKeyDown = (e: KeyboardEvent): void => {
@@ -35,7 +41,7 @@ export function useControlStripEventBlock(): void {
     };
 
     // Use capture phase to intercept before any other handlers
-    document.addEventListener('wheel', onWheel, { capture: true, passive: true });
+    document.addEventListener('wheel', onWheel, { capture: true, passive: false });
     document.addEventListener('keydown', onKeyDown, { capture: true });
 
     return () => {
@@ -44,5 +50,7 @@ export function useControlStripEventBlock(): void {
     };
   }, []);
 }
+
+
 
 
