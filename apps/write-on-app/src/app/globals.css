@@ -20,16 +20,16 @@
 
   /* Control strip spacer variables */
   --top-toolbar-height: 64px;
-  --options-toolbar-height: 56px;
+  --options-toolbar-height: 64px;
   --page-indicator-height: 40px;
   --gap-header-top: 8px;
   --gap-top-opts: 4px;
   --gap-indicator-above: 8px;
   --gap-indicator-below: 12px;
   --control-strip-separator: 1px;
-  --viewport-top-gap: 12px;
   /* Fallback reserved height until runtime measurement updates */
-  --control-strip-height: 249px;
+  --control-strip-height: 273px;
+  --workspace-scroll-gap: 12px;
 }
 
 @theme inline {
@@ -141,12 +141,13 @@ canvas {
 .workspace-root {
   position: relative;
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
+  margin-top: var(--control-strip-height, 273px);
+  height: max(0px, calc(100vh - var(--control-strip-height, 273px)));
+  height: max(0px, calc(100dvh - var(--control-strip-height, 273px)));
   min-height: 0;
   display: block;
-  padding-top: calc(var(--control-strip-height, 0px) + var(--viewport-top-gap, 12px));
-  padding-bottom: var(--viewport-bottom-gap, max(10vh, 80px));
+  padding-top: var(--workspace-scroll-gap, 12px);
+  padding-bottom: 160px;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-gutter: stable both-edges;
@@ -154,7 +155,54 @@ canvas {
   background-color: var(--workspace-bg, #ffffff);
   transform: none !important;
   overscroll-behavior: contain;
+  scrollbar-width: none;
+  scrollbar-color: transparent transparent;
 }
+
+/* Scrollbar auto-fade styling */
+.workspace-root::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+  background-color: transparent;
+  opacity: 0;
+  transition: opacity 0.35s ease-in-out;
+}
+
+.workspace-root::-webkit-scrollbar-thumb {
+  background-color: rgba(15, 23, 42, 0.35);
+  border-radius: 8px;
+  min-height: 32px;
+  opacity: 0;
+  transition: opacity 0.35s ease-in-out, background-color 0.25s ease-out;
+}
+
+.workspace-root::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(15, 23, 42, 0.55);
+}
+
+.workspace-root.show-scrollbars {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, 0.35) transparent;
+}
+
+.workspace-root.show-scrollbars::-webkit-scrollbar,
+.workspace-root.show-scrollbars::-webkit-scrollbar-thumb {
+  opacity: 1;
+}
+
+.workspace-root.show-scrollbars::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(15, 23, 42, 0.55);
+}
+
+.workspace-root:hover {
+  scrollbar-width: thin;
+}
+
+.workspace-root:hover::-webkit-scrollbar,
+.workspace-root:hover::-webkit-scrollbar-thumb {
+  opacity: 1;
+}
+
 
 
 
@@ -163,18 +211,19 @@ canvas {
 #workspace-viewport {
   position: relative;
   width: 100%;
+  min-height: var(--page-height, 2200px);
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  padding: 0 0 var(--viewport-bottom-gap, max(10vh, 80px));
+  padding: 0;
   margin: 0 !important;
   box-sizing: border-box;
   gap: 0;
   overflow: visible;
+  background: transparent;
   transform: none !important;
-  min-height: calc(100vh - var(--control-strip-height, 0px));
-  min-height: calc(100dvh - var(--control-strip-height, 0px));
-}.workspace-viewport * {
+}
+.workspace-viewport * {
   box-sizing: border-box;
   max-width: 100%;
 }
@@ -188,8 +237,10 @@ canvas {
   width: var(--page-width, 1200px);
   height: var(--page-height, 2200px);
   transform: scale(var(--workspace-zoom, 1));
-  transform-origin: top center;
+  transform-origin: 0 0;
   will-change: transform;
+  contain: layout paint;
+  pointer-events: auto;
 }
 
 /* Removed #workspace-scale-layer; scaling handled by engine/viewport */
@@ -200,15 +251,17 @@ canvas {
   height: var(--page-height, 2200px);
   box-sizing: border-box;
   overflow: visible;
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
 }
 
 .canvas-page .page-surface {
   position: absolute;
   inset: 0;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.12);
   pointer-events: none;
+  border-radius: inherit;
+  background: transparent;
   z-index: 0;
 }
 
@@ -282,7 +335,7 @@ canvas {
 .FixedSideContainer_side_top {
   pointer-events: none;
   position: sticky;
-  top: var(--control-strip-height, 249px);
+  top: var(--control-strip-height, 273px);
   z-index: 50;
 }
 
@@ -294,7 +347,7 @@ canvas {
 
 /* Constrain left menu */
 .App-menu_top__left {
-  max-height: calc(100vh - var(--control-strip-height, 249px));
+  max-height: calc(100vh - var(--control-strip-height, 273px));
   overflow: auto;
   align-self: flex-start;
   background: transparent;
@@ -427,6 +480,15 @@ excalidraw-island {
   position: absolute;
   inset: 0;
 }
+
+
+
+
+
+
+
+
+
 
 
 

@@ -114,8 +114,36 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
       if (!containerRef.current) return;
 
       // Create and mount island
+      const container = containerRef.current;
+      if (!container) {
+        return;
+      }
+
+      const globalIslands = Array.from(document.querySelectorAll('excalidraw-island')) as HTMLElement[];
+      for (const node of globalIslands) {
+        try {
+          node.remove();
+        } catch {}
+      }
+
+      const existingIslands = Array.from(container.querySelectorAll('excalidraw-island'));
+      if (existingIslands.length > 0) {
+        for (const node of existingIslands) {
+          try {
+            node.remove();
+          } catch {
+            if (node.parentNode === container) {
+              try { container.removeChild(node); } catch {}
+            }
+          }
+        }
+        if (DEBUG_EXCALIDRAW) {
+          console.warn('[useExcalidrawIsland] Removed stale excalidraw-island instances before mounting new one', existingIslands.length);
+        }
+      }
+
       const islandElement = createIsland();
-      containerRef.current.appendChild(islandElement);
+      container.appendChild(islandElement);
       
       islandRef.current = islandElement;
       setIsland(islandElement);
@@ -132,7 +160,7 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
     if (islandRef.current && islandRef.current.parentNode) {
       islandRef.current.parentNode.removeChild(islandRef.current);
     }
-  islandRef.current = null as any;
+    islandRef.current = null as any;
     setIsland(null);
     setExcalidrawAPI(null);
     setIsReady(false);
@@ -278,3 +306,8 @@ export function useExcalidrawIsland(options: UseExcalidrawIslandOptions): UseExc
 }
 
 export type { UseExcalidrawIslandOptions, UseExcalidrawIslandReturn };
+
+
+
+
+

@@ -66,6 +66,29 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
     if (!rootEl) return;
     const viewportEl = rootEl.querySelector('#workspace-viewport') as HTMLElement | null;
     const hostEl = viewportEl ?? rootEl;
+    const scaler = rootEl.querySelector('.workspace-scaler') as HTMLElement | null;
+
+    const safeHandler = <E extends Event,>(handler: (event: E) => void) => {
+      return (event: E) => {
+        if (!rootEl || !rootEl.isConnected) {
+          return;
+        }
+        try {
+          handler(event);
+        } catch (error) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.error('[useViewportEvents] handler error', error);
+          }
+        }
+      };
+    };
+
+    const wheelOptions: AddEventListenerOptions = { passive: false, capture: true };
+    const pointerOptions: AddEventListenerOptions = { passive: true };
+    const gestureOptions: AddEventListenerOptions = { passive: false, capture: true };
+
+    const getPanHost = (): HTMLElement => scaler ?? rootEl;
+
 
     const onWheel = (e: WheelEvent): void => {
       const isZoomIntent = e.ctrlKey || e.metaKey;
@@ -249,10 +272,12 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
     const onPointerDown = (e: PointerEvent): void => {
       if (!constraints.enablePan) return;
       if (activeTool !== 'hand') return;
-      const host = (scaler as HTMLElement) || (el as HTMLElement);
+      const host = getPanHost();
       const world = getWorldPoint(e, host, { scale: currentScale, scrollX, scrollY });
       const capEl = (e.target as Element) ?? (e.currentTarget as Element);
-      try { capEl.setPointerCapture(e.pointerId); } catch {}
+      try {
+        capEl.setPointerCapture(e.pointerId);
+      } catch {}
       panning.current = true;
       lastWorld.current = world;
     };
@@ -260,7 +285,7 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
     const onPointerMove = (e: PointerEvent): void => {
       if (activeTool !== 'hand') return;
       if (!panning.current || !lastWorld.current) return;
-      const host = (scaler as HTMLElement) || (el as HTMLElement);
+      const host = getPanHost();
       const world = getWorldPoint(e, host, { scale: currentScale, scrollX, scrollY });
       const dx = world.x - lastWorld.current.x;
       const dy = world.y - lastWorld.current.y;
@@ -270,47 +295,56 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
 
     const onPointerUp = (e: PointerEvent): void => {
       const relEl = (e.target as Element) ?? (e.currentTarget as Element);
-      try { relEl?.releasePointerCapture?.(e.pointerId); } catch {}
+      try {
+        relEl?.releasePointerCapture?.(e.pointerId);
+      } catch {}
       panning.current = false;
       lastWorld.current = null;
     };
 
-    // Keep store in sync with DOM scroll (for focus math)
-    const onScroll = (): void => {
-      setScroll(sanitizeScroll(el.scrollLeft), sanitizeScroll(el.scrollTop));
+    const onScroll = (_event?: Event): void => {
+      setScroll(sanitizeScroll(rootEl.scrollLeft), sanitizeScroll(rootEl.scrollTop));
     };
 
-    // Browser-specific event handling
-    // Firefox requires non-passive wheel events when preventing default
-    const wheelOptions = { passive: false, capture: true };
-    
+    const wheelListener = safeHandler<WheelEvent>(onWheel);
+    const scrollListener = safeHandler<Event>(onScroll);
+    const pointerDownListener = safeHandler<PointerEvent>(onPointerDown);
+    const pointerMoveListener = safeHandler<PointerEvent>(onPointerMove);
+    const pointerUpListener = safeHandler<PointerEvent>(onPointerUp);
+    const pointerCancelListener = safeHandler<PointerEvent>(onPointerUp);
+    const gestureStartListener = safeHandler<Event>(onGestureStart);
+    const gestureChangeListener = safeHandler<Event>(onGestureChange);
+    const gestureEndListener = safeHandler<Event>(onGestureEnd);
+
     // Disable overscroll behavior on custom scroller
     rootEl.style.overscrollBehavior = 'none';
     rootEl.style.touchAction = 'pan-x pan-y'; // Allow panning but block pinch
-    
-    // Capture phase so we can intercept before inner libraries
-    rootEl.addEventListener("wheel", onWheel as EventListener, wheelOptions);
-    rootEl.addEventListener("scroll", onScroll as EventListener, { passive: true });
-    rootEl.addEventListener("pointerdown", onPointerDown as EventListener, { passive: true });
-    rootEl.addEventListener("pointermove", onPointerMove as EventListener, { passive: true });
-    rootEl.addEventListener("pointerup", onPointerUp as EventListener, { passive: true });
-    rootEl.addEventListener("pointercancel", onPointerUp as EventListener, { passive: true });
-    
-    // Safari gesture events with proper preventDefault for edge cases
-    rootEl.addEventListener("gesturestart", onGestureStart as EventListener, { passive: false, capture: true });
-    rootEl.addEventListener("gesturechange", onGestureChange as EventListener, { passive: false, capture: true });
-    rootEl.addEventListener("gestureend", onGestureEnd as EventListener, { passive: false, capture: true });
+
+    rootEl.addEventListener('wheel', wheelListener, wheelOptions);
+    rootEl.addEventListener('scroll', scrollListener, pointerOptions);
+    rootEl.addEventListener('pointerdown', pointerDownListener, pointerOptions);
+    rootEl.addEventListener('pointermove', pointerMoveListener, pointerOptions);
+    rootEl.addEventListener('pointerup', pointerUpListener, pointerOptions);
+    rootEl.addEventListener('pointercancel', pointerCancelListener, pointerOptions);
+    rootEl.addEventListener('gesturestart', gestureStartListener, gestureOptions);
+    rootEl.addEventListener('gesturechange', gestureChangeListener, gestureOptions);
+    rootEl.addEventListener('gestureend', gestureEndListener, gestureOptions);
 
     return () => {
-      rootEl.removeEventListener("wheel", onWheel as EventListener, { capture: true } as EventListenerOptions);
-      rootEl.removeEventListener("scroll", onScroll as EventListener);
-      rootEl.removeEventListener("pointerdown", onPointerDown as EventListener);
-      rootEl.removeEventListener("pointermove", onPointerMove as EventListener);
-      rootEl.removeEventListener("pointerup", onPointerUp as EventListener);
-      rootEl.removeEventListener("pointercancel", onPointerUp as EventListener);
-      rootEl.removeEventListener("gesturestart", onGestureStart as EventListener, { capture: true } as EventListenerOptions);
-      rootEl.removeEventListener("gesturechange", onGestureChange as EventListener, { capture: true } as EventListenerOptions);
-      rootEl.removeEventListener("gestureend", onGestureEnd as EventListener, { capture: true } as EventListenerOptions);
+      if (rafSyncRef.current != null) {
+        cancelAnimationFrame(rafSyncRef.current);
+        rafSyncRef.current = null;
+      }
+
+      rootEl.removeEventListener('wheel', wheelListener, wheelOptions);
+      rootEl.removeEventListener('scroll', scrollListener, pointerOptions);
+      rootEl.removeEventListener('pointerdown', pointerDownListener, pointerOptions);
+      rootEl.removeEventListener('pointermove', pointerMoveListener, pointerOptions);
+      rootEl.removeEventListener('pointerup', pointerUpListener, pointerOptions);
+      rootEl.removeEventListener('pointercancel', pointerCancelListener, pointerOptions);
+      rootEl.removeEventListener('gesturestart', gestureStartListener, gestureOptions);
+      rootEl.removeEventListener('gesturechange', gestureChangeListener, gestureOptions);
+      rootEl.removeEventListener('gestureend', gestureEndListener, gestureOptions);
     };
   }, [containerRef, setScale, pan, constraints, currentScale, activeTool, scrollX, scrollY, setViewState, setFitMode, fitMode, fitWidth, viewportSize, virtualSize]);
 }

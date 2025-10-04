@@ -24,7 +24,6 @@ import { WorkspaceViewport } from '@/components/workspace/WorkspaceViewport';
 import { WorkspaceScaler } from '@/components/workspace/WorkspaceScaler';
 import { WorkspaceProvider } from '@/components/workspace/WorkspaceProvider';
 import { CanvasMount } from '@/components/workspace/CanvasMount';
-import { Page } from '@/components/workspace/Page';
 
 describe('Canvas mount sizing', () => {
   let originalResizeObserver: typeof ResizeObserver | undefined;
@@ -45,7 +44,7 @@ describe('Canvas mount sizing', () => {
     global.ResizeObserver = originalResizeObserver;
   });
 
-  it('CanvasMount hosts a 1200×2200 canvas page', () => {
+  it('CanvasMount hosts a 1200ï¿½2200 canvas page', () => {
     function TestHarness() {
       const containerRef = React.useRef<HTMLDivElement | null>(null);
       return (
@@ -54,9 +53,7 @@ describe('Canvas mount sizing', () => {
           <div ref={containerRef} className="workspace-root">
             <WorkspaceViewport>
               <WorkspaceScaler>
-                <CanvasMount>
-                  <Page />
-                </CanvasMount>
+                <CanvasMount />
               </WorkspaceScaler>
             </WorkspaceViewport>
           </div>
