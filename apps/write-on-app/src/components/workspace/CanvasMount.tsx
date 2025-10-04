@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, type JSX, type ReactNode } from "react";
 import { useExcalidrawIsland } from "@/components/workspace/hooks/useExcalidrawIsland";
+import { Page } from "@/components/workspace/Page";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useCanvasStore } from "@/state";
 
@@ -36,6 +37,7 @@ export function CanvasMount(props: Props): JSX.Element {
   const DEBUG_EXCALIDRAW = process.env.NEXT_PUBLIC_EXCALIDRAW_DEBUG === "1";
   const loggedReadyRef = useRef<boolean>(false);
   const loggedApiRef = useRef<boolean>(false);
+  const diagnosticWarnedRef = useRef<boolean>(false);
 
   const { mount, unmount, isReady, excalidrawAPI } = useExcalidrawIsland({
     containerRef,
@@ -159,12 +161,80 @@ export function CanvasMount(props: Props): JSX.Element {
       setCanvasContainer?.(null);
     };
   }, [mount, setCanvasContainer, unmount]);
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'production') return;
+    if (typeof document === 'undefined') return;
+    if (!isReady) return;
+    if (diagnosticWarnedRef.current) return;
+
+    const frame = requestAnimationFrame(() => {
+      try {
+        const viewport = document.querySelector('.workspace-root .workspace-viewport');
+        if (!viewport) {
+          console.warn('[CanvasMount] Expected workspace viewport element to exist.');
+          diagnosticWarnedRef.current = true;
+          return;
+        }
+
+        const islands = document.querySelectorAll('excalidraw-island');
+        if (islands.length !== 1) {
+          console.warn('[CanvasMount] Expected exactly one excalidraw-island, found', islands.length);
+          diagnosticWarnedRef.current = true;
+          return;
+        }
+
+        const island = islands[0] as HTMLElement & { shadowRoot?: ShadowRoot | null };
+        const shadow = island?.shadowRoot ?? null;
+        const interactive = shadow?.querySelector<HTMLCanvasElement>('canvas.excalidraw__canvas.interactive') ?? null;
+        if (!interactive) {
+          console.warn('[CanvasMount] Interactive canvas not found within island shadow DOM.');
+          diagnosticWarnedRef.current = true;
+          return;
+        }
+
+        const style = getComputedStyle(interactive);
+        if (style.pointerEvents !== 'auto') {
+          console.warn('[CanvasMount] Interactive canvas pointer-events expected "auto", got', style.pointerEvents);
+          diagnosticWarnedRef.current = true;
+          return;
+        }
+
+        const rect = interactive.getBoundingClientRect();
+        if (rect.width <= 0 || rect.height <= 0) {
+          console.warn('[CanvasMount] Interactive canvas has invalid bounds', rect);
+          diagnosticWarnedRef.current = true;
+          return;
+        }
+
+        const sampleX = Math.min(Math.max(rect.left + rect.width / 2, 1), Math.max(1, window.innerWidth - 1));
+        const sampleY = Math.min(Math.max(rect.top + rect.height / 2, 1), Math.max(1, window.innerHeight - 1));
+        const hit = document.elementFromPoint(sampleX, sampleY);
+
+        const localX = Math.min(Math.max(sampleX - rect.left, 0), rect.width - 1);
+        const localY = Math.min(Math.max(sampleY - rect.top, 0), rect.height - 1);
+        const shadowHit = shadow?.elementFromPoint(localX, localY) ?? null;
+        const resolvedHit = shadowHit ?? hit;
+
+        const isInteractiveCanvas = resolvedHit instanceof HTMLCanvasElement;
+        const isIslandHost = resolvedHit instanceof HTMLElement && resolvedHit.tagName.toLowerCase() === 'excalidraw-island';
+        if (!isInteractiveCanvas && !isIslandHost) {
+          console.warn('[CanvasMount] elementFromPoint did not resolve to Excalidraw canvas', resolvedHit ?? hit);
+          diagnosticWarnedRef.current = true;
+        }
+      } catch (error) {
+        console.warn('[CanvasMount] Runtime diagnostics failed', error);
+        diagnosticWarnedRef.current = true;
+      }
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [isReady]);
 
   const combinedClassName = ["workspace-canvas-mount", className ?? ""].filter(Boolean).join(" ");
 
   return (
     <div ref={hostRef} className={combinedClassName} data-role="canvas-mount" data-readonly={readonly}>
-      {children}
+      <Page>{children}</Page>
       {!isReady && (
         <div
           className="excalidraw-loading"
@@ -208,4 +278,6 @@ export function CanvasMount(props: Props): JSX.Element {
     </div>
   );
 }
+
+
 

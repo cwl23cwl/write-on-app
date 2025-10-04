@@ -4,7 +4,6 @@ import { useEffect, useRef, type JSX } from "react";
 import { WorkspaceProvider } from "@/components/workspace/WorkspaceProvider";
 import { WorkspaceViewport } from "@/components/workspace/WorkspaceViewport";
 import { WorkspaceScaler } from "@/components/workspace/WorkspaceScaler";
-import { Page } from "@/components/workspace/Page";
 import { CanvasMount } from "@/components/workspace/CanvasMount";
 import { ChromeLayout } from "@/components/chrome/ChromeLayout";
 import { WorkspaceErrorBoundary } from "@/components/workspace/WorkspaceErrorBoundary";
@@ -70,6 +69,58 @@ export function WorkspaceRoot(): JSX.Element {
   }, []);
 
   useEffect(() => {
+    const rootEl = rootRef.current;
+    if (!rootEl) return;
+    if (typeof window === "undefined") return;
+
+    const passive: AddEventListenerOptions = { passive: true };
+    const idleDelay = 1300;
+    const pointerLeaveDelay = 450;
+    let hideTimer: number | null = null;
+
+    const scheduleHide = (delay: number = idleDelay) => {
+      if (hideTimer !== null) {
+        window.clearTimeout(hideTimer);
+      }
+      hideTimer = window.setTimeout(() => {
+        rootEl.classList.remove("show-scrollbars");
+        hideTimer = null;
+      }, delay);
+    };
+
+    const reveal = () => {
+      rootEl.classList.add("show-scrollbars");
+      scheduleHide();
+    };
+
+    const handlePointerLeave = () => {
+      scheduleHide(pointerLeaveDelay);
+    };
+
+    rootEl.addEventListener("scroll", reveal, passive);
+    rootEl.addEventListener("wheel", reveal, passive);
+    rootEl.addEventListener("touchstart", reveal, passive);
+    rootEl.addEventListener("pointerenter", reveal);
+    rootEl.addEventListener("pointerdown", reveal);
+    rootEl.addEventListener("pointerleave", handlePointerLeave);
+    window.addEventListener("keydown", reveal);
+
+    return () => {
+      rootEl.removeEventListener("scroll", reveal, passive);
+      rootEl.removeEventListener("wheel", reveal, passive);
+      rootEl.removeEventListener("touchstart", reveal, passive);
+      rootEl.removeEventListener("pointerenter", reveal);
+      rootEl.removeEventListener("pointerdown", reveal);
+      rootEl.removeEventListener("pointerleave", handlePointerLeave);
+      window.removeEventListener("keydown", reveal);
+      if (hideTimer !== null) {
+        window.clearTimeout(hideTimer);
+      }
+      rootEl.classList.remove("show-scrollbars");
+    };
+  }, []);
+
+  useEffect(() => {
     const controlStrip = document.querySelector<HTMLElement>(".control-strip");
     if (!controlStrip) return;
 
@@ -109,9 +160,7 @@ export function WorkspaceRoot(): JSX.Element {
                 overlayScene={overlayScene}
                 readonly={isReadonly}
                 initialScene={initialScene}
-              >
-                <Page />
-              </CanvasMount>
+              />
             </WorkspaceScaler>
           </WorkspaceViewport>
         </div>

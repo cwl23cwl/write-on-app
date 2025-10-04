@@ -84,6 +84,13 @@ type ExcalidrawModule = {
         padding: 0 !important;
         display: block !important;
       }
+      canvas.excalidraw__canvas.static {
+        pointer-events: none !important;
+      }
+      canvas.excalidraw__canvas.interactive {
+        pointer-events: auto !important;
+        cursor: crosshair !important;
+      }
       /* Do not set per-canvas CSS sizes; wrapper controls page-size box */
       .container .excalidraw, .container .excalidraw * { max-width: none !important; max-height: none !important; }
       /* Hide vendor UI so nothing overlays or steals pointer/wheel */
@@ -106,9 +113,12 @@ type ExcalidrawModule = {
         pointer-events: none !important;
       }
       /* Ensure the drawing canvas remains interactive */
-      .container .excalidraw__canvas,
-      .container .excalidraw__canvas canvas {
+      .container canvas.excalidraw__canvas.static {
+        pointer-events: none !important;
+      }
+      .container canvas.excalidraw__canvas.interactive {
         pointer-events: auto !important;
+        cursor: crosshair !important;
       }
     `;
     this.shadowRoot?.appendChild(style);
@@ -606,12 +616,21 @@ type ExcalidrawModule = {
       }
     }
     if (this.reactRoot) {
-      try {
-        this.reactRoot.unmount();
-      } catch (error) {
-        console.warn('[ExcalidrawIsland] Cleanup error:', error);
-      }
+      const root = this.reactRoot;
+      const performUnmount = () => {
+        try {
+          root.unmount();
+        } catch (error) {
+          console.warn('[ExcalidrawIsland] Cleanup error:', error);
+        }
+      };
       this.reactRoot = null;
+      const schedule = typeof queueMicrotask === 'function'
+        ? queueMicrotask
+        : (cb: () => void) => {
+            void Promise.resolve().then(cb).catch(() => {});
+          };
+      schedule(performUnmount);
     }
     // Clear API reference
     if (this.excalidrawRef) {

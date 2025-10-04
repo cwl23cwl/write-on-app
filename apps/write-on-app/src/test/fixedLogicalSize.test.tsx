@@ -24,7 +24,6 @@ import { WorkspaceViewport } from '@/components/workspace/WorkspaceViewport';
 import { WorkspaceScaler } from '@/components/workspace/WorkspaceScaler';
 import { WorkspaceProvider } from '@/components/workspace/WorkspaceProvider';
 import { CanvasMount } from '@/components/workspace/CanvasMount';
-import { Page } from '@/components/workspace/Page';
 import { useViewportStore } from '@/state';
 
 describe('Fixed logical size under zoom', () => {
@@ -45,7 +44,7 @@ describe('Fixed logical size under zoom', () => {
     global.ResizeObserver = originalResizeObserver;
   });
 
-  it('canvas page stays 1200×2200 CSS pixels even when zoom changes', async () => {
+  it('canvas page stays 1200ï¿½2200 CSS pixels even when zoom changes', async () => {
     function TestHarness() {
       const containerRef = React.useRef<HTMLDivElement | null>(null);
       return (
@@ -54,9 +53,7 @@ describe('Fixed logical size under zoom', () => {
           <div ref={containerRef} className="workspace-root">
             <WorkspaceViewport>
               <WorkspaceScaler>
-                <CanvasMount>
-                  <Page />
-                </CanvasMount>
+                <CanvasMount />
               </WorkspaceScaler>
             </WorkspaceViewport>
           </div>

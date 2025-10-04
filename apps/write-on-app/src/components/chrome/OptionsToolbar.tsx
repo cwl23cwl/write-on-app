@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useRef, type JSX } from "react";
 
@@ -23,15 +23,25 @@ const OptionsToolbar = (): JSX.Element => {
         backgroundColor: "transparent",
         marginTop: "var(--gap-top-opts)",
         marginBottom: 0,
-        // keep height aligned with TopToolbar (same or slightly smaller)
-        minHeight: "var(--h-top, 56px)",
+        minHeight: "var(--options-toolbar-height, 64px)",
+        width: "100%",
         display: "flex",
         alignItems: "center",
         position: "relative",
         zIndex: "var(--z-toolbar, 1900)",
       }}
     >
-      {showTextPanel && <TextOptionsPanel activeTool={activeTool} />}
+      <div
+        className="options-toolbar-slot flex w-full items-center justify-center"
+        aria-hidden={!showTextPanel}
+        data-visible={showTextPanel ? "true" : "false"}
+        style={{
+          visibility: showTextPanel ? "visible" : "hidden",
+          pointerEvents: showTextPanel ? "auto" : "none",
+        }}
+      >
+        <TextOptionsPanel activeTool={activeTool} />
+      </div>
     </aside>
   );
 };
