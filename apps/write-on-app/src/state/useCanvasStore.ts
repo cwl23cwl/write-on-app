@@ -160,11 +160,16 @@ export const useCanvasStore = create<CanvasStore>()(
           s.resolution.needsRedraw = resolution.needsRedraw;
         }, false, "canvas/setCanvasResolution"),
 
-      setContainerRef: (element: HTMLElement): void =>
+      setContainerRef: (element: HTMLElement | null): void =>
         set((s) => {
-          s.refs.containerElement = element;
+          s.refs.containerElement = element ?? null;
         }, false, "canvas/setContainerRef"),
     })),
     { enabled: devtoolsEnabled, name: "CanvasStore" }
   )
 );
+
+
+
+
+

@@ -1,11 +1,10 @@
 /**
  * Scale Regression Test
- * 
+ *
  * Verifies that:
  * 1. viewport.scale updates correctly
- * 2. .workspace-scaler transform changes
- * 3. .page-wrapper getBoundingClientRect().width changes proportionally
- * 4. Scale values match expected ratios within ±1px tolerance
+ * 2. .workspace-scaler applies zoom transforms
+ * 3. Scale ratios match expected values within �1px tolerance
  */
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, act, screen, cleanup } from '@testing-library/react';
@@ -16,7 +15,7 @@ import { WorkspaceScaler } from '@/components/workspace/WorkspaceScaler';
 function TestScaleComponent() {
   const scale = useViewportStore((s) => s.viewport.scale);
   const setScale = useViewportStore((s) => s.setScale);
-  
+
   return (
     <div>
       <div data-testid="scale-value">{scale}</div>
@@ -48,19 +47,14 @@ describe('Scale Regression Tests', () => {
     cleanup();
   });
 
-  const getPageWrapper = (): HTMLElement | null => 
-    document.querySelector('.page-wrapper') as HTMLElement | null;
-  
   const getWorkspaceScaler = (): HTMLElement | null =>
-    document.querySelector('.workspace-scaler') as HTMLElement | null;
+    document.querySelector('.workspace-scaler');
 
   test('viewport.scale updates correctly', async () => {
-    const { rerender } = render(<TestScaleComponent />);
-    
-    // Test initial state
+    render(<TestScaleComponent />);
+
     expect(screen.getByTestId('scale-value').textContent).toBe('1');
-    
-    // Test scale updates
+
     act(() => {
       screen.getByTestId('set-scale-1.25').click();
     });
@@ -78,28 +72,19 @@ describe('Scale Regression Tests', () => {
   });
 
   test('scale ratios match expected values', () => {
-    // Test mathematical relationships
     const baseWidth = 1200;
-    
-    // At S=1.0, width should be 1200
+
     expect(baseWidth * 1.0).toBe(1200);
-    
-    // At S=1.25, width should be ≈ 1500 (±1px)
     expect(baseWidth * 1.25).toBeCloseTo(1500, 0);
-    
-    // At S=0.8, width should be ≈ 960 (±1px) 
     expect(baseWidth * 0.8).toBeCloseTo(960, 0);
   });
 
-  test('workspace scaler exists and has expected structure', () => {
+  test('workspace scaler exists and renders children', () => {
     render(<TestScaleComponent />);
-    
+
     const scaler = getWorkspaceScaler();
     expect(scaler).toBeTruthy();
-    expect(scaler?.className).toBe('workspace-scaler');
-    
-    const pageWrapper = getPageWrapper();
-    expect(pageWrapper).toBeTruthy();
-    expect(pageWrapper?.className).toBe('page-wrapper');
+    expect(scaler?.classList.contains('workspace-scaler')).toBe(true);
+    expect(scaler?.querySelector('[data-testid="page-content"]')).toBeTruthy();
   });
 });

@@ -20,11 +20,11 @@ export function WorkspaceViewport({ className, children, style, ...rest }: Props
   const rootRef = containerRef;
   const setViewportSize = useViewportStore((s) => s.setViewportSize);
   const setScale = useViewportStore((s) => s.setScale);
-  const fitMode = useViewportStore((s) => s.fitMode);
-  const pageSize = useViewportStore((s) => s.pageSize);
-  const scale = useViewportStore((s) => s.scale);
-  const minScale = useViewportStore((s) => s.minScale);
-  const maxScale = useViewportStore((s) => s.maxScale);
+  const fitMode = useViewportStore((s) => s.viewport.fitMode);
+  const pageWidth = useViewportStore((s) => s.viewport.pageSize.w);
+  const scale = useViewportStore((s) => s.viewport.scale);
+  const minScale = useViewportStore((s) => s.constraints.minScale);
+  const maxScale = useViewportStore((s) => s.constraints.maxScale);
 
   // Root element owns scrolling and event capture.
   useViewportEvents(rootRef);
@@ -49,11 +49,11 @@ export function WorkspaceViewport({ className, children, style, ...rest }: Props
         return;
       }
 
-      const pageWidth = pageSize.w;
+      const currentPageWidth = pageWidth;
       let targetScale = scale;
 
-      if (pageWidth > 0 && fitMode === "fit-width") {
-        const fit = outerWidth / pageWidth;
+      if (currentPageWidth > 0 && fitMode === "fit-width") {
+        const fit = outerWidth / currentPageWidth;
         const clamped = Math.max(minScale, Math.min(fit, maxScale));
         targetScale = clamped;
         if (Math.abs(clamped - scale) > 1e-3) {
@@ -61,8 +61,8 @@ export function WorkspaceViewport({ className, children, style, ...rest }: Props
         }
       }
 
-      const scaledWidth = pageWidth > 0 ? pageWidth * targetScale : 0;
-      const horizontalPad = pageWidth > 0 ? Math.max(0, (outerWidth - scaledWidth) / 2) : 0;
+      const scaledWidth = currentPageWidth > 0 ? currentPageWidth * targetScale : 0;
+      const horizontalPad = currentPageWidth > 0 ? Math.max(0, (outerWidth - scaledWidth) / 2) : 0;
       el.style.paddingLeft = `${horizontalPad}px`;
       el.style.paddingRight = `${horizontalPad}px`;
 
@@ -90,7 +90,7 @@ export function WorkspaceViewport({ className, children, style, ...rest }: Props
       resizeObserver?.disconnect();
       window.removeEventListener("resize", onWindowResize);
     };
-  }, [setViewportSize, setScale, pageSize.w, fitMode, scale, minScale, maxScale]);
+  }, [setViewportSize, setScale, pageWidth, fitMode, scale, minScale, maxScale]);
 
   useEffect(() => {
     let node: HTMLElement | null = viewportRef.current;
@@ -137,3 +137,4 @@ export function WorkspaceViewport({ className, children, style, ...rest }: Props
     </div>
   );
 }
+
