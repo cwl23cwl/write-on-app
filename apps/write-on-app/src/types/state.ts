@@ -116,14 +116,15 @@ export interface CanvasActions {
   setLastError: (error: Error | null) => void;
   setScene: (scene: { elements: unknown[]; appState: Record<string, unknown>; files?: Record<string, unknown> }) => void;
   setCanvasResolution?: (resolution: { 
-    logicalWidth: number; 
-    logicalHeight: number; 
-    physicalWidth: number; 
-    physicalHeight: number; 
+    logicalWidth: number;
+    logicalHeight: number;
+    physicalWidth: number;
+    physicalHeight: number;
     effectiveDPR: number;
     needsRedraw: boolean;
   }) => void;
-  setContainerRef?: (element: HTMLElement) => void;
+  setContainerRef?: (element: HTMLElement | null) => void;
 }
 
 export type CanvasStore = CanvasSlice & CanvasActions;
+

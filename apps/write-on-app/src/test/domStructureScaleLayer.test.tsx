@@ -7,7 +7,7 @@ import { WorkspaceScaler } from '@/components/workspace/WorkspaceScaler';
 import { WorkspaceProvider } from '@/components/workspace/WorkspaceProvider';
 
 describe('Viewport/Scale structure', () => {
-  it('uses #workspace-viewport > .workspace-scaler > .page-wrapper and keeps chrome outside', () => {
+  it('keeps sticky chrome outside scaler and nests mount beneath the viewport', () => {
     function TestHarness() {
       const containerRef = React.useRef<HTMLDivElement | null>(null);
       return (
@@ -16,7 +16,9 @@ describe('Viewport/Scale structure', () => {
           <div ref={containerRef} className="workspace-root">
             <WorkspaceViewport>
               <WorkspaceScaler>
-                <div>content</div>
+                <div className="workspace-canvas-mount">
+                  <div className="canvas-page" />
+                </div>
               </WorkspaceScaler>
             </WorkspaceViewport>
           </div>
@@ -27,22 +29,26 @@ describe('Viewport/Scale structure', () => {
     const { container, unmount } = render(<TestHarness />);
     const viewport = container.querySelector('#workspace-viewport');
     const scaler = container.querySelector('.workspace-scaler');
-    const page = container.querySelector('.page-wrapper');
-    const host = container.querySelector('#excal-host');
-    const strip = container.querySelector('.control-strip');
+    const mount = container.querySelector('.workspace-canvas-mount');
+    const page = container.querySelector('.canvas-page');
+    const controlStrip = container.querySelector('.control-strip');
     const indicator = container.querySelector('.page-indicator');
+
     expect(viewport).toBeTruthy();
     expect(scaler).toBeTruthy();
+    expect(mount).toBeTruthy();
     expect(page).toBeTruthy();
-    expect(host).toBeTruthy();
-    expect(page?.closest('.workspace-scaler')).toBe(scaler);
-    expect(host?.closest('.page-wrapper')).toBe(page);
+
     expect(scaler?.closest('#workspace-viewport')).toBe(viewport);
-    expect(strip?.closest('.workspace-scaler')).toBeNull();
-    expect(indicator?.closest('.workspace-scaler')).toBeNull();
+    expect(mount?.closest('.workspace-scaler')).toBe(scaler);
+    expect(page?.closest('.workspace-canvas-mount')).toBe(mount);
+
+    expect(controlStrip?.closest('.workspace-scaler')).toBeNull();
+    if (indicator) {
+      expect(indicator.closest('.workspace-scaler')).toBeNull();
+    }
+
     unmount();
     cleanup();
   });
 });
-
-

@@ -1,26 +1,24 @@
-"use client";
+﻿"use client";
 
-import type { JSX, ReactNode } from 'react';
+import type { JSX, ReactNode } from "react";
 
-interface Props {
-  children: ReactNode;
-}
+const PAGE_WIDTH_PX = 1200;
+const PAGE_HEIGHT_PX = 2200;
 
-export function Page({ children }: Props): JSX.Element {
+type Props = {
+  children?: ReactNode;
+};
+
+// Logical page surface that Excalidraw renders into.
+// Exposes a stable 1200x2200 CSS box with a subtle drop shadow.
+export function Page({ children }: Props = {}): JSX.Element {
   return (
-    <div 
-      className="page"
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
-        background: '#ffffff',
-        // White paper surface
-        boxSizing: 'border-box'
-      }}
+    <div
+      className="canvas-page"
+      role="presentation"
+      style={{ width: `${PAGE_WIDTH_PX}px`, height: `${PAGE_HEIGHT_PX}px` }}
     >
+      <div className="page-surface" aria-hidden />
       {children}
     </div>
   );

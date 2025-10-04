@@ -3,6 +3,7 @@
 import { useEffect, useRef, type JSX, type ReactNode } from "react";
 import { useExcalidrawIsland } from "@/components/workspace/hooks/useExcalidrawIsland";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
+import { useCanvasStore } from "@/state";
 
 type Props = {
   className?: string;
@@ -57,6 +58,7 @@ export function CanvasMount(props: Props): JSX.Element {
   });
 
   const setWorkspaceApi = useWorkspaceStore((s) => s.setExcalidrawAPI);
+  const setCanvasContainer = useCanvasStore((s) => s.setContainerRef);
 
   useEffect(() => {
     setWorkspaceApi(excalidrawAPI ?? null);
@@ -100,6 +102,7 @@ export function CanvasMount(props: Props): JSX.Element {
         return false;
       }
       containerRef.current = pageElement;
+      setCanvasContainer?.(pageElement);
       return true;
     };
 
@@ -153,14 +156,14 @@ export function CanvasMount(props: Props): JSX.Element {
           win.__WRITEON_CANVAS_HOST_MOUNTED__ = false;
         } catch {}
       }
+      setCanvasContainer?.(null);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [mount, setCanvasContainer, unmount]);
 
   const combinedClassName = ["workspace-canvas-mount", className ?? ""].filter(Boolean).join(" ");
 
   return (
-    <div ref={hostRef} className={combinedClassName}>
+    <div ref={hostRef} className={combinedClassName} data-role="canvas-mount" data-readonly={readonly}>
       {children}
       {!isReady && (
         <div
