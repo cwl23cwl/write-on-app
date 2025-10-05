@@ -11,7 +11,7 @@ applyTo: '**'
 - Communication style: Concise updates, actionable steps
 
 ## Project Context
-- Current task: Fix WorkspaceRoot–Viewport containment and scroll chain (2025-09-21).
+- Current task: Investigate CanvasMount elementFromPoint diagnostics (2025-10-05).
 - Recent task: Update AppHeader branding and dynamic student workspace label (2025-02-18).
 - Recent task: Add 12px padding below Excalidraw control strip before canvas drawing region (2025-02-18).
 - Recent task: Integrate legacy SimplifiedColorPicker into workspace toolbar (2025-02-17).
@@ -31,6 +31,7 @@ applyTo: '**'
 - Documentation style: Inline JSDoc minimal
 
 ## Context7 Research History
+- 2025-10-05: Context7 search for "Excalidraw elementFromPoint" via Invoke-WebRequest returned dynamic Next.js shell with no accessible documentation.
 - 2025-09-21: Attempted Context7 search for Excalidraw scroll handler; request failed (host unreachable).
 - 2025-09-21: Attempted Google search for "Excalidraw pointer events"; Invoke-WebRequest could not reach google.com (network blocked).
 - 2025-09-21: Attempted Context7 search for Excalidraw duplicate island cleanup; connection failed (Invoke-WebRequest could not reach host).
@@ -52,6 +53,8 @@ applyTo: '**'
  - New findings: Runaway height not tied to zoom handler; fires during initial mount from React effect/Excalidraw init. Our `useCanvasResolution` and `useCanvasStore.updateResolution` were writing canvas attributes based on container/clientHeight, potentially propagating runaway sizes to Excalidraw canvases.
 
 ## Notes
+- 2025-10-05: CanvasMount diagnostics now call shadowRoot.elementFromPoint with viewport coordinates and log unexpected results defensively.
+- 2025-10-05: MDN ShadowRoot.elementFromPoint docs confirm coordinates are relative to the viewport (https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot/elementFromPoint).
 - 2025-09-21: Global island dedupe added in useExcalidrawIsland to strip any stray <excalidraw-island> outside the workspace container before mounting new instance; CanvasMount diagnostics now sample canvas center.
 - 2025-09-21: Adjusted CanvasMount diagnostics to tolerate shadow-host hits and validate interactive canvas pointer events, suppressing false positives when elementFromPoint returns <excalidraw-island>.
 - 2025-09-21: Re-ran vitest (pageWrapperSizing, fixedLogicalSize) post scroll-handler updates; tests pass with existing useWorkspaceRoute/jsx warnings.
@@ -79,7 +82,8 @@ applyTo: '**'
 - 2025-02-16: Verified PageIndicator updates pass workspace lint suite.
 - 2025-02-16: Updated PageIndicator to reuse legacy pill UI with lucide icons and usePageStore wiring.
 - Fixed undefined `container` in adapter by guarding with `containerRef.current` in mutation observer.
-- Gated adapter `ready` state on actual Excalidraw API readiness; removed container-based ready effect.
+- Gated adapter 
+eady` state on actual Excalidraw API readiness; removed container-based ready effect.
 - Removed forced `api.setZoom(1)`; zoom remains under host scaler control (avoids fighting external scaling).
 - Switched overlay elimination observer to `useLayoutEffect` and guaranteed cleanup (disconnect + clearInterval).
 - Island now dispatches `island-ready` only after adapter's `onReady` fires; sets `isInitialized` at that time.
@@ -92,7 +96,8 @@ applyTo: '**'
 - Added listener management in island via `addListener` with stored disposers; `cleanup()` iterates and removes all, making unmount idempotent.
 - Island mount is idempotent: reuses a single `[data-exc-island-root]` container, unmounts any existing React root before remounting; prevents multiple canvas roots.
 - Excalidraw import hardening: resolve both `default` and named `Excalidraw` exports and render the resolved component directly to ensure ref delivery.
-- Logging now gated by `NEXT_PUBLIC_EXCALIDRAW_DEBUG=1`; default logs suppressed to reduce noise. Dev diagnostics removed from island render.
+- Logging now gated by 
+EXT_PUBLIC_EXCALIDRAW_DEBUG=1`; default logs suppressed to reduce noise. Dev diagnostics removed from island render.
 - Mitigation for runaway height: Clamp logical dimensions and prefer fixed page size (1200x2200) when `.page-wrapper` present. Limit `useCanvasResolution` to only update `canvas.excalidraw__canvas.interactive`, avoiding writing to static canvas. Added GPU caps to `useCanvasStore.updateResolution` and safety clamps.
  - Updated invariant: Never derive page size from DOM. Always use `PAGE_W=1200`, `PAGE_H=2200`. Do not set per-canvas CSS sizes (no `style.width/height`). Attributes only: `width=PAGE_W*DPR*scale`, `height=PAGE_H*DPR*scale`. Clamps: <=16384/32768 per-axis and ~256MP total.
  - Removed `ExcalidrawIsland` canvas CSS rule that forced `width/height:100% !important`; wrapper controls size.
@@ -191,3 +196,10 @@ applyTo: '**'
 - 2025-02-19: pnpm turbo:lint re-run after scrollbar fade changes; same pre-existing lint failures persist.
 - 2025-02-19: Added auto-fade scrollbar pattern (CSS + WorkspaceRoot listeners) using .show-scrollbars class and 900ms idle timeout.
 - 2025-02-19: Smoothed scrollbar transitions (0.35s ease) and delayed pointer-leave hide to 450ms with 1300ms idle timeout.
+
+
+
+
+
+
+

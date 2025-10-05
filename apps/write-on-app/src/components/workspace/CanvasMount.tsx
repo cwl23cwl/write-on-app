@@ -210,14 +210,27 @@ export function CanvasMount(props: Props): JSX.Element {
         const sampleY = Math.min(Math.max(rect.top + rect.height / 2, 1), Math.max(1, window.innerHeight - 1));
         const hit = document.elementFromPoint(sampleX, sampleY);
 
-        const localX = Math.min(Math.max(sampleX - rect.left, 0), rect.width - 1);
-        const localY = Math.min(Math.max(sampleY - rect.top, 0), rect.height - 1);
-        const shadowHit = shadow?.elementFromPoint(localX, localY) ?? null;
+        const shadowHit = shadow?.elementFromPoint(sampleX, sampleY) ?? null;
         const resolvedHit = shadowHit ?? hit;
 
-        const isInteractiveCanvas = resolvedHit instanceof HTMLCanvasElement;
-        const isIslandHost = resolvedHit instanceof HTMLElement && resolvedHit.tagName.toLowerCase() === 'excalidraw-island';
-        if (!isInteractiveCanvas && !isIslandHost) {
+        if (shadowHit instanceof HTMLCanvasElement) {
+          if (!shadowHit.classList.contains('excalidraw__canvas')) {
+            console.warn('[CanvasMount] elementFromPoint resolved to unexpected canvas element', shadowHit);
+            diagnosticWarnedRef.current = true;
+          }
+          return;
+        }
+
+        if (shadowHit instanceof Element) {
+          if (DEBUG_EXCALIDRAW) {
+            console.info('[CanvasMount] elementFromPoint resolved within Excalidraw island', shadowHit);
+          }
+          return;
+        }
+
+        const isIslandHost =
+          resolvedHit instanceof HTMLElement && resolvedHit.tagName.toLowerCase() === 'excalidraw-island';
+        if (!isIslandHost) {
           console.warn('[CanvasMount] elementFromPoint did not resolve to Excalidraw canvas', resolvedHit ?? hit);
           diagnosticWarnedRef.current = true;
         }
@@ -278,6 +291,7 @@ export function CanvasMount(props: Props): JSX.Element {
     </div>
   );
 }
+
 
 
 
