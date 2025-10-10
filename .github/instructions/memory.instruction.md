@@ -1,4 +1,4 @@
----
+ï»¿---
 applyTo: '**'
 ---
 
@@ -11,6 +11,7 @@ applyTo: '**'
 - Communication style: Concise updates, actionable steps
 
 ## Project Context
+- Current task: Fix WorkspaceScaler centering drift across zoom levels (2025-10-06).
 - Current task: Investigate CanvasMount elementFromPoint diagnostics (2025-10-05).
 - Recent task: Update AppHeader branding and dynamic student workspace label (2025-02-18).
 - Recent task: Add 12px padding below Excalidraw control strip before canvas drawing region (2025-02-18).
@@ -31,6 +32,7 @@ applyTo: '**'
 - Documentation style: Inline JSDoc minimal
 
 ## Context7 Research History
+- 2025-10-06: Context7 search for "Excalidraw canvas centering" returned dynamic Next.js shell with no accessible documentation.
 - 2025-10-05: Context7 search for "Excalidraw elementFromPoint" via Invoke-WebRequest returned dynamic Next.js shell with no accessible documentation.
 - 2025-09-21: Attempted Context7 search for Excalidraw scroll handler; request failed (host unreachable).
 - 2025-09-21: Attempted Google search for "Excalidraw pointer events"; Invoke-WebRequest could not reach google.com (network blocked).
@@ -53,6 +55,13 @@ applyTo: '**'
  - New findings: Runaway height not tied to zoom handler; fires during initial mount from React effect/Excalidraw init. Our `useCanvasResolution` and `useCanvasStore.updateResolution` were writing canvas attributes based on container/clientHeight, potentially propagating runaway sizes to Excalidraw canvases.
 
 ## Notes
+- 2025-10-06: Implemented derived offset, WorkspaceScaler transform, and viewport observer updates for centering fix.
+- 2025-10-06: pnpm --filter write-on-app test -- --run src/test/scaleRegression.test.tsx passed (verifies transform behavior).
+- 2025-10-06: pnpm --filter write-on-app test -- --run (full suite) failed due to existing PostCSS plugin errors and missing WorkspaceProvider context in legacy tests.
+- 2025-10-06: Reviewed WorkspaceScaler/Viewport Store; transform currently missing and viewport centers via padding.
+- 2025-10-06: Google search for CSS translate+scale centering returned dynamic JS page (no static content).
+- 2025-10-06: Requirements gathered for centering fix (fixed page size 1200x2200, scale-driven offsetX, WorkspaceScaler sole transform).
+- 2025-10-06: No user-provided URLs to fetch for centering task.
 - 2025-10-05: CanvasMount diagnostics now call shadowRoot.elementFromPoint with viewport coordinates and log unexpected results defensively.
 - 2025-10-05: MDN ShadowRoot.elementFromPoint docs confirm coordinates are relative to the viewport (https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot/elementFromPoint).
 - 2025-09-21: Global island dedupe added in useExcalidrawIsland to strip any stray <excalidraw-island> outside the workspace container before mounting new instance; CanvasMount diagnostics now sample canvas center.
@@ -61,7 +70,7 @@ applyTo: '**'
 - 2025-09-21: Step 4 ran vitest (pageWrapperSizing, fixedLogicalSize); both pass with existing warnings from useWorkspaceRoute mock and jsx attr noise.
 - 2025-09-21: Step 3 adjusted ExcalidrawIsland shadow DOM CSS so static canvas is pointer-events:none and interactive canvas gains pointer-events:auto + crosshair cursor, removing overlay pointer blockers.
 - 2025-09-21: Step 2 restored CanvasMount layout to embed Page wrapper (shadowed white page) directly inside mount, updating WorkspaceRoot to mount CanvasMount without manual Page child.
-- 2025-09-21: Step 1 completed — purged duplicate excalidraw-island instances during mount to guarantee single island per canvas.
+- 2025-09-21: Step 1 completed â€” purged duplicate excalidraw-island instances during mount to guarantee single island per canvas.
 - 2025-09-21: Step 3 testing: attempted vitest run src/test/zoomIsolation.test.tsx; existing workspace route mocks still throw assignment loader errors, so tests fail unrelated to CSS changes.
 - 2025-09-21: Step 2 applied CSS/layout fixes: workspace-root now uses padding-top var fallback 273px and bottom 120px with overflow-only root, workspace-viewport min-height ties to page height with transparent background, workspace-scaler origin reset to 0 0 with contain/layout paint, and app/page.tsx wrapper removed so root owns scroll container.
 - 2025-09-21: Step 1 analysis recorded: existing globals.css already assigns scroll to .workspace-root but padding/overflow need alignment; will adjust root padding to var(--control-strip-height) and bottom 120px, set viewport min-height to page height, ensure scaler transform-origin top-left, and drop ancestor h-screen constraint in page.tsx.
@@ -116,10 +125,10 @@ EXT_PUBLIC_EXCALIDRAW_DEBUG=1`; default logs suppressed to reduce noise. Dev dia
 ## Critical Guardrails
 
 - **Zoom Handling**
-  - Never modify or re-enable Excalidraw’s internal zoom/pan/scroll.
+  - Never modify or re-enable Excalidrawâ€™s internal zoom/pan/scroll.
   - Zoom logic only exists in the host `WorkspaceScaler` via `useViewportStore`.
-  - Canvas zoom must always be disabled inside Excalidraw — only external scaling applies.
-  - Page size is fixed (1200 × 2200 CSS pixels). Do not derive dimensions from DOM.
+  - Canvas zoom must always be disabled inside Excalidraw â€” only external scaling applies.
+  - Page size is fixed (1200 Ã— 2200 CSS pixels). Do not derive dimensions from DOM.
 
 - **Control Strip**
   - The control strip (AppHeader, TopToolbar, OptionsToolbar, PageIndicator) is frozen.
@@ -178,7 +187,7 @@ EXT_PUBLIC_EXCALIDRAW_DEBUG=1`; default logs suppressed to reduce noise. Dev dia
 
 
 
-- 2025-02-19: Task started – adjust workspace scrollbar so it aligns below control strip.
+- 2025-02-19: Task started â€“ adjust workspace scrollbar so it aligns below control strip.
 - 2025-02-19: Context7 search for CSS scrollbar offset returned dynamic Next.js shell (no parsable data).
 - 2025-02-19: Google search for CSS scrollbar container offset returned JS-dependent page; unable to extract results.
 - 2025-02-19: Adjusted .workspace-root CSS to use margin-top and calc height so scrollbar track starts below control strip; added --workspace-scroll-gap variable.
@@ -196,6 +205,13 @@ EXT_PUBLIC_EXCALIDRAW_DEBUG=1`; default logs suppressed to reduce noise. Dev dia
 - 2025-02-19: pnpm turbo:lint re-run after scrollbar fade changes; same pre-existing lint failures persist.
 - 2025-02-19: Added auto-fade scrollbar pattern (CSS + WorkspaceRoot listeners) using .show-scrollbars class and 900ms idle timeout.
 - 2025-02-19: Smoothed scrollbar transitions (0.35s ease) and delayed pointer-leave hide to 450ms with 1300ms idle timeout.
+
+
+
+
+
+
+
 
 
 
