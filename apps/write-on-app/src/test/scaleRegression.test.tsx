@@ -4,7 +4,7 @@
  * Verifies that:
  * 1. viewport.scale updates correctly
  * 2. .workspace-scaler applies zoom transforms
- * 3. Scale ratios match expected values within ±1px tolerance
+ * 3. Scale ratios match expected values within +/-1px tolerance
  */
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, act, screen, cleanup } from '@testing-library/react';
@@ -33,6 +33,7 @@ describe('Scale Regression Tests', () => {
   beforeEach(() => {
     // Reset store to clean state
     useViewportStore.getState().setScale?.(1.0);
+    useViewportStore.getState().setViewportSize?.(0, 0);
     // Mock CSS variables for consistent testing
     Object.defineProperty(HTMLElement.prototype, 'style', {
       value: {
@@ -47,6 +48,9 @@ describe('Scale Regression Tests', () => {
     cleanup();
   });
 
+  const waitForFrame = async (): Promise<void> => {
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  };
   const getWorkspaceScaler = (): HTMLElement | null =>
     document.querySelector('.workspace-scaler');
 
@@ -87,4 +91,30 @@ describe('Scale Regression Tests', () => {
     expect(scaler?.classList.contains('workspace-scaler')).toBe(true);
     expect(scaler?.querySelector('[data-testid="page-content"]')).toBeTruthy();
   });
+  test('workspace scaler applies translate and scale transform', async () => {
+    await act(async () => {
+      useViewportStore.getState().setViewportSize?.(1600, 900);
+    });
+
+    render(<TestScaleComponent />);
+
+    await act(async () => {
+      await waitForFrame();
+    });
+
+    const scaler = getWorkspaceScaler();
+    expect(scaler).toBeTruthy();
+    expect(scaler?.style.width).toBe('1200px');
+    expect(scaler?.style.height).toBe('2200px');
+    expect(scaler?.style.transform).toBe('translate3d(200px, 0px, 0px) scale(1)');
+
+    await act(async () => {
+      useViewportStore.getState().setScale?.(1.5);
+      await waitForFrame();
+    });
+
+    expect(scaler?.style.transform).toBe('translate3d(0px, 0px, 0px) scale(1.5)');
+  });
+
 });
+

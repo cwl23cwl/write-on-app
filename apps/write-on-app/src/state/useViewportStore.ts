@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { devtools, persist, createJSONStorage } from "zustand/middleware";
 import { immer } from "zustand/middleware/immer";
+import type { Draft } from "immer";
 import type { ViewportStore } from "@/types/state";
 
 const getDpr = (): number =>
@@ -10,6 +11,23 @@ const getDpr = (): number =>
 
 // Scrollable gutter around the page (CSS pixels on each side)
 const PAGE_GUTTER = 64;
+
+const computeCenterOffset = (viewportWidth: number, pageWidth: number, scale: number): number => {
+  if (!Number.isFinite(viewportWidth) || !Number.isFinite(pageWidth) || !Number.isFinite(scale)) {
+    return 0;
+  }
+  const visualWidth = pageWidth * scale;
+  if (visualWidth <= 0) return 0;
+  const rawOffset = (viewportWidth - visualWidth) / 2;
+  return rawOffset > 0 ? rawOffset : 0;
+};
+
+const applyViewportDerivatives = (state: Draft<ViewportStore>): void => {
+  const viewportWidth = state.viewport.viewportSize?.w ?? state.viewport.containerWidth ?? 0;
+  const pageWidth = state.viewport.pageSize?.w ?? 0;
+  const scale = state.viewport.scale ?? 1;
+  state.viewport.offsetX = computeCenterOffset(viewportWidth, pageWidth, scale);
+};
 
 const initialState: Pick<ViewportStore, "viewport" | "interactions" | "constraints" | "viewportReady"> = {
   viewport: {
@@ -58,6 +76,7 @@ export const useViewportStore = create<ViewportStore>()(
             const { minScale, maxScale } = s.constraints;
             s.viewport.scale = Math.max(minScale, Math.min(scale, maxScale));
             s.viewport.devicePixelRatio = getDpr() * s.viewport.scale;
+            applyViewportDerivatives(s);
             s.interactions.isZooming = false;
           }, false, "viewport/setScale"),
 
@@ -70,6 +89,7 @@ export const useViewportStore = create<ViewportStore>()(
             const { minScale, maxScale } = s.constraints;
             s.viewport.scale = Math.max(minScale, Math.min(next, maxScale));
             s.viewport.devicePixelRatio = getDpr() * s.viewport.scale;
+            applyViewportDerivatives(s);
             s.interactions.isZooming = false;
           }, false, "viewport/zoomIn"),
 
@@ -81,16 +101,16 @@ export const useViewportStore = create<ViewportStore>()(
             const { minScale, maxScale } = s.constraints;
             s.viewport.scale = Math.max(minScale, Math.min(next, maxScale));
             s.viewport.devicePixelRatio = getDpr() * s.viewport.scale;
+            applyViewportDerivatives(s);
             s.interactions.isZooming = false;
           }, false, "viewport/zoomOut"),
 
         pan: (dx: number, dy: number): void =>
           set((s) => {
             if (!s.constraints.enablePan) return;
-            s.viewport.offsetX += dx;
-            s.viewport.offsetY += dy;
-            s.viewport.scrollX = s.viewport.offsetX;
-            s.viewport.scrollY = s.viewport.offsetY;
+            s.viewport.scrollX += dx;
+            s.viewport.scrollY += dy;
+            s.viewport.offsetY = s.viewport.scrollY;
             s.interactions.isPanning = false;
           }, false, "viewport/pan"),
 
@@ -98,9 +118,8 @@ export const useViewportStore = create<ViewportStore>()(
           set((s) => {
             s.viewport.scrollX = x;
             s.viewport.scrollY = y;
-            // keep legacy offsets in sync
-            s.viewport.offsetX = x;
             s.viewport.offsetY = y;
+            applyViewportDerivatives(s);
           }, false, "viewport/setScroll"),
 
         setViewState: (v): void =>
@@ -110,18 +129,18 @@ export const useViewportStore = create<ViewportStore>()(
             s.viewport.devicePixelRatio = getDpr() * s.viewport.scale;
             s.viewport.scrollX = v.scrollX;
             s.viewport.scrollY = v.scrollY;
-            s.viewport.offsetX = v.scrollX;
             s.viewport.offsetY = v.scrollY;
+            applyViewportDerivatives(s);
           }, false, "viewport/setViewState"),
 
         resetViewport: (): void =>
           set((s) => {
             s.viewport.scale = 1;
-            s.viewport.offsetX = 0;
             s.viewport.offsetY = 0;
             s.viewport.scrollX = 0;
             s.viewport.scrollY = 0;
             s.viewport.devicePixelRatio = getDpr();
+            applyViewportDerivatives(s);
             // sizes remain; DPR recalculated lazily
           }, false, "viewport/resetViewport"),
 
@@ -136,8 +155,8 @@ export const useViewportStore = create<ViewportStore>()(
             const nextScale = Math.min(scaleX, scaleY);
             const clamped = Math.max(s.constraints.minScale, Math.min(nextScale, s.constraints.maxScale));
             s.viewport.scale = clamped;
+            applyViewportDerivatives(s);
             // center canvas in container
-            s.viewport.offsetX = (containerWidth - canvasWidth * clamped) / 2;
             s.viewport.offsetY = (containerHeight - canvasHeight * clamped) / 2;
           }, false, "viewport/fitToScreen"),
 
@@ -146,6 +165,7 @@ export const useViewportStore = create<ViewportStore>()(
             s.viewport.containerWidth = Math.max(0, Math.round(width));
             s.viewport.containerHeight = Math.max(0, Math.round(height));
             s.viewport.devicePixelRatio = getDpr();
+            applyViewportDerivatives(s);
           }, false, "viewport/updateContainerSize"),
 
         updateCanvasSize: (width: number, height: number): void =>
@@ -158,6 +178,7 @@ export const useViewportStore = create<ViewportStore>()(
         setViewportSize: (w: number, h: number): void =>
           set((s) => {
             s.viewport.viewportSize = { w: Math.max(0, Math.round(w)), h: Math.max(0, Math.round(h)) };
+            applyViewportDerivatives(s);
           }, false, "viewport/setViewportSize"),
 
         setPageSize: (w: number, h: number): void =>
@@ -168,6 +189,7 @@ export const useViewportStore = create<ViewportStore>()(
               w: s.viewport.pageSize.w + 2 * PAGE_GUTTER,
               h: s.viewport.pageSize.h + 2 * PAGE_GUTTER
             };
+            applyViewportDerivatives(s);
           }, false, "viewport/setPageSize"),
 
         setFitMode: (mode: 'fit-width' | 'free'): void =>
@@ -180,7 +202,7 @@ export const useViewportStore = create<ViewportStore>()(
             const { viewportSize, pageSize } = s.viewport;
             if (viewportSize.w <= 0 || pageSize.w <= 0) return;
             
-            // Calculate fit scale using full viewport width; horizontal centering is handled by CSS
+            // Calculate fit scale using full viewport width; horizontal centering handled by offset derivation
             const availableWidth = viewportSize.w;
             const fitScale = availableWidth / pageSize.w;
             
@@ -190,6 +212,7 @@ export const useViewportStore = create<ViewportStore>()(
             s.viewport.scale = clampedScale;
             s.viewport.devicePixelRatio = getDpr() * clampedScale;
             s.viewport.fitMode = 'fit-width';
+            applyViewportDerivatives(s);
           }, false, "viewport/fitWidth"),
 
         getScaledPageW: (): number => {
