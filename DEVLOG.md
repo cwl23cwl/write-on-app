@@ -1,6 +1,6 @@
 # Development Log - Write-On-App
 
-## Phase 5: Viewport + Excalidraw Stabilization
+## Phase 5: Viewport + legacy canvas Stabilization
 
 ### 2025-09-15 — Pointer-Centered Zoom, Single Scroll Source, Unified Readiness
 
@@ -8,18 +8,18 @@
 **Latest Commit**: `49e17e3` — passive wheel on control strip; non-passive viewport wheel for zoom-intent; scaler transform-origin top-left
 
 #### Summary
-Stabilized the Excalidraw integration and the workspace viewport. Fixed runtime errors, unified readiness signaling, enforced a single interactive host, corrected DOM structure, centered the page via the viewport, made zoom/scroll behavior consistent and pointer-centered, and ensured crisp canvas rendering by applying DPI only to backing store. Also hid vendor UI overlays, preserved zero values with nullish coalescing, added real-bounds clamping with gutters, and introduced viewport readiness gating.
+Stabilized the legacy canvas integration and the workspace viewport. Fixed runtime errors, unified readiness signaling, enforced a single interactive host, corrected DOM structure, centered the page via the viewport, made zoom/scroll behavior consistent and pointer-centered, and ensured crisp canvas rendering by applying DPI only to backing store. Also hid vendor UI overlays, preserved zero values with nullish coalescing, added real-bounds clamping with gutters, and introduced viewport readiness gating.
 
 ---
 
 #### ✅ Stability and Error Handling
-- Fixed `ReferenceError: container is not defined` in `ExcalidrawAdapterMinimal` (use `containerRef.current`; guard `MutationObserver`).
-- Added an error boundary around the adapter in `ExcalidrawIsland` with a safe fallback UI.
+- Fixed `ReferenceError: container is not defined` in `legacy canvasAdapterMinimal` (use `containerRef.current`; guard `MutationObserver`).
+- Added an error boundary around the adapter in `legacy canvasIsland` with a safe fallback UI.
 - Ensured consistent cleanup and made the adapter fill the island container.
 
 #### 🔄 Unified Readiness and Single Host
 - Replaced multiple events with a single `'island-ready'` event carrying `{ api, element }`.
-- Adapter gates readiness on the real Excalidraw API; guarded for React StrictEffects double-init.
+- Adapter gates readiness on the real legacy canvas API; guarded for React StrictEffects double-init.
 - Prevented multi-mount spam: `CanvasMount` mounts once and cleans up; enforce only one interactive host (`#excal-host`) at a time.
 
 #### 🧱 DOM Structure and Layout
@@ -41,12 +41,12 @@ Stabilized the Excalidraw integration and the workspace viewport. Fixed runtime 
 - Recomputed backing store on zoom/resize; updated 2D context transforms; disabled image smoothing.
 
 #### 🧩 Vendor UI and Event Integrity
-- Hid Excalidraw vendor UI (layer-ui, menus, toolbars, etc.) so nothing overlays or steals events; ensured drawing canvas remains interactive.
+- Hid legacy canvas vendor UI (layer-ui, menus, toolbars, etc.) so nothing overlays or steals events; ensured drawing canvas remains interactive.
 
 #### ⚙️ Robustness and Correctness
 - Replaced truthy fallbacks with nullish coalescing to preserve 0 values throughout zoom code.
 - Introduced `sanitizeScroll`, `clampScrollPosition`, and `applyViewAtomically` helpers; added `viewportReady` flag and hydration to (0,0) on mount; blocked zoom until ready.
-- Gated debug logs with `NEXT_PUBLIC_EXCALIDRAW_DEBUG=1`.
+- Gated debug logs with `NEXT_PUBLIC_legacy canvas_DEBUG=1`.
 
 #### 🧪 Tests and Follow-ups
 - Updated tests to remove `#workspace-scale-layer` references.
@@ -55,9 +55,9 @@ Stabilized the Excalidraw integration and the workspace viewport. Fixed runtime 
 ---
 
 #### Files of Note
-- `components/workspace`: `WorkspaceRoot.tsx`, `WorkspaceViewport.tsx`, `WorkspaceScaler.tsx`, `PageWrapper.tsx`, `Page.tsx`, `CanvasMount.tsx`, `ExcalidrawIsland.ts`
-- `components/workspace/excalidraw`: `ExcalidrawAdapterMinimal.tsx`, `ExcalidrawRef.tsx`, `useExcalidrawLifecycle.ts`
-- `components/workspace/hooks`: `useViewportEvents.ts`, `useKeyboardZoom.ts`, `useCanvasResolution.ts`, `useExcalidrawIsland.ts`
+- `components/workspace`: `WorkspaceRoot.tsx`, `WorkspaceViewport.tsx`, `WorkspaceScaler.tsx`, `PageWrapper.tsx`, `Page.tsx`, `CanvasMount.tsx`, `legacy canvasIsland.ts`
+- `components/workspace/legacy canvas`: `legacy canvasAdapterMinimal.tsx`, `legacy canvasRef.tsx`, `uselegacy canvasLifecycle.ts`
+- `components/workspace/hooks`: `useViewportEvents.ts`, `useKeyboardZoom.ts`, `useCanvasResolution.ts`, `uselegacy canvasIsland.ts`
 - `state`: `useViewportStore.ts`, `useCanvasStore.ts`, `types/state.ts`
 - `app/globals.css`; tests updated for scaler removal
 
@@ -65,27 +65,27 @@ Stabilized the Excalidraw integration and the workspace viewport. Fixed runtime 
 
 #### Next Steps
 - Run full test suite to validate DOM/zoom behavior after refactors.
-- Extend vendor UI hide selectors across Excalidraw versions if needed.
+- Extend vendor UI hide selectors across legacy canvas versions if needed.
 - Consider a dev diagnostic ensuring a single `#excal-host` exists at runtime.
 
-## Phase 4: Excalidraw Integration Contract
+## Phase 4: legacy canvas Integration Contract
 
 ### 2025-01-XX - Steps 7-9 Complete: Full Read/Write Contract Implementation
 
 **Branch**: `phase4/9-complete`  
-**Commit**: `529a04e` - feat(phase4): complete Steps 7-9 - Excalidraw Integration Contract  
+**Commit**: `529a04e` - feat(phase4): complete Steps 7-9 - legacy canvas Integration Contract  
 
 #### Summary
-Successfully implemented a complete Excalidraw integration contract with event-based communication, DPI-aware exports, and comprehensive error handling. This provides a robust foundation for embedding Excalidraw in React applications with full host control.
+Successfully implemented a complete legacy canvas integration contract with event-based communication, DPI-aware exports, and comprehensive error handling. This provides a robust foundation for embedding legacy canvas in React applications with full host control.
 
 ---
 
-#### 🎯 **Step 7: Excalidraw Integration Contract**
+#### 🎯 **Step 7: legacy canvas Integration Contract**
 
 **Goal**: Implement read/write contract with inputs/outputs, scene management, export functionality, error handling, and zoom/pan isolation.
 
 **Implementation**: Event-Based Contract with Imperative API helpers  
-**Files**: `ExcalidrawAdapterMinimal.tsx` (stable), `ExcalidrawAdapter.tsx` (full-featured)
+**Files**: `legacy canvasAdapterMinimal.tsx` (stable), `legacy canvasAdapter.tsx` (full-featured)
 
 **Key Features Delivered**:
 - ✅ **CustomEvent System**: Framework-agnostic event communication
@@ -105,7 +105,7 @@ Successfully implemented a complete Excalidraw integration contract with event-b
   - Automatic scroll coordinate stripping
 
 - ✅ **Zoom/Pan Isolation**:
-  - Internal Excalidraw zoom locked at 1.0
+  - Internal legacy canvas zoom locked at 1.0
   - Event interception for zoom/pan commands (Ctrl+wheel, spacebar, 'h')
   - Page-level zoom handled by viewport store
 
@@ -145,7 +145,7 @@ const interval = setInterval(forceZoom, 500);
 **Key Features Delivered**:
 - ✅ **Black Canvas Issue Fixed**: Removed aggressive `useCanvasResolution` hook interference
 - ✅ **DPI-Aware Exports**: `effectiveDPR = devicePixelRatio × scale` (clamped 0.75-3.0)
-- ✅ **Crisp Rendering Verified**: Native Excalidraw zoom provides crisp live editing
+- ✅ **Crisp Rendering Verified**: Native legacy canvas zoom provides crisp live editing
 - ✅ **Export Enhancement**: PNG/SVG exports use calculated effectiveDPR for high-quality output
 
 **Technical Implementation**:
@@ -165,9 +165,9 @@ await exportToBlob({
 });
 ```
 
-**Key Insight**: The "crisp ink" requirement is most important for exports, not live editing. Excalidraw handles its own crisp rendering internally, so we focus DPI enhancement where it matters most.
+**Key Insight**: The "crisp ink" requirement is most important for exports, not live editing. legacy canvas handles its own crisp rendering internally, so we focus DPI enhancement where it matters most.
 
-**Canvas Stability**: Zoom slider updates viewport store but doesn't affect Excalidraw canvas visually (by design - zoom isolation working correctly).
+**Canvas Stability**: Zoom slider updates viewport store but doesn't affect legacy canvas canvas visually (by design - zoom isolation working correctly).
 
 ---
 
@@ -188,7 +188,7 @@ await exportToBlob({
 // API timing error with helpful guidance
 {
   code: 'API_ERROR',
-  message: 'Cannot export: Excalidraw API not ready. Wait for "ready" event before calling requestExport().',
+  message: 'Cannot export: legacy canvas API not ready. Wait for "ready" event before calling requestExport().',
   details: { 
     method: 'requestExport', 
     suggestion: 'Listen for "ready" event or check component mount state'
@@ -212,7 +212,7 @@ await exportToBlob({
 
 #### 🧪 **Testing Infrastructure**
 
-**Files**: `SimpleContractTest.tsx`, `ExcalidrawContractTest.tsx`, integration tests
+**Files**: `SimpleContractTest.tsx`, `legacy canvasContractTest.tsx`, integration tests
 
 **Test Coverage**:
 - ✅ Export functionality (PNG/SVG) with DPI logging
@@ -233,7 +233,7 @@ await exportToBlob({
 **Code Quality**:
 - 8 files changed: 1,486 insertions, 144 deletions
 - 4 new files created with comprehensive functionality
-- Zero production dependencies added (using existing Excalidraw APIs)
+- Zero production dependencies added (using existing legacy canvas APIs)
 - Comprehensive TypeScript typing throughout
 
 **Performance**:
@@ -276,7 +276,7 @@ await exportToBlob({
 
 3. **Event-Driven Architecture**: CustomEvents provide clean separation between host and embedded component
 
-4. **Performance vs Features**: Sometimes the minimal approach (ExcalidrawAdapterMinimal) is more stable than the feature-rich version
+4. **Performance vs Features**: Sometimes the minimal approach (legacy canvasAdapterMinimal) is more stable than the feature-rich version
 
 5. **DPI Strategy**: Export-time DPI enhancement is more valuable than live canvas DPI manipulation for most use cases
 
@@ -284,7 +284,7 @@ await exportToBlob({
 
 #### 🎯 **Next Steps**
 
-The Excalidraw integration contract is complete and production-ready. Possible future enhancements:
+The legacy canvas integration contract is complete and production-ready. Possible future enhancements:
 
 - Advanced scene transformation APIs
 - Real-time collaboration event handling

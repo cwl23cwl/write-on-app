@@ -34,9 +34,6 @@
       "writeon/*": [
         "./src/*"
       ],
-      "@excalidraw/excalidraw/types": [
-        "../../vendor/excalidraw/packages/excalidraw/types.ts"
-      ]
     },
     "allowJs": true
   },

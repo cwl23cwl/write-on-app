@@ -13,6 +13,7 @@ import {
   Type as TypeIcon,
 } from "lucide-react";
 import { useMeasureCssVar } from "@/components/workspace/hooks/useMeasureCssVar";
+import { useTLDraw, type TLDrawToolName } from "@/components/workspace/tldraw/TLDrawProvider";
 import { useToolbarStore, type ToolId as GlobalToolId } from "@/state/useToolbarStore";
 
 interface ToolConfig {
@@ -90,6 +91,15 @@ const ACTIVE_RING_BY_TOOL: Record<ToolId, string> = {
   shapes: "ring-purple-400",
 };
 
+const TOOLBAR_TO_TL_TOOL: Partial<Record<ToolId, TLDrawToolName>> = {
+  select: "select",
+  draw: "draw",
+  highlighter: "highlight",
+  text: "text",
+  erase: "eraser",
+  shapes: "geo",
+};
+
 
 export function TopToolbar(): JSX.Element {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -99,6 +109,8 @@ export function TopToolbar(): JSX.Element {
   const setActiveTool = useToolbarStore((s) => s.setActiveTool);
   const [expandedTool, setExpandedTool] = useState<ToolId | null>(null);
   const [saveState] = useState<SaveState>("saved");
+  const { undo: tlUndo, redo: tlRedo, setTool: setTLTool, isReady: tlReady } = useTLDraw();
+  const controlsDisabled = !tlReady;
 
   const saveBadge = useMemo(() => {
     if (saveState === "saving") {
@@ -120,19 +132,30 @@ export function TopToolbar(): JSX.Element {
   }, [saveState]);
 
   const handleUndo = (): void => {
-    console.log("TODO: undo action");
+    if (!tlReady) return;
+    tlUndo();
   };
 
   const handleRedo = (): void => {
-    console.log("TODO: redo action");
+    if (!tlReady) return;
+    tlRedo();
   };
 
   const handleToolClick = (tool: ToolConfig): void => {
+    if (!tlReady) return;
     const nextIsToggleOff = activeTool === tool.id;
-    const nextTool = nextIsToggleOff ? ("none" as ToolId) : tool.id;
-    setActiveTool(nextTool);
-    setExpandedTool((prev) => {
-      if (nextIsToggleOff) return null; // close dropdown when deselecting
+
+    if (nextIsToggleOff) {
+      setActiveTool("select");
+      setTLTool("select");
+      setExpandedTool(null);
+      return;
+    }
+
+    setActiveTool(tool.id);
+    const target = TOOLBAR_TO_TL_TOOL[tool.id] ?? "select";
+    setTLTool(target);
+    setExpandedTool((prev): ToolId | null => {
       if (!tool.hasDropdown) return null; // no dropdown for this tool
       return prev === tool.id ? null : tool.id; // toggle dropdown for this tool
     });
@@ -140,14 +163,14 @@ export function TopToolbar(): JSX.Element {
 
   // Global ESC clears active tool selection (sets to 'none')
   useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
+    const onKeyDown = (e: KeyboardEvent): void => {
       if (e.key === "Escape") {
         setActiveTool("none");
         setExpandedTool(null);
       }
     };
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    return (): void => window.removeEventListener("keydown", onKeyDown);
   }, [setActiveTool]);
 
   return (
@@ -168,7 +191,8 @@ export function TopToolbar(): JSX.Element {
             <button
               type="button"
               onClick={handleUndo}
-              className="p-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100"
+              disabled={controlsDisabled}
+              className="p-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Undo last action"
             >
               <RotateCcw className="h-6 w-6 text-gray-700" strokeWidth={2} aria-hidden="true" />
@@ -176,7 +200,8 @@ export function TopToolbar(): JSX.Element {
             <button
               type="button"
               onClick={handleRedo}
-              className="p-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100"
+              disabled={controlsDisabled}
+              className="p-2 rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="Redo last action"
             >
               <RotateCw className="h-6 w-6 text-gray-700" strokeWidth={2} aria-hidden="true" />
@@ -195,12 +220,13 @@ export function TopToolbar(): JSX.Element {
                     key={tool.id}
                     type="button"
                     onClick={() => handleToolClick(tool)}
+                    disabled={controlsDisabled}
                     className={`group relative flex flex-col items-center justify-center rounded-lg px-4 py-3 text-xs font-medium transition-all duration-200 focus:outline-none w-[65px] ${
                       // soft gray glow on hover/focus; neutral gray outline by default
                       isActive
                         ? `${tool.badgeClass} ring-2 ${ACTIVE_RING_BY_TOOL[tool.id] ?? "ring-gray-400"} shadow-sm border border-transparent bg-transparent`
-                        : `text-gray-700 border border-gray-300 bg-transparent hover:-translate-y-px hover:shadow-sm hover:ring-1 hover:ring-gray-300 focus:ring-2 focus:ring-gray-300 focus:shadow-sm`
-                    } ${isExpanded ? "ring-2 ring-blue-300" : ""}`}
+                        : `text-gray-700 border border-gray-300 bg-transparent hover:-translate-y-px hover:shadow-sm hover:ring-1 hover:ring-gray-300 focus:ring-2 focus:ring-gray-300 focus:shadow-sm disabled:border-gray-300`
+                    } ${isExpanded ? "ring-2 ring-blue-300" : ""} disabled:cursor-not-allowed disabled:opacity-40`}
                     aria-label={`${tool.label} tool`}
                     aria-pressed={isActive}
                     title={tool.description}

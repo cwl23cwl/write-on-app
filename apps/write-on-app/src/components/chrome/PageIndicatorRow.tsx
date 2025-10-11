@@ -12,11 +12,19 @@ export function PageIndicatorRow({ children }: { children: ReactNode }): JSX.Ele
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const dispatch = () => window.dispatchEvent(new Event('control-strip:recompute'));
-    const ro = new ResizeObserver(() => dispatch());
+    const dispatch = (): void => {
+      window.dispatchEvent(new Event("control-strip:recompute"));
+    };
+    const ro = new ResizeObserver((): void => {
+      dispatch();
+    });
     ro.observe(el);
-    return () => {
-      try { ro.disconnect(); } catch {}
+    return (): void => {
+      try {
+        ro.disconnect();
+      } catch {
+        // ignore
+      }
     };
   }, []);
   return (

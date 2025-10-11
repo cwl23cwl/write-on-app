@@ -10,6 +10,7 @@ import { WorkspaceErrorBoundary } from "@/components/workspace/WorkspaceErrorBou
 import { useKeyboardShortcuts } from "@/components/workspace/hooks/useKeyboardShortcuts";
 import { useContainerSizeObserver } from "@/components/workspace/hooks/useContainerSizeObserver";
 import { useWorkspaceRoute } from "@/components/workspace/hooks/useWorkspaceRoute";
+import { TLDrawProvider } from "@/components/workspace/tldraw/TLDrawProvider";
 import { useViewportStore } from "@/state";
 
 export function WorkspaceRoot(): JSX.Element {
@@ -146,25 +147,29 @@ export function WorkspaceRoot(): JSX.Element {
     };
   }, []);
 
+  const workspaceTree = (
+    <WorkspaceErrorBoundary>
+      <ChromeLayout />
+      <div ref={rootRef} className="workspace-root" data-workspace-root>
+        <WorkspaceViewport>
+          <WorkspaceScaler>
+            <CanvasMount
+              mode={mode}
+              writeScope={writeScope}
+              baseScene={baseScene}
+              overlayScene={overlayScene}
+              readonly={isReadonly}
+              initialScene={initialScene}
+            />
+          </WorkspaceScaler>
+        </WorkspaceViewport>
+      </div>
+    </WorkspaceErrorBoundary>
+  );
+
   return (
     <WorkspaceProvider value={{ containerRef: rootRef }}>
-      <WorkspaceErrorBoundary>
-        <ChromeLayout />
-        <div ref={rootRef} className="workspace-root" data-workspace-root>
-          <WorkspaceViewport>
-            <WorkspaceScaler>
-              <CanvasMount
-                mode={mode}
-                writeScope={writeScope}
-                baseScene={baseScene}
-                overlayScene={overlayScene}
-                readonly={isReadonly}
-                initialScene={initialScene}
-              />
-            </WorkspaceScaler>
-          </WorkspaceViewport>
-        </div>
-      </WorkspaceErrorBoundary>
+      <TLDrawProvider>{workspaceTree}</TLDrawProvider>
     </WorkspaceProvider>
   );
 }

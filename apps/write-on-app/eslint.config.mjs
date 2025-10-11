@@ -35,6 +35,7 @@ const eslintConfig = [
       "@typescript-eslint/no-explicit-any": "error",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "error",
+      "no-restricted-imports": ["error", { patterns: ["@excalidraw/*"] }],
       "writeon/no-direct-dom-manipulation": "error",
       "writeon/store-access-via-hooks": "warn",
       "writeon/no-unauthorized-transform": "error",

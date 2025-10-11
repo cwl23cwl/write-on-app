@@ -21,11 +21,13 @@ export function WorkspaceViewport({ className, children, style, ...rest }: Props
   const rootRef = containerRef;
   const setScale = useViewportStore((s) => s.setScale);
   const fitMode = useViewportStore((s) => s.viewport.fitMode);
-  const pageWidth = useViewportStore((s) => s.viewport.pageSize.w);
+  const pageWidth = useViewportStore((s) => s.viewport.pageSize?.w ?? 1200);
   const scale = useViewportStore((s) => s.viewport.scale);
   const minScale = useViewportStore((s) => s.constraints.minScale);
   const maxScale = useViewportStore((s) => s.constraints.maxScale);
-  const viewportWidth = useViewportStore((s) => s.viewport.viewportSize.w);
+  const viewportWidth = useViewportStore(
+    (s) => s.viewport.viewportSize?.w ?? s.viewport.containerWidth ?? 0,
+  );
 
   // Root element owns scrolling and event capture.
   useViewportEvents(rootRef);

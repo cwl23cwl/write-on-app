@@ -11,6 +11,8 @@ applyTo: '**'
 - Communication style: Concise updates, actionable steps
 
 ## Project Context
+- Current task: Step 2.4 — TLDraw camera & DPI sync (2025-10-12).
+- Current task: Determine active git branch for repository (2025-10-11).
 - Current task: Fix WorkspaceScaler centering drift across zoom levels (2025-10-06).
 - Current task: Investigate CanvasMount elementFromPoint diagnostics (2025-10-05).
 - Recent task: Update AppHeader branding and dynamic student workspace label (2025-02-18).
@@ -42,12 +44,26 @@ applyTo: '**'
 - 2025-02-17: Context7 search for Simplified Color Picker returned dynamic Next.js shell with no accessible data; proceeded with legacy implementation.
 - 2025-02-16: Context7 search for Excalidraw scaling returned JS shell; relying on internal architecture notes for canvas-scaler alignment.
 - 2025-02-16: Attempted Context7 search for Lucide pagination patterns (JS-rendered results inaccessible); sourced lucide.dev package usage docs instead.
+- 2025-10-11: Context7 search for "TLDraw" returned dynamic Next.js shell; no accessible documentation data.
+- 2025-10-11: Google search for "tldraw headless" returned JS-only results page; no static content accessible.
+- 2025-10-11: Context7 search for "TLDraw tool registration" returned dynamic Next.js shell with no parsable results (Step 2.1).
+- 2025-10-11: Google search for "tldraw tool registration" returned JS-driven fallback; static response unavailable (Step 2.1).
+- 2025-10-11: Reviewed tldraw GitHub README (`packages/tldraw/README.md`) for SDK usage; tool list not documented (Step 2.1).
+- 2025-10-11: Context7 search for "Tldraw headless editor" returned dynamic Next.js shell; no accessible documentation (Step 2.2).
+- 2025-10-11: Google search for "headless tldraw editor" produced JS-only SERP response; no static content retrievable (Step 2.2).
+- 2025-10-11: Step 2.3 note—Text options hook-order bug addressed by moving readiness guard after hooks and adding `isReady` guards inside callbacks (lint still flags legacy Excalidraw panel hooks).
 - Libraries researched on Context7: N/A (network restricted in this environment)
 - Best practices discovered: N/A
 - Implementation patterns used: `useRef` for containers; effect guards against null
 - Version-specific findings: React 19/Next 15 concurrent effects require effect safety
+- 2025-10-11: Step 2.2 Context7 search for "Remove Excalidraw integration" returned dynamic shell; no actionable documentation.
+- 2025-10-12: Context7 search for "TLDraw camera setCamera" returned dynamic Next.js shell with no accessible documentation.
+- 2025-10-12: Google search for "tldraw setCamera" returned JS-only SERP with no static data.
+- 2025-10-12: Retrieved TLDraw `Editor.ts` source from GitHub for camera API reference.
 
 ## Conversation History
+- 2025-10-12: Step 2.4 progress — Reviewed memory, attempted Context7 search, gathered TLDraw Editor source, and audited WorkspaceViewport/Scaler/TLDrawMount for current scaling behavior.
+- 2025-10-12: Step 2.4 action — Removed CSS scaling from WorkspaceScaler/TLDrawMount to enforce TL surface transform-free layout.
 - Important decisions made: Target bug `container is not defined` at `ExcalidrawAdapterMinimal.tsx:184`
 - Recurring questions or topics: Excalidraw initialization, island ready events
 - Solutions that worked well: To be determined
@@ -55,6 +71,14 @@ applyTo: '**'
  - New findings: Runaway height not tied to zoom handler; fires during initial mount from React effect/Excalidraw init. Our `useCanvasResolution` and `useCanvasStore.updateResolution` were writing canvas attributes based on container/clientHeight, potentially propagating runaway sizes to Excalidraw canvases.
 
 ## Notes
+- 2025-10-11: Step 2.1 initiated — stabilizing TLDraw tool readiness, adding provider `isReady` gating, auditing toolbar handlers, and removing UI-only hooks; logging actual tool IDs once registration completes.
+- 2025-10-11: Step 2.1 progress — TLDrawProvider now waits for essential tool IDs before flipping `isReady`, logs the tool list once, guards toolbar sync on readiness, and adds fallbacks if a requested tool is missing.
+- 2025-10-11: Step 2.1 update — TopToolbar and toolbar sync now bail when `isReady` is false, and TL tool mappings normalize to TLDraw IDs with safe fallbacks.
+- 2025-10-11: Step 2.1 audit — Confirmed no `@tldraw/ui` or `useCanvasEvents` imports remain; provider subscriptions store a single teardown and cancel the ready-check frame on cleanup.
+- 2025-10-11: pnpm --filter write-on-app lint (Step 2.1 validation) reproduces pre-existing hook ordering and typing errors in TextOptionsPanel/PageIndicatorRow; no new TLDraw-related lint failures observed.
+- 2025-10-11: Step 2.2 progress — TLDrawMount now uses headless `TldrawEditor` with default tools/shape utils/binding utils, adds touch-action guard, and the provider tracks mount tokens to avoid double subscriptions under React 19 dev.
+- 2025-10-11: Step 2.2 update - TLTextOptionsPanelContent hooks are now declared before readiness guard and synced via effect to keep order stable; lint run on targeted TL files shows only ignore warnings due to repository config.
+- 2025-10-11: Step 2.3 decommission - Removed legacy feature flag and Excalidraw adapters/routes/tests/packages; TLDraw is hard-wired across CanvasMount/WorkspaceRoot, lint guard bans `@excalidraw/*`, optional migration shim added at `scripts/migrate-excali-to-tl.ts`, and pnpm install/build/lint now succeed post-cleanup.
 - 2025-10-06: Implemented derived offset, WorkspaceScaler transform, and viewport observer updates for centering fix.
 - 2025-10-06: pnpm --filter write-on-app test -- --run src/test/scaleRegression.test.tsx passed (verifies transform behavior).
 - 2025-10-06: pnpm --filter write-on-app test -- --run (full suite) failed due to existing PostCSS plugin errors and missing WorkspaceProvider context in legacy tests.
@@ -205,6 +229,22 @@ EXT_PUBLIC_EXCALIDRAW_DEBUG=1`; default logs suppressed to reduce noise. Dev dia
 - 2025-02-19: pnpm turbo:lint re-run after scrollbar fade changes; same pre-existing lint failures persist.
 - 2025-02-19: Added auto-fade scrollbar pattern (CSS + WorkspaceRoot listeners) using .show-scrollbars class and 900ms idle timeout.
 - 2025-02-19: Smoothed scrollbar transitions (0.35s ease) and delayed pointer-leave hide to 450ms with 1300ms idle timeout.
+- 2025-10-10: Context7 search for "Excalidraw React" returned static Next.js shell without usable documentation; no actionable data extracted.
+- 2025-10-10: Google search for "Excalidraw SSR React devicePixelRatio" returned dynamic JS page; unable to access static results.
+- 2025-10-10: Step 1A completed—workspace cleaned, pnpm reinstalled, React versions verified (host 19.1.0, island 18.3.1, Excalidraw fork 0.18.0), and full workspace builds succeed after rebuilding vendor packages.
+- 2025-10-10: Step 1B progress—removed legacy Excalidraw adapters/refs/tests from app, switched to @write-on-app/excalidraw-island package, cleared aggressive Excalidraw CSS, and Next.js build passes without direct library imports.
+- 2025-10-10: Step 1C progress—custom element definition guarded for browser-only load, CanvasMount returns null on SSR and gates mounting behind NEXT_PUBLIC_ENABLE_EXCALIDRAW_ISLAND flag, disabling auto-mount to keep idle client clean.
+- 2025-10-10: Step 1D-ExcalidrawIsland now renders the real Excalidraw surface with single React root, CanvasMount statically renders `<excalidraw-island>` at scale 1, and build verifies single instance client mount.
+- 2025-10-11: Reviewed TLDraw Editor documentation (raw GitHub MD); noted use of `<Tldraw>` component, `onMount` editor callback, and `useEditor` hook for state access.
+- 2025-10-11: Reviewed TLDraw user interface doc; noted `hideUi` prop disables default UI and keyboard shortcuts.
+- 2025-10-11: Created feature branch `pivot/tldraw-headless-step1` to begin TLDraw headless integration.
+- 2025-10-11: Added `@tldraw/tldraw@~4.0.3` dependency and refreshed workspace with `pnpm install` (initial run timed out, reran successfully).
+- 2025-10-11: Added feature flag module (`featureFlags.useTLDraw`) and created headless `TLDrawMount` component scaffolding.
+- 2025-10-11: CanvasMount now gates between TLDraw and Excalidraw via `featureFlags.useTLDraw`; added TLDraw CSS import/overrides for page-aligned rendering.
+- 2025-10-11: Excalidraw-specific hooks (`useCanvasResolution`, `useExcalidrawAdapter`, `useExcalidrawIsland`) now no-op when TLDraw flag is enabled.
+- 2025-10-11: Next.js turbopack build reports success (~20s) though CLI timeouts trigger at 35s; reruns confirm output without errors.
+- 2025-10-11: TLDraw provider/context introduced; TL toolbars now drive TLDraw editor (tools, styles, undo/redo) with TL hotkeys disabled.
+- 2025-10-11: Headless TLDraw hotfix: switched `TLDrawMount` to `TldrawEditor` (no UI), updated provider listener to avoid `changes.added.has`, and added touch-action guards for TL canvas.
 
 
 

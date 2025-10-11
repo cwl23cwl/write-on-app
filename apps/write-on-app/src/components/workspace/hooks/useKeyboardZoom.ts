@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef } from "react";
 import { useViewportStore } from "@/state";
@@ -14,9 +14,9 @@ export function useKeyboardZoom(containerRef: React.RefObject<HTMLDivElement | n
   const scrollY = useViewportStore((s) => s.viewport.scrollY);
   const step = useViewportStore((s) => s.viewport.step);
   const fitMode = useViewportStore((s) => s.viewport.fitMode);
-  const viewportSize = useViewportStore((s) => s.viewport.viewportSize);
-  const pageSize = useViewportStore((s) => s.viewport.pageSize);
-  const virtualSize = useViewportStore((s) => s.viewport.virtualSize);
+  const viewportSize = useViewportStore((s) => s.viewport.viewportSize ?? { w: 0, h: 0 });
+  const pageSize = useViewportStore((s) => s.viewport.pageSize ?? { w: 1200, h: 2200 });
+  const virtualSize = useViewportStore((s) => s.viewport.virtualSize ?? { w: 1200, h: 2200 });
   const viewportReady = useViewportStore((s) => (s as any).viewportReady ?? false);
   const rafSyncRef = useRef<number | null>(null);
   
@@ -111,9 +111,9 @@ export function useKeyboardZoom(containerRef: React.RefObject<HTMLDivElement | n
       if (rafSyncRef.current != null) cancelAnimationFrame(rafSyncRef.current);
       rafSyncRef.current = requestAnimationFrame(() => {
         setViewState(view);
-        // Also update DOM scroll on rootEl to keep in sync
-        rootEl.scrollLeft = view.scrollX;
-        rootEl.scrollTop = view.scrollY;
+        // Keep DOM scroll pinned to zero; camera handles translation
+        if (rootEl.scrollLeft !== 0) rootEl.scrollLeft = 0;
+        if (rootEl.scrollTop !== 0) rootEl.scrollTop = 0;
         rafSyncRef.current = null;
       });
     };

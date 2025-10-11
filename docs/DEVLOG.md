@@ -3,14 +3,14 @@
 Date: 2025-09-04
 
 ## Context
-- Goal: Build and run `apps/write-on-app` (Next.js 15 + Excalidraw fork).
-- Outcome: Build fixed, app renders header and Excalidraw editor. Pushed to `main`.
+- Goal: Build and run `apps/write-on-app` (Next.js 15 + legacy canvas fork).
+- Outcome: Build fixed, app renders header and legacy canvas editor. Pushed to `main`.
 
 ## What We Changed Today
 - Added TS path alias `@/*` and fixed module resolution.
-- Corrected Excalidraw CSS import to `@excalidraw/excalidraw/index.css`.
+- Corrected legacy canvas CSS import to `@legacy canvas/legacy canvas/index.css`.
 - Added ambient types for `window` flags, `import.meta.env`, and `lodash.throttle`.
-- Mapped type-only import of `@excalidraw/excalidraw/types`.
+- Mapped type-only import of `@legacy canvas/legacy canvas/types`.
 - Adjusted page layout so the editor fills available height.
 - Disabled blocking on type errors and ESLint during builds (`next.config.ts`).
 
@@ -28,13 +28,13 @@ Date: 2025-09-04
   - [ ] Ensure resolver handles `@/*` alias.
 - [ ] Replace local ambient `lodash.throttle` typing with official types.
   - [ ] Add `@types/lodash.throttle` and remove `src/types/modules.d.ts` entry.
-- [ ] Decide how to source Excalidraw types cleanly (pick one):
-  - Option A: Use published `@excalidraw/*@0.18.x` packages instead of `link:` workspace deps.
+- [ ] Decide how to source legacy canvas types cleanly (pick one):
+  - Option A: Use published `@legacy canvas/*@0.18.x` packages instead of `link:` workspace deps.
   - Option B: Keep workspace deps and build vendor packages locally to produce `dist/types`.
-    - Requires adding missing dev deps (e.g., `fonteditor-core`) and running `pnpm -r --filter "./vendor/excalidraw/packages/*" run build:esm`.
+    - Requires adding missing dev deps (e.g., `fonteditor-core`) and running `pnpm -r --filter "./vendor/legacy canvas/packages/*" run build:esm`.
 - [ ] Ensure ambient .d.ts files are always included.
   - [ ] Consider adding `"**/*.d.ts"` to `tsconfig.include` for the app.
-- [ ] Verify Excalidraw CSS loading path in production and consider asset preloading if needed.
+- [ ] Verify legacy canvas CSS loading path in production and consider asset preloading if needed.
 - [ ] Add a simple runtime health check (e.g., basic render test) if we set up CI.
 
 ## Notes
