@@ -18,7 +18,6 @@ const initialCanvasState: CanvasStore = {
   refs: {
     canvasElement: null,
     containerElement: null,
-    excalidrawAPI: null,
   },
   resolution: {
     logicalWidth: 0,
@@ -27,11 +26,6 @@ const initialCanvasState: CanvasStore = {
     physicalHeight: 0,
     needsRedraw: false,
   },
-  scene: {
-    elements: [],
-    appState: {},
-    files: {},
-  },
   tools: {
     activeTool: "select" as ToolType,
     toolOptions: {},
@@ -39,7 +33,6 @@ const initialCanvasState: CanvasStore = {
 
   initializeCanvas: () => {},
   destroyCanvas: () => {},
-  setExcalidrawAPI: () => {},
   updateResolution: () => {},
   setActiveTool: () => {},
   requestRedraw: () => {},
@@ -71,16 +64,8 @@ export const useCanvasStore = create<CanvasStore>()(
           s.engine.isInitialized = false;
           s.engine.isReady = false;
           s.refs.canvasElement = null;
-          s.refs.excalidrawAPI = null;
           s.resolution.needsRedraw = false;
         }, false, "canvas/destroyCanvas");
-      },
-
-      setExcalidrawAPI: (api: unknown): void => {
-        set((s) => {
-          s.refs.excalidrawAPI = api ?? null;
-          s.engine.isReady = Boolean(api);
-        }, false, "canvas/setExcalidrawAPI");
       },
 
       updateResolution: (): void => {
@@ -145,11 +130,6 @@ export const useCanvasStore = create<CanvasStore>()(
           s.engine.lastError = error as Error;
           if (error) s.engine.isReady = false;
         }, false, "canvas/setLastError"),
-
-      setScene: (scene): void =>
-        set((s) => {
-          s.scene = scene;
-        }, false, "canvas/setScene"),
 
       setCanvasResolution: (resolution): void =>
         set((s) => {

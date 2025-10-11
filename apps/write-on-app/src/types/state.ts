@@ -86,7 +86,6 @@ export interface CanvasSlice {
   refs: {
     canvasElement: HTMLCanvasElement | null;
     containerElement: HTMLDivElement | null;
-    excalidrawAPI: unknown | null;
   };
   resolution: {
     logicalWidth: number;
@@ -94,11 +93,6 @@ export interface CanvasSlice {
     physicalWidth: number;
     physicalHeight: number;
     needsRedraw: boolean;
-  };
-  scene?: {
-    elements: unknown[];
-    appState: Record<string, unknown>;
-    files?: Record<string, unknown>;
   };
   tools: {
     activeTool: ToolType;
@@ -109,12 +103,10 @@ export interface CanvasSlice {
 export interface CanvasActions {
   initializeCanvas: (element: HTMLCanvasElement) => void;
   destroyCanvas: () => void;
-  setExcalidrawAPI: (api: unknown) => void;
   updateResolution: () => void;
   setActiveTool: (tool: ToolType) => void;
   requestRedraw: () => void;
   setLastError: (error: Error | null) => void;
-  setScene: (scene: { elements: unknown[]; appState: Record<string, unknown>; files?: Record<string, unknown> }) => void;
   setCanvasResolution?: (resolution: { 
     logicalWidth: number;
     logicalHeight: number;

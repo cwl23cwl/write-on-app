@@ -52,7 +52,7 @@ write-on-app/
 │     │  │  │  │  │     ├─ page.tsx    # assignment overview (teacher view)
 │     │  │  │  │  │     └─ grade/page.tsx # grading hub
 │     │  │  │  │  └─ workspace/
-│     │  │  │  │     └─ page.tsx       # teacher-only editable canvas (Excalidraw)
+│     │  │  │  │     └─ page.tsx       # teacher-only editable canvas (legacy canvas)
 │     │  │  │  └─ student/
 │     │  │  │     ├─ page.tsx          # student home (due soon, feedback)
 │     │  │  │     ├─ classes/page.tsx  # enrolled classes
@@ -97,7 +97,7 @@ write-on-app/
 │  ├─ utils/            # generic helpers (date, ids, logging)
 │  └─ auth/             # shared NextAuth config, adapters, RBAC helpers
 ├─ vendor/
-│  └─ excalidraw/       # fork or adapter; exposed via packages/ui or packages/data if needed
+│  └─ legacy canvas/       # fork or adapter; exposed via packages/ui or packages/data if needed
 ├─ docs/
 │  └─ ARCHITECTURE.md
 ├─ pnpm-workspace.yaml
@@ -213,16 +213,16 @@ useEffect(() => {
 ---
 
 ## Phase 4 — Canvas Mount
-**Goal:** Keep the host app on React 19 while running Excalidraw (and our forked features) on React 18 inside an isolated “island,” preserving stability and avoiding peer-dep issues.
+**Goal:** Keep the host app on React 19 while running legacy canvas (and our forked features) on React 18 inside an isolated “island,” preserving stability and avoiding peer-dep issues.
 
 ### 4.1 Choose island style
 - **Default:** Web Component island (custom element + Shadow DOM)
 - **Alternative:** Iframe island (only if we need maximum isolation)
 
 ### 4.2 Island package
-- Create `packages/excalidraw-island/` (React 18).
-- Bundle a single file `excalidraw-island.js` that **includes** React 18 and the forked Excalidraw.
-- Export `<excalidraw-island>` custom element with Shadow DOM.
+- Create `packages/legacy canvas-island/` (React 18).
+- Bundle a single file `legacy canvas-island.js` that **includes** React 18 and the forked legacy canvas.
+- Export `<legacy canvas-island>` custom element with Shadow DOM.
 - Public API (attributes/props):
   - `initial-scene` (string or JSON)
   - `readonly` (boolean attribute)
@@ -233,15 +233,15 @@ useEffect(() => {
   - `ready`
 
 ### 4.3 Host wiring (Next app, React 19)
-- Lazy-load `/excalidraw-island.js` on the workspace route.
-- Render `<excalidraw-island>` inside the **page zoom wrapper**.
+- Lazy-load `/legacy canvas-island.js` on the workspace route.
+- Render `<legacy canvas-island>` inside the **page zoom wrapper**.
 - Forward page zoom changes to the island via:
   - Setting the `scale` attribute, and
   - Dispatching a `resize` or custom `setscale` event if needed.
-- Keep toolbars/header at 1:1. Disable Excalidraw internal zoom/pan.
+- Keep toolbars/header at 1:1. Disable legacy canvas internal zoom/pan.
 
 ### 4.4 Canvas sizing & DPI
-- On `scale` change, island recalculates canvas pixel ratio and updates Excalidraw view so ink stays sharp.
+- On `scale` change, island recalculates canvas pixel ratio and updates legacy canvas view so ink stays sharp.
 - Respect fixed page scrolling. The canvas does not scroll independently.
 
 ### 4.5 Data flow & state
@@ -256,11 +256,11 @@ useEffect(() => {
 - Read-only mode for student view is respected.
 
 ### 4.7 Iframe fallback (only if needed)
-- Serve `/island.html` (Vite build) with React 18 Excalidraw.
+- Serve `/island.html` (Vite build) with React 18 legacy canvas.
 - Bridge with `postMessage`: INIT, SET_SCENE, SET_SIZE/SET_SCALE, REQUEST_EXPORT, SCENE_CHANGE, EXPORTED_BLOB, READY.
 - Same-origin for clipboard/drag.
 - Build `CanvasMount.tsx` with `forwardRef`.  
-- Manage a single canvas ref and Excalidraw instance.  
+- Manage a single canvas ref and legacy canvas instance.  
 - Disable internal zoom/pan inside the drawing engine.  
 - On zoom/resize, recalc canvas backing store using `effectiveDPR`.  
 - Ensure strokes remain crisp and pointer math stays consistent.
@@ -369,7 +369,7 @@ useEffect(() => {
 
 ## Phase 10 — Build & Packaging
 
-- Keep Excalidraw fork isolated in `vendor/`.  
+- Keep legacy canvas fork isolated in `vendor/`.  
 - Provide a thin adapter (`CanvasMount`) so the engine can be swapped later.  
 - Type-safe public API for consumers.  
 
@@ -403,7 +403,7 @@ Because this is a monorepo, some phases are best done inside the app (`apps/writ
   Work inside the **app folder**. These phases affect UI/layout only.
 - **Phase 3 (Viewport Model: Zoom, Sizing, DPR):**  
   Primarily app folder, but check root build if you change shared state packages.
-- **Phase 4 (Canvas Mount, Excalidraw island):**  
+- **Phase 4 (Canvas Mount, legacy canvas island):**  
   Needs **root** because it involves the vendor fork and package linking.
 - **Phase 5 (Toolbars & Tool State):**  
   App folder for UI/tools; root if adding/updating shared UI packages.

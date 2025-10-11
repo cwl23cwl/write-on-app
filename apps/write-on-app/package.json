@@ -12,11 +12,9 @@
                     "test":  "vitest"
                 },
     "dependencies":  {
-                         "@excalidraw/common":  "link:../../vendor/excalidraw/packages/common",
-                         "@excalidraw/element":  "link:../../vendor/excalidraw/packages/element",
-                         "@excalidraw/excalidraw":  "link:../../vendor/excalidraw/packages/excalidraw",
-                         "@excalidraw/math":  "link:../../vendor/excalidraw/packages/math",
-                         "@excalidraw/utils":  "link:../../vendor/excalidraw/packages/utils",
+        "@tldraw/editor":  "~4.0.3",
+        "@tldraw/tldraw":  "~4.0.3",
+        "@tldraw/tlschema":  "~4.0.3",
                          "immer":  "^10.0.3",
                          "next":  "15.5.2",
                          "react":  "19.1.0",

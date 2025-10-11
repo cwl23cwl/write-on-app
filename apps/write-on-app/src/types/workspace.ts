@@ -68,7 +68,7 @@ export interface WheelEventData {
   shiftKey: boolean;
 }
 
-export interface CanvasState<TApi = unknown> {
+export interface CanvasState {
   engine: {
     isInitialized: boolean;
     isReady: boolean;
@@ -77,7 +77,6 @@ export interface CanvasState<TApi = unknown> {
   refs: {
     canvasElement: HTMLCanvasElement | null;
     containerElement: HTMLDivElement | null;
-    excalidrawAPI: TApi | null;
   };
   resolution: ResolutionInfo & { needsRedraw: boolean };
   tools: {

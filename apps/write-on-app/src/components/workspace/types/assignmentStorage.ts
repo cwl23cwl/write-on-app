@@ -7,7 +7,7 @@
  * - Teacher-review layers: 0–1 blob per student
  */
 
-export interface ExcalidrawScene {
+export interface WorkspaceScene {
   elements: any[];
   appState: Record<string, unknown>;
   files?: Record<string, unknown>;
@@ -19,11 +19,11 @@ export interface AssignmentStorage {
   /** Assignment metadata */
   assignment: AssignmentMetadata;
   /** Teacher's base layer - shared by all students */
-  teacherBase: ExcalidrawScene;
+  teacherBase: WorkspaceScene;
   /** Student layers - one per student */
-  studentLayers: Record<string, ExcalidrawScene>;
+  studentLayers: Record<string, WorkspaceScene>;
   /** Teacher review layers - optional, one per student */
-  teacherReviews: Record<string, ExcalidrawScene>;
+  teacherReviews: Record<string, WorkspaceScene>;
   /** Last modified timestamps for each layer */
   timestamps: {
     teacherBase: number;
@@ -61,8 +61,8 @@ export interface LoadSceneRequest {
 }
 
 export interface LoadSceneResponse {
-  baseScene: ExcalidrawScene;
-  overlayScene: ExcalidrawScene | null;
+  baseScene: WorkspaceScene;
+  overlayScene: WorkspaceScene | null;
   mode: 'teacher' | 'student';
   writeScope: 'teacher-base' | 'student' | 'teacher-review';
   metadata: {
@@ -77,7 +77,7 @@ export interface LoadSceneResponse {
 export interface SaveSceneRequest {
   assignmentId: string;
   layer: 'teacher-base' | 'student' | 'teacher-review';
-  scene: ExcalidrawScene;
+  scene: WorkspaceScene;
   studentId?: string; // Required for student/teacher-review layers
   authorId: string; // Who is making the change
 }
@@ -293,7 +293,7 @@ export class MockAssignmentStorageService implements AssignmentStorageService {
     return Array.from(this.storage.values()).map(a => a.assignment);
   }
   
-  private compositeLayers(base: ExcalidrawScene, overlay: ExcalidrawScene): ExcalidrawScene {
+  private compositeLayers(base: WorkspaceScene, overlay: WorkspaceScene): WorkspaceScene {
     return {
       elements: [
         ...base.elements.map(el => ({ ...el, locked: true, owner: 'teacher' })),

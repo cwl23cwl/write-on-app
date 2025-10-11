@@ -9,7 +9,7 @@ type Props = {
   children?: ReactNode;
 };
 
-// Logical page surface that Excalidraw renders into.
+// Logical page surface that the canvas engine renders into.
 // Exposes a stable 1200x2200 CSS box with a subtle drop shadow.
 export function Page({ children }: Props = {}): JSX.Element {
   return (

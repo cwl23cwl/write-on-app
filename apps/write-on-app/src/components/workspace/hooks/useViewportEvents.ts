@@ -8,14 +8,14 @@ import { normalizedDeltaY } from "@/components/workspace/utils/events";
 export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement | null>): void {
   const setScale = useViewportStore((s) => s.setScale);
   const setViewState = useViewportStore((s) => s.setViewState);
-  const setScroll = useViewportStore((s) => s.setScroll);
   const setFitMode = useViewportStore((s) => s.setFitMode);
   const pan = useViewportStore((s) => s.pan);
   const constraints = useViewportStore((s) => s.constraints);
   const fitMode = useViewportStore((s) => s.viewport.fitMode);
   const fitWidth = useViewportStore((s) => s.fitWidth);
-  const viewportSize = useViewportStore((s) => s.viewport.viewportSize);
-  const virtualSize = useViewportStore((s) => s.viewport.virtualSize);
+  const pageSize = useViewportStore((s) => s.viewport.pageSize ?? { w: 1200, h: 2200 });
+  const viewportSize = useViewportStore((s) => s.viewport.viewportSize ?? { w: 0, h: 0 });
+  const virtualSize = useViewportStore((s) => s.viewport.virtualSize ?? { w: 1200, h: 2200 });
 
   const lastWorld = useRef<{ x: number; y: number } | null>(null);
   const panning = useRef(false);
@@ -55,8 +55,8 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
     if (rafSyncRef.current != null) cancelAnimationFrame(rafSyncRef.current);
     rafSyncRef.current = requestAnimationFrame(() => {
       setViewState(view);
-      rootEl.scrollLeft = view.scrollX;
-      rootEl.scrollTop = view.scrollY;
+      if (rootEl.scrollLeft !== 0) rootEl.scrollLeft = 0;
+      if (rootEl.scrollTop !== 0) rootEl.scrollTop = 0;
       rafSyncRef.current = null;
     });
   };
@@ -164,13 +164,11 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
         }
         
         // CRITICAL: Use pointer-centered zoom with precise coordinates
-        console.log(`[Zoom] Mouse at: ${e.clientX}, ${e.clientY} | Scale: ${preScale} → ${newScale}`);
         const currentView = { scale: preScale, scrollX, scrollY };
         const contentSize = { w: virtualSize.w, h: virtualSize.h };
 
         // Ensure we're using the viewport element for coordinate calculations
         const newView = zoomAtClientPoint(e.clientX, e.clientY, newScale, currentView, hostEl, contentSize);
-        console.log(`[Zoom] New scroll: ${newView.scrollX}, ${newView.scrollY}`);
         
         // Apply scale + scroll atomically in the same frame
         applyViewAtomically(rootEl, {
@@ -303,7 +301,8 @@ export function useViewportEvents(containerRef: React.RefObject<HTMLDivElement |
     };
 
     const onScroll = (_event?: Event): void => {
-      setScroll(sanitizeScroll(rootEl.scrollLeft), sanitizeScroll(rootEl.scrollTop));
+      if (rootEl.scrollLeft !== 0) rootEl.scrollLeft = 0;
+      if (rootEl.scrollTop !== 0) rootEl.scrollTop = 0;
     };
 
     const wheelListener = safeHandler<WheelEvent>(onWheel);

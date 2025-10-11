@@ -12,21 +12,10 @@ const getDpr = (): number =>
 // Scrollable gutter around the page (CSS pixels on each side)
 const PAGE_GUTTER = 64;
 
-const computeCenterOffset = (viewportWidth: number, pageWidth: number, scale: number): number => {
-  if (!Number.isFinite(viewportWidth) || !Number.isFinite(pageWidth) || !Number.isFinite(scale)) {
-    return 0;
-  }
-  const visualWidth = pageWidth * scale;
-  if (visualWidth <= 0) return 0;
-  const rawOffset = (viewportWidth - visualWidth) / 2;
-  return rawOffset > 0 ? rawOffset : 0;
-};
+const computeCenterOffset = (): number => 0;
 
 const applyViewportDerivatives = (state: Draft<ViewportStore>): void => {
-  const viewportWidth = state.viewport.viewportSize?.w ?? state.viewport.containerWidth ?? 0;
-  const pageWidth = state.viewport.pageSize?.w ?? 0;
-  const scale = state.viewport.scale ?? 1;
-  state.viewport.offsetX = computeCenterOffset(viewportWidth, pageWidth, scale);
+  state.viewport.offsetX = computeCenterOffset();
 };
 
 const initialState: Pick<ViewportStore, "viewport" | "interactions" | "constraints" | "viewportReady"> = {
@@ -75,7 +64,7 @@ export const useViewportStore = create<ViewportStore>()(
             if (!s.constraints.enableZoom) return;
             const { minScale, maxScale } = s.constraints;
             s.viewport.scale = Math.max(minScale, Math.min(scale, maxScale));
-            s.viewport.devicePixelRatio = getDpr() * s.viewport.scale;
+            s.viewport.devicePixelRatio = getDpr();
             applyViewportDerivatives(s);
             s.interactions.isZooming = false;
           }, false, "viewport/setScale"),
@@ -88,7 +77,7 @@ export const useViewportStore = create<ViewportStore>()(
             const next = s.viewport.scale * factor;
             const { minScale, maxScale } = s.constraints;
             s.viewport.scale = Math.max(minScale, Math.min(next, maxScale));
-            s.viewport.devicePixelRatio = getDpr() * s.viewport.scale;
+            s.viewport.devicePixelRatio = getDpr();
             applyViewportDerivatives(s);
             s.interactions.isZooming = false;
           }, false, "viewport/zoomIn"),
@@ -100,7 +89,7 @@ export const useViewportStore = create<ViewportStore>()(
             const next = s.viewport.scale / factor;
             const { minScale, maxScale } = s.constraints;
             s.viewport.scale = Math.max(minScale, Math.min(next, maxScale));
-            s.viewport.devicePixelRatio = getDpr() * s.viewport.scale;
+            s.viewport.devicePixelRatio = getDpr();
             applyViewportDerivatives(s);
             s.interactions.isZooming = false;
           }, false, "viewport/zoomOut"),
@@ -126,7 +115,7 @@ export const useViewportStore = create<ViewportStore>()(
           set((s) => {
             const { minScale, maxScale } = s.constraints;
             s.viewport.scale = Math.max(minScale, Math.min(v.scale, maxScale));
-            s.viewport.devicePixelRatio = getDpr() * s.viewport.scale;
+            s.viewport.devicePixelRatio = getDpr();
             s.viewport.scrollX = v.scrollX;
             s.viewport.scrollY = v.scrollY;
             s.viewport.offsetY = v.scrollY;
@@ -210,7 +199,7 @@ export const useViewportStore = create<ViewportStore>()(
             const clampedScale = Math.max(minScale, Math.min(fitScale, maxScale));
             
             s.viewport.scale = clampedScale;
-            s.viewport.devicePixelRatio = getDpr() * clampedScale;
+            s.viewport.devicePixelRatio = getDpr();
             s.viewport.fitMode = 'fit-width';
             applyViewportDerivatives(s);
           }, false, "viewport/fitWidth"),
@@ -248,6 +237,18 @@ export const useViewportStore = create<ViewportStore>()(
               state.viewport.scale = clamped;
               // recompute dpr from current device DPR if available at runtime; fall back to 1
               state.viewport.devicePixelRatio = 1;
+              if (!state.viewport.pageSize) {
+                state.viewport.pageSize = { w: 1200, h: 2200 };
+              }
+              if (!state.viewport.viewportSize) {
+                state.viewport.viewportSize = { w: 0, h: 0 };
+              }
+              if (!state.viewport.virtualSize) {
+                state.viewport.virtualSize = {
+                  w: 1200 + 2 * PAGE_GUTTER,
+                  h: 2200 + 2 * PAGE_GUTTER,
+                };
+              }
             }
           } catch {}
           return state as any;
@@ -263,6 +264,9 @@ export const useViewportStore = create<ViewportStore>()(
             canvasWidth: 0,
             canvasHeight: 0,
             devicePixelRatio: 1,
+            pageSize: s.viewport.pageSize ?? { w: 1200, h: 2200 },
+            viewportSize: s.viewport.viewportSize ?? { w: 0, h: 0 },
+            virtualSize: s.viewport.virtualSize ?? { w: 1200 + 2 * PAGE_GUTTER, h: 2200 + 2 * PAGE_GUTTER },
           },
           constraints: s.constraints,
           interactions: { isPanning: false, isZooming: false, lastPointerPosition: null },
