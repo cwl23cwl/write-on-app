@@ -1,0 +1,409 @@
+
+> write-on-app@0.1.0 test C:\write-on-app\apps\write-on-app
+> vitest
+
+
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/write-on-app/apps/write-on-app[39m
+
+ [32m✓[39m src/test/controlStripZoomInert.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 128[2mms[22m[39m
+ [32m✓[39m src/test/zoomEventFiltering.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+ [32m✓[39m src/test/scaleRegression.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[32m 164[2mms[22m[39m
+ [32m✓[39m src/test/optionsToolbar.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[32m 146[2mms[22m[39m
+[90mstderr[2m | src/test/controlStripDom.test.tsx[2m > [22m[2mDOM guardrails[2m > [22m[2mcontrol strip is not inside scaler
+ [32m✓[39m src/test/controlStripDom.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 112[2mms[22m[39m
+[22m[39mReceived `true` for a non-boolean attribute `jsx`.
+
+If you want to write it to the DOM, pass a string instead: jsx="true" or jsx={value.toString()}.
+[useWorkspaceRoute] Failed to load assignment: TypeError: Cannot read properties of null (reading 'get')
+    at updateContext [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:90:41[90m)[39m
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:264:12
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13957:11)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+
+[90mstderr[2m | src/test/toolbarsOutsideScaler.test.tsx[2m > [22m[2mToolbars are outside the scale layer[2m > [22m[2mheader/top/options toolbars are not inside .workspace-scaler
+[22m[39mReceived `true` for a non-boolean attribute `jsx`.
+ [32m✓[39m src/test/toolbarsOutsideScaler.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 127[2mms[22m[39m
+
+If you want to write it to the DOM, pass a string instead: jsx="true" or jsx={value.toString()}.
+ [32m✓[39m src/test/toolbarsNoTransform.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 130[2mms[22m[39m
+[useWorkspaceRoute] Failed to load assignment: TypeError: Cannot read properties of null (reading 'get')
+    at updateContext [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:90:41[90m)[39m
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:264:12
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13957:11)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+
+[90mstderr[2m | src/test/toolbarsNoTransform.test.tsx[2m > [22m[2mToolbars have no transform applied[2m > [22m[2mapp-header, top-toolbar, options-toolbar have no inline transform
+[22m[39mReceived `true` for a non-boolean attribute `jsx`.
+
+If you want to write it to the DOM, pass a string instead: jsx="true" or jsx={value.toString()}.
+[useWorkspaceRoute] Failed to load assignment: TypeError: Cannot read properties of null (reading 'get')
+    at updateContext [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:90:41[90m)[39m
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:264:12
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13957:11)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+
+[90mstderr[2m | src/test/zoomCssVarScoping.test.tsx[2m > [22m[2mZoom CSS var scoped to .workspace-scaler[2m > [22m[2msets --workspace-zoom only on the scaler, not toolbars
+[22m[39mReceived `true` for a non-boolean attribute `jsx`.
+
+If you want to write it to the DOM, pass a string instead: jsx="true" or jsx={value.toString()}.
+[useWorkspaceRoute] Failed to load assignment: TypeError: Cannot read properties of null (reading 'get')
+    at updateContext [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:90:41[90m)[39m
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:264:12
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13957:11)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+
+[90mstderr[2m | src/test/domStructureScaleLayer.test.tsx[2m > [22m[2mViewport/Scale structure[2m > [22m[2mkeeps sticky chrome outside scaler and nests mount beneath the viewport
+[22m[39mReceived `true` for a non-boolean attribute `jsx`.
+
+If you want to write it to the DOM, pass a string instead: jsx="true" or jsx={value.toString()}.
+[useWorkspaceRoute] Failed to load assignment: TypeError: Cannot read properties of null (reading 'get')
+ [32m✓[39m src/test/zoomCssVarScoping.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 146[2mms[22m[39m
+    at updateContext [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:90:41[90m)[39m
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:264:12
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13957:11)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+
+ [32m✓[39m src/test/domStructureScaleLayer.test.tsx [2m([22m[2m1 test[22m[2m)[22m[32m 148[2mms[22m[39m
+[90mstderr[2m | src/test/zoomIsolation.test.tsx[2m > [22m[2mZoom Isolation[2m > [22m[2mshould not trigger workspace zoom when wheel event originates from control strip
+[22m[39mReceived `true` for a non-boolean attribute `jsx`.
+
+If you want to write it to the DOM, pass a string instead: jsx="true" or jsx={value.toString()}.
+TypeError: Cannot read properties of undefined (reading 'zoom')
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:64
+    at useViewportStore [90m(C:\write-on-app\apps\write-on-app\[39msrc\test\zoomIsolation.test.tsx:39:12[90m)[39m
+    at useInitialHorizontalCenter [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:22[90m)[39m
+    at WorkspaceViewport [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceViewport.tsx:15:3[90m)[39m
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23863:20)
+    at renderWithHooks (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:5529:22)
+    at updateFunctionComponent (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:8897:19)
+    at beginWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:10522:18)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at performUnitOfWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15140:22) {
+  [stack]: [36m[Getter/Setter][39m,
+  [message]: [32m"Cannot read properties of undefined (reading 'zoom')"[39m
+}
+
+The above error occurred in the <WorkspaceViewport> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, WorkspaceErrorBoundary.
+
+Workspace error: TypeError: Cannot read properties of undefined (reading 'zoom')
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:64
+    at useViewportStore [90m(C:\write-on-app\apps\write-on-app\[39msrc\test\zoomIsolation.test.tsx:39:12[90m)[39m
+    at useInitialHorizontalCenter [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:22[90m)[39m
+    at WorkspaceViewport [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceViewport.tsx:15:3[90m)[39m
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23863:20)
+    at renderWithHooks (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:5529:22)
+    at updateFunctionComponent (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:8897:19)
+    at beginWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:10522:18)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at performUnitOfWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15140:22)
+[useWorkspaceRoute] Failed to load assignment: TypeError: Cannot read properties of null (reading 'get')
+    at updateContext [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:90:41[90m)[39m
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:264:12
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13853:11)
+    at flushPassiveEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15737:9)
+[WorkspaceRoot] rehydrate error TypeError: Cannot read properties of undefined (reading 'rehydrate')
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:41:40
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:57:5
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13853:11)
+    at flushPassiveEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15737:9)
+[WorkspaceRoot] markHydrated error TypeError: markHydrated is not a function
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:49:13
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:57:5
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13853:11)
+    at flushPassiveEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15737:9)
+
+[90mstderr[2m | src/test/zoomIsolation.test.tsx[2m > [22m[2mZoom Isolation[2m > [22m[2mshould trigger workspace zoom when wheel event originates from workspace
+[22m[39mTypeError: Cannot read properties of undefined (reading 'zoom')
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:64
+    at useViewportStore [90m(C:\write-on-app\apps\write-on-app\[39msrc\test\zoomIsolation.test.tsx:39:12[90m)[39m
+    at useInitialHorizontalCenter [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:22[90m)[39m
+    at WorkspaceViewport [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceViewport.tsx:15:3[90m)[39m
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23863:20)
+    at renderWithHooks (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:5529:22)
+    at updateFunctionComponent (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:8897:19)
+    at beginWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:10522:18)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at performUnitOfWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15140:22) {
+  [stack]: [36m[Getter/Setter][39m,
+  [message]: [32m"Cannot read properties of undefined (reading 'zoom')"[39m
+}
+
+The above error occurred in the <WorkspaceViewport> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, WorkspaceErrorBoundary.
+
+Workspace error: TypeError: Cannot read properties of undefined (reading 'zoom')
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:64
+    at useViewportStore [90m(C:\write-on-app\apps\write-on-app\[39msrc\test\zoomIsolation.test.tsx:39:12[90m)[39m
+    at useInitialHorizontalCenter [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:22[90m)[39m
+    at WorkspaceViewport [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceViewport.tsx:15:3[90m)[39m
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23863:20)
+    at renderWithHooks (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:5529:22)
+    at updateFunctionComponent (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:8897:19)
+    at beginWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:10522:18)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at performUnitOfWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15140:22)
+[useWorkspaceRoute] Failed to load assignment: TypeError: Cannot read properties of null (reading 'get')
+    at updateContext [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:90:41[90m)[39m
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:264:12
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13853:11)
+    at flushPassiveEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15737:9)
+[WorkspaceRoot] rehydrate error TypeError: Cannot read properties of undefined (reading 'rehydrate')
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:41:40
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:57:5
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13853:11)
+    at flushPassiveEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15737:9)
+[WorkspaceRoot] markHydrated error TypeError: markHydrated is not a function
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:49:13
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:57:5
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13853:11)
+    at flushPassiveEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15737:9)
+
+[90mstderr[2m | src/test/zoomIsolation.test.tsx[2m > [22m[2mZoom Isolation[2m > [22m[2mshould not trigger keyboard zoom when focus is on control strip
+[22m[39mTypeError: Cannot read properties of undefined (reading 'zoom')
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:64
+    at useViewportStore [90m(C:\write-on-app\apps\write-on-app\[39msrc\test\zoomIsolation.test.tsx:39:12[90m)[39m
+    at useInitialHorizontalCenter [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:22[90m)[39m
+    at WorkspaceViewport [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceViewport.tsx:15:3[90m)[39m
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23863:20)
+    at renderWithHooks (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:5529:22)
+    at updateFunctionComponent (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:8897:19)
+    at beginWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:10522:18)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at performUnitOfWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15140:22) {
+  [stack]: [36m[Getter/Setter][39m,
+  [message]: [32m"Cannot read properties of undefined (reading 'zoom')"[39m
+}
+
+The above error occurred in the <WorkspaceViewport> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, WorkspaceErrorBoundary.
+
+Workspace error: TypeError: Cannot read properties of undefined (reading 'zoom')
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:64
+    at useViewportStore [90m(C:\write-on-app\apps\write-on-app\[39msrc\test\zoomIsolation.test.tsx:39:12[90m)[39m
+    at useInitialHorizontalCenter [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:22[90m)[39m
+    at WorkspaceViewport [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceViewport.tsx:15:3[90m)[39m
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23863:20)
+    at renderWithHooks (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:5529:22)
+    at updateFunctionComponent (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:8897:19)
+    at beginWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:10522:18)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at performUnitOfWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15140:22)
+[useWorkspaceRoute] Failed to load assignment: TypeError: Cannot read properties of null (reading 'get')
+    at updateContext [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:90:41[90m)[39m
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:264:12
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13853:11)
+    at flushPassiveEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15737:9)
+[WorkspaceRoot] rehydrate error TypeError: Cannot read properties of undefined (reading 'rehydrate')
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:41:40
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:57:5
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13853:11)
+    at flushPassiveEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15737:9)
+[WorkspaceRoot] markHydrated error TypeError: markHydrated is not a function
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:49:13
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:57:5
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13853:11)
+    at flushPassiveEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15737:9)
+
+[90mstderr[2m | src/test/zoomIsolation.test.tsx[2m > [22m[2mZoom Isolation[2m > [22m[2mshould trigger keyboard zoom when focus is on workspace
+[22m[39mTypeError: Cannot read properties of undefined (reading 'zoom')
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:64
+    at useViewportStore [90m(C:\write-on-app\apps\write-on-app\[39msrc\test\zoomIsolation.test.tsx:39:12[90m)[39m
+    at useInitialHorizontalCenter [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:22[90m)[39m
+    at WorkspaceViewport [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceViewport.tsx:15:3[90m)[39m
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23863:20)
+    at renderWithHooks (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:5529:22)
+    at updateFunctionComponent (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:8897:19)
+    at beginWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:10522:18)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at performUnitOfWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15140:22) {
+  [stack]: [36m[Getter/Setter][39m,
+  [message]: [32m"Cannot read properties of undefined (reading 'zoom')"[39m
+}
+ [31m❯[39m src/test/zoomIsolation.test.tsx [2m([22m[2m4 tests[22m[2m | [22m[31m4 failed[39m[2m)[22m[33m 426[2mms[22m[39m
+
+[31m   [31m×[31m Zoom Isolation[2m > [22mshould not trigger workspace zoom when wheel event originates from control strip[39m[32m 173[2mms[22m[39m
+The above error occurred in the <WorkspaceViewport> component.
+[31m     → setDevicePixelRatio is not a function[39m
+[31m   [31m×[31m Zoom Isolation[2m > [22mshould trigger workspace zoom when wheel event originates from workspace[39m[32m 74[2mms[22m[39m
+[31m     → setDevicePixelRatio is not a function[39m
+
+React will try to recreate this component tree from scratch using the error boundary you provided, WorkspaceErrorBoundary.
+[31m   [31m×[31m Zoom Isolation[2m > [22mshould not trigger keyboard zoom when focus is on control strip[39m[32m 82[2mms[22m[39m
+
+Workspace error: TypeError: Cannot read properties of undefined (reading 'zoom')
+[31m     → setDevicePixelRatio is not a function[39m
+[31m   [31m×[31m Zoom Isolation[2m > [22mshould trigger keyboard zoom when focus is on workspace[39m[32m 94[2mms[22m[39m
+[31m     → setDevicePixelRatio is not a function[39m
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:64
+    at useViewportStore [90m(C:\write-on-app\apps\write-on-app\[39msrc\test\zoomIsolation.test.tsx:39:12[90m)[39m
+    at useInitialHorizontalCenter [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useInitialHorizontalCenter.ts:10:22[90m)[39m
+    at WorkspaceViewport [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceViewport.tsx:15:3[90m)[39m
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23863:20)
+    at renderWithHooks (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:5529:22)
+    at updateFunctionComponent (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:8897:19)
+    at beginWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:10522:18)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at performUnitOfWork (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15140:22)
+[useWorkspaceRoute] Failed to load assignment: TypeError: Cannot read properties of null (reading 'get')
+    at updateContext [90m(C:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:90:41[90m)[39m
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\hooks\useWorkspaceRoute.ts:264:12
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13853:11)
+    at flushPassiveEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15737:9)
+[WorkspaceRoot] rehydrate error TypeError: Cannot read properties of undefined (reading 'rehydrate')
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:41:40
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:57:5
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13853:11)
+    at flushPassiveEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15737:9)
+[WorkspaceRoot] markHydrated error TypeError: markHydrated is not a function
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:49:13
+    at [90mC:\write-on-app\apps\write-on-app\[39msrc\components\workspace\WorkspaceRoot.tsx:57:5
+    at Object.react-stack-bottom-frame (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:23949:20)
+    at runWithFiberInDEV (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:1522:13)
+    at commitHookEffectListMount (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:11905:29)
+    at commitHookPassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:12028:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13841:13)
+    at recursivelyTraversePassiveMountEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13815:11)
+    at commitPassiveMountOnFiber (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:13853:11)
+    at flushPassiveEffects (C:\write-on-app\node_modules\[4m.pnpm[24m\react-dom@19.1.0_react@19.1.0\node_modules\[4mreact-dom[24m\cjs\react-dom-client.development.js:15737:9)
+
+[90mstdout[2m | src/test/browserZoomIsolation.test.tsx[2m > [22m[2mBrowser Zoom Isolation[2m > [22m[2mshould detect browser zoom vs legitimate DPR changes
+[22m[39mBrowser zoom detected, ignoring
+Monitor DPR change detected, refreshing surface
+
+ [32m✓[39m src/test/browserZoomIsolation.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m src/test/geometry.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [2m[90m↓[39m[22m src/test/ctrlWheelZoom.test.tsx [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 4 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[41m[1m FAIL [22m[49m src/test/zoomIsolation.test.tsx[2m > [22mZoom Isolation[2m > [22mshould not trigger workspace zoom when wheel event originates from control strip
+[41m[1m FAIL [22m[49m src/test/zoomIsolation.test.tsx[2m > [22mZoom Isolation[2m > [22mshould trigger workspace zoom when wheel event originates from workspace
+[41m[1m FAIL [22m[49m src/test/zoomIsolation.test.tsx[2m > [22mZoom Isolation[2m > [22mshould not trigger keyboard zoom when focus is on control strip
+[41m[1m FAIL [22m[49m src/test/zoomIsolation.test.tsx[2m > [22mZoom Isolation[2m > [22mshould trigger keyboard zoom when focus is on workspace
+[31m[1mTypeError[22m: setDevicePixelRatio is not a function[39m
+[36m [2m❯[22m src/components/workspace/WorkspaceRoot.tsx:[2m73:7[22m[39m
+    [90m 71| [39m    monitor[33m.[39m[34mstart[39m()[33m;[39m
+    [90m 72| [39m    [35mconst[39m unsubscribe [33m=[39m monitor[33m.[39m[34msubscribe[39m((next) [33m=>[39m {
+    [90m 73| [39m      [34msetDevicePixelRatio[39m(next)[33m;[39m
+    [90m   | [39m      [31m^[39m
+    [90m 74| [39m    })[33m;[39m
+    [90m 75| [39m    [35mreturn[39m () [33m=>[39m {
+
+[90m [2m❯[22m DprMonitor.subscribe src/components/workspace/utils/dpr-monitor.ts:[2m51:5[22m[39m
+[90m [2m❯[22m src/components/workspace/WorkspaceRoot.tsx:[2m72:33[22m[39m
+[90m [2m❯[22m Object.react-stack-bottom-frame ../../node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:[2m23949:20[22m[39m
+[90m [2m❯[22m runWithFiberInDEV ../../node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:[2m1522:13[22m[39m
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m11 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (13)[39m
+[90m [2m❯[22m commitHookEffectListMount ../../node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:[2m11905:29[22m[39m
+[2m      Tests [22m [1m[31m4 failed[39m[22m[2m | [22m[1m[32m26 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (31)[39m
+[2m   Start at [22m 16:45:54
+[90m [2m❯[22m commitHookPassiveMountEffects ../../node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:[2m12028:11[22m[39m
+[90m [2m❯[22m commitPassiveMountOnFiber ../../node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:[2m13841:13[22m[39m
+[90m [2m❯[22m recursivelyTraversePassiveMountEffects ../../node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:[2m13815:11[22m[39m
+[2m   Duration [22m 6.35s[2m (transform 1.42s, setup 183ms, collect 15.31s, tests 1.59s, environment 22.60s, prepare 4.00s)[22m
+
+[90m [2m❯[22m commitPassiveMountOnFiber ../../node_modules/.pnpm/react-dom@19.1.0_react@19.1.0/node_modules/react-dom/cjs/react-dom-client.development.js:[2m13853:11[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯[22m[39m
+
+ ELIFECYCLE  Test failed. See above for more details.
