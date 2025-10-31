@@ -17,7 +17,7 @@ import type {
   TLShapePartial,
   TLStoreSnapshot,
   TLCamera,
-} from "@tldraw/editor";
+} from "@tldraw/tldraw";
 import {
   DefaultColorStyle,
   DefaultFillStyle,

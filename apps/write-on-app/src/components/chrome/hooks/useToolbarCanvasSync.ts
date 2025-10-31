@@ -1,10 +1,13 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useTLDraw, type TLDrawToolName } from "@/components/workspace/tldraw/TLDrawProvider";
+import {
+  useCanvasAdapter,
+  type CanvasToolId,
+} from "@/components/canvas/adapter/CanvasAdapter";
 import { useToolbarStore, type ToolId } from "@/state/useToolbarStore";
 
-const TOOLBAR_TO_TL: Partial<Record<ToolId, TLDrawToolName>> = {
+const TOOLBAR_TO_CANVAS: Partial<Record<ToolId, CanvasToolId>> = {
   select: "select",
   draw: "draw",
   highlighter: "highlight",
@@ -13,7 +16,7 @@ const TOOLBAR_TO_TL: Partial<Record<ToolId, TLDrawToolName>> = {
   shapes: "geo",
 };
 
-const TL_TO_TOOLBAR: Partial<Record<string, ToolId>> = {
+const CANVAS_TO_TOOLBAR: Partial<Record<CanvasToolId, ToolId>> = {
   select: "select",
   draw: "draw",
   highlight: "highlighter",
@@ -21,7 +24,7 @@ const TL_TO_TOOLBAR: Partial<Record<string, ToolId>> = {
   eraser: "erase",
   geo: "shapes",
   hand: "select",
-  laser: "draw",
+  none: "none",
 };
 
 // Sync toolbar selections with the active canvas tool.
@@ -30,21 +33,21 @@ export function useToolbarCanvasSync(): void {
   const setActiveTool = useToolbarStore((s) => s.setActiveTool);
   const prevRef = useRef<ToolId | null>(null);
 
-  const { setTool: setTLTool, currentTool: tlTool, isReady: tlReady } = useTLDraw();
+  const { isReady, setTool, currentTool } = useCanvasAdapter();
 
   useEffect(() => {
-    if (!tlReady) return;
-    const mapped = activeTool === "none" ? "select" : TOOLBAR_TO_TL[activeTool] ?? "select";
-    setTLTool(mapped);
+    if (!isReady) return;
+    const mapped = activeTool === "none" ? "select" : TOOLBAR_TO_CANVAS[activeTool] ?? "select";
+    setTool(mapped);
     prevRef.current = activeTool;
-  }, [activeTool, setTLTool, tlReady]);
+  }, [activeTool, isReady, setTool]);
 
   useEffect(() => {
-    if (!tlTool) return;
-    const mapped = TL_TO_TOOLBAR[tlTool] ?? "select";
+    if (!currentTool) return;
+    const mapped = CANVAS_TO_TOOLBAR[currentTool] ?? "select";
     if (mapped !== prevRef.current) {
       prevRef.current = mapped;
       setActiveTool(mapped);
     }
-  }, [tlTool, setActiveTool]);
+  }, [currentTool, setActiveTool]);
 }

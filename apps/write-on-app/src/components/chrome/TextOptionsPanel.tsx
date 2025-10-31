@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type JSX } from "rea
 import { Minus, Palette, Plus, ChevronDown } from "lucide-react";
 
 import { SimplifiedColorPicker } from "@/components/workspace/SimplifiedColorPicker";
-import { useTLDraw } from "@/components/workspace/tldraw/TLDrawProvider";
+import { useCanvasAdapter } from "@/components/canvas/adapter/CanvasAdapter";
 import { nextTlSize, tlSizeToPoints, pointsToTlSize } from "@/components/workspace/tldraw/utils";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import type { ToolId } from "@/state/useToolbarStore";
@@ -58,7 +58,7 @@ function TLTextOptionsPanelContent(): JSX.Element {
     toolPrefs: state.toolPrefs,
     updateToolPref: state.updateToolPref,
   }));
-  const { sharedStyles, setStroke, setTextFont, setTextSize, isReady } = useTLDraw();
+  const { sharedStyles, setStroke, setTextFont, setTextSize, isReady } = useCanvasAdapter();
 
   const resolvedStroke = sharedStyles.stroke ?? toolPrefs?.textColor ?? DEFAULT_TEXT_COLOR;
   const currentFontFamily = sharedStyles.font ?? toolPrefs?.textFamily ?? FONT_FAMILIES[0].value;

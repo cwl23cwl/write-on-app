@@ -98,3 +98,7 @@ applyTo: '**'
     - Kept listeners as `{ passive:false, capture:true }` to preempt browser page zoom; geometry gating remains based on viewport rect.
   - Files changed: `src/components/workspace/hooks/useViewportEvents.ts`.
   - Testing: Added a JSDOM test harness for ctrl+wheel and marked it skipped due to JSDOM WheelEvent limitations; all existing tests remain green.
+- 2025-09-11: Current task — resolve `next/font error: Unknown font 'Geist'` by installing `geist` package and updating `apps/write-on-app/src/app/layout.tsx` to import from `geist/font`, wiring font variables into `<body>`.
+  - Progress: `pnpm add geist` installed package (warnings: unmet peer `sass@^1.70.0` from `vite@7.1.4`, existing `node_modules`)
+  - Updated `src/app/layout.tsx` to import fonts from `geist/font`, initializing sans/mono with latin subset and wiring `geistSans.variable` / `geistMono.variable` onto `<body>`.
+  - Ran `pnpm lint`; eslint completed with exit code 0.

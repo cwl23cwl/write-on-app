@@ -11,6 +11,13 @@ applyTo: '**'
 - Communication style: Concise updates, actionable steps
 
 ## Project Context
+- Current task: Implement Next.js 15 middleware that validates JWT cookie and redirects unauthenticated users to `/login`; research via Context7 required (2025-10-14).
+- Current task: TLDraw Step 2 — switch to headless editor shell and replace UI mount (2025-10-29).
+- Current task: Seed TLDraw canvas route at `/canvas` with minimal TLDraw UI (2025-02-21) — Step 10 complete (implementation validated against requirements).
+- Current task: Resolve Next.js dev startup failure caused by `next.config.mjs` type import syntax (2025-02-20).
+- Current defect: Next.js dev build failing because `geist/font` import path updated—`Geist` and `Geist_Mono` named exports no longer available (2025-02-20).
+- Current defect: TLDraw packages duplicated in Next.js dev build, causing runtime warning about multiple instances (2025-02-21).
+- Current follow-up: Next.js dev cache warnings after TLDraw dedupe—investigating alias/symlink configuration to satisfy webpack pack cache (2025-02-21).
 - Current task: Step 2.4 — TLDraw camera & DPI sync (2025-10-12).
 - Current task: Determine active git branch for repository (2025-10-11).
 - Current task: Fix WorkspaceScaler centering drift across zoom levels (2025-10-06).
@@ -34,6 +41,22 @@ applyTo: '**'
 - Documentation style: Inline JSDoc minimal
 
 ## Context7 Research History
+- 2025-10-14: Context7 search for "Next.js 15 middleware JWT" returned dynamic Next.js shell without accessible documentation; no actionable data retrieved.
+- 2025-10-29: Context7 search for "tldraw headless" via curl returned Clerk-auth gated Next.js shell; no static documentation accessible.
+- 2025-10-14: Context7 library page `library/nextjs/middleware` response is client-side rendered HTML shell with no static content accessible via curl.
+- 2025-10-29: Attempted docs.tldraw.dev headless page via curl; response is Next.js streaming payload requiring JS, no static content available.
+- 2025-10-29: Google search for "tldraw headless editor" redirected to consent / sorry page; results inaccessible via curl.
+- 2025-10-29: Context7 search for "@tldraw/editor Canvas" blocked by Clerk auth shell; no data retrievable.
+- 2025-10-29: Context7 search for "tldraw toolbar adapter" blocked by Clerk auth shell; no usable documentation.
+- 2025-02-21: Context7 docs fetch for `/tldraw/tldraw` (topic bundler configuration) returned high-level monorepo config snippets without guidance on deduplicating packages in Next.js bundlers.
+- 2025-02-21: Google search for "tldraw multiple instances bundler" resulted in CAPTCHA / abuse block page; no content accessible.
+- 2025-02-21: GitHub issue tldraw/tldraw#4614 reviewed via API; maintainer comments point to ensuring `use client` boundaries and preventing Next.js from bundling duplicate copies during refresh.
+- 2025-02-21: Adjusted Next webpack alias strategy (map @tldraw* to workspace `node_modules` paths) after realpath-based alias triggered Next dev cache warnings.
+- 2025-10-14: Google search for "Next.js 15 middleware JWT cookie" redirected to consent/verification page; unable to access static results.
+- 2025-02-20: Context7 search for "Next.js next.config.mjs import type" returned dynamically rendered HTML shell with no accessible documentation; no actionable data retrieved.
+- 2025-02-20: Context7 search for "geist font Next.js" returned dynamic shell with no accessible documentation; still no actionable data.
+- 2025-02-20: Google search for "import type next.config.mjs" redirected to consent/verification page; unable to retrieve static results.
+- 2025-02-20: Google search for "geist font next import" redirected to consent/verification page; no data retrieved.
 - 2025-10-06: Context7 search for "Excalidraw canvas centering" returned dynamic Next.js shell with no accessible documentation.
 - 2025-10-05: Context7 search for "Excalidraw elementFromPoint" via Invoke-WebRequest returned dynamic Next.js shell with no accessible documentation.
 - 2025-09-21: Attempted Context7 search for Excalidraw scroll handler; request failed (host unreachable).
@@ -71,6 +94,13 @@ applyTo: '**'
  - New findings: Runaway height not tied to zoom handler; fires during initial mount from React effect/Excalidraw init. Our `useCanvasResolution` and `useCanvasStore.updateResolution` were writing canvas attributes based on container/clientHeight, potentially propagating runaway sizes to Excalidraw canvases.
 
 ## Notes
+- 2025-02-20: Reviewed `apps/write-on-app/next.config.mjs`; confirmed `import type { NextConfig }` causes Node syntax error during dev startup—needs conversion to plain JS config via JSDoc.
+- 2025-02-20: No user-provided URLs required fetching for the Next.js config fix task.
+- 2025-02-20: Updated `apps/write-on-app/next.config.mjs` to use JSDoc-typed `nextConfig` export (no `import type`), and verified Node can import the config without syntax errors.
+- 2025-02-20: Inspected `node_modules/geist/dist/font.js`; confirmed exports are `GeistSans`/`GeistMono` objects (no callable `Geist`), so layout must import those modules directly.
+- 2025-02-20: Updated `src/app/layout.tsx` to import `GeistSans`/`GeistMono` from `geist/font/sans` and `geist/font/mono` and remove obsolete subset calls.
+- 2025-02-20: Attempted Node dynamic import of `geist/font/sans`; fails because package depends on Next `next/font/local` directory import unsupported in plain Node—rely on Next build for validation.
+- 2025-02-20: Ran `pnpm --filter write-on-app next build`; command exits cleanly confirming updated font imports compile within Next build pipeline.
 - 2025-10-11: Step 2.1 initiated — stabilizing TLDraw tool readiness, adding provider `isReady` gating, auditing toolbar handlers, and removing UI-only hooks; logging actual tool IDs once registration completes.
 - 2025-10-11: Step 2.1 progress — TLDrawProvider now waits for essential tool IDs before flipping `isReady`, logs the tool list once, guards toolbar sync on readiness, and adds fallbacks if a requested tool is missing.
 - 2025-10-11: Step 2.1 update — TopToolbar and toolbar sync now bail when `isReady` is false, and TL tool mappings normalize to TLDraw IDs with safe fallbacks.
@@ -245,17 +275,3 @@ EXT_PUBLIC_EXCALIDRAW_DEBUG=1`; default logs suppressed to reduce noise. Dev dia
 - 2025-10-11: Next.js turbopack build reports success (~20s) though CLI timeouts trigger at 35s; reruns confirm output without errors.
 - 2025-10-11: TLDraw provider/context introduced; TL toolbars now drive TLDraw editor (tools, styles, undo/redo) with TL hotkeys disabled.
 - 2025-10-11: Headless TLDraw hotfix: switched `TLDrawMount` to `TldrawEditor` (no UI), updated provider listener to avoid `changes.added.has`, and added touch-action guards for TL canvas.
-
-
-
-
-
-
-
-
-
-
-
-
-
-

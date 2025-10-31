@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, type JSX, type ReactNode, type CSSProperties } from "react";
-import { TldrawEditor, type Editor } from "@tldraw/editor";
 import {
+  TldrawEditor,
+  type Editor,
   defaultBindingUtils,
   defaultShapeTools,
   defaultShapeUtils,

@@ -13,7 +13,10 @@ import {
   Type as TypeIcon,
 } from "lucide-react";
 import { useMeasureCssVar } from "@/components/workspace/hooks/useMeasureCssVar";
-import { useTLDraw, type TLDrawToolName } from "@/components/workspace/tldraw/TLDrawProvider";
+import {
+  useCanvasAdapter,
+  type CanvasToolId,
+} from "@/components/canvas/adapter/CanvasAdapter";
 import { useToolbarStore, type ToolId as GlobalToolId } from "@/state/useToolbarStore";
 
 interface ToolConfig {
@@ -91,7 +94,7 @@ const ACTIVE_RING_BY_TOOL: Record<ToolId, string> = {
   shapes: "ring-purple-400",
 };
 
-const TOOLBAR_TO_TL_TOOL: Partial<Record<ToolId, TLDrawToolName>> = {
+const TOOLBAR_TO_CANVAS_TOOL: Partial<Record<ToolId, CanvasToolId>> = {
   select: "select",
   draw: "draw",
   highlighter: "highlight",
@@ -109,8 +112,8 @@ export function TopToolbar(): JSX.Element {
   const setActiveTool = useToolbarStore((s) => s.setActiveTool);
   const [expandedTool, setExpandedTool] = useState<ToolId | null>(null);
   const [saveState] = useState<SaveState>("saved");
-  const { undo: tlUndo, redo: tlRedo, setTool: setTLTool, isReady: tlReady } = useTLDraw();
-  const controlsDisabled = !tlReady;
+  const canvas = useCanvasAdapter();
+  const controlsDisabled = !canvas.isReady;
 
   const saveBadge = useMemo(() => {
     if (saveState === "saving") {
@@ -132,29 +135,29 @@ export function TopToolbar(): JSX.Element {
   }, [saveState]);
 
   const handleUndo = (): void => {
-    if (!tlReady) return;
-    tlUndo();
+    if (!canvas.isReady) return;
+    canvas.undo();
   };
 
   const handleRedo = (): void => {
-    if (!tlReady) return;
-    tlRedo();
+    if (!canvas.isReady) return;
+    canvas.redo();
   };
 
   const handleToolClick = (tool: ToolConfig): void => {
-    if (!tlReady) return;
+    if (!canvas.isReady) return;
     const nextIsToggleOff = activeTool === tool.id;
 
     if (nextIsToggleOff) {
       setActiveTool("select");
-      setTLTool("select");
+      canvas.setTool("select");
       setExpandedTool(null);
       return;
     }
 
     setActiveTool(tool.id);
-    const target = TOOLBAR_TO_TL_TOOL[tool.id] ?? "select";
-    setTLTool(target);
+    const target = TOOLBAR_TO_CANVAS_TOOL[tool.id] ?? "select";
+    canvas.setTool(target);
     setExpandedTool((prev): ToolId | null => {
       if (!tool.hasDropdown) return null; // no dropdown for this tool
       return prev === tool.id ? null : tool.id; // toggle dropdown for this tool
