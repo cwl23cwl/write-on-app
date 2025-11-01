@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../shared/styles/chrome.css";
 
 :root {
   --background: #ffffff;

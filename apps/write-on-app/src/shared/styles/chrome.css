@@ -1,0 +1,203 @@
+:root {
+  /* Heights */
+  --h-header: 56px;
+  --h-top: 56px;
+  --h-opts: 64px;
+
+  /* Layering */
+  --z-header: 2000;
+  --z-toolbar: 1900;
+  --z-canvas: 0;
+
+  /* Color palette */
+  --chrome-bg: #ffffff;
+  --chrome-fg-strong: #111827;
+  --chrome-fg: #374151;
+  --chrome-fg-muted: #4b5563;
+  --chrome-surface-muted: #f9fafb;
+  --chrome-divider: #d1d5db;
+
+  /* Shadows */
+  --chrome-shadow-sm: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+
+  /* Spacing */
+  --px-header: 16px;
+  --px-toolbar: 24px;
+  --py-toolbar: 12px;
+  --gap-toolgroup: 4px;
+  --btn-radius: 8px;
+  --group-radius: 12px;
+
+  /* Accents */
+  --accent-blue: #2563eb;
+  --accent-yellow: #ca8a04;
+  --accent-green: #16a34a;
+  --accent-red: #dc2626;
+  --accent-purple: #7c3aed;
+
+  /* Layout gaps */
+  --gap-header-top: 0px;
+  --gap-top-opts: 0px;
+
+  /* Page */
+  --page-width: 1200px;
+  --page-height: 2200px;
+  --page-shadow: 0 24px 48px rgba(15, 23, 42, 0.08);
+  --page-radius: 8px;
+  --page-border-color: #e5e7eb;
+  --page-border: 1px solid var(--page-border-color);
+
+  /* Canvas surround */
+  --canvas-bg: #f6f7fb;
+  --canvas-bg-accent: #eceff5;
+}
+
+.canvas-root {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-canvas);
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(155deg, var(--canvas-bg) 0%, var(--canvas-bg-accent) 100%);
+}
+
+.canvas-root .tl-container {
+  position: relative;
+  z-index: 2;
+}
+
+.canvas-root .page-container {
+  z-index: 1;
+  pointer-events: none;
+}
+
+.canvas-root .tl-background {
+  background: transparent !important;
+}
+
+.page-hitmask-block {
+  position: absolute;
+  pointer-events: auto;
+  cursor: not-allowed;
+  background: transparent;
+  z-index: 3;
+}
+
+.page-hitmask-block--top {
+  top: 0;
+  left: 0;
+  right: 0;
+  height: max(0px, calc((100vh - var(--page-height)) / 2));
+}
+
+.page-hitmask-block--bottom {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: max(0px, calc((100vh - var(--page-height)) / 2));
+}
+
+.page-hitmask-block--left {
+  top: max(0px, calc((100vh - var(--page-height)) / 2));
+  bottom: max(0px, calc((100vh - var(--page-height)) / 2));
+  left: 0;
+  width: max(0px, calc((100vw - var(--page-width)) / 2));
+}
+
+.page-hitmask-block--right {
+  top: max(0px, calc((100vh - var(--page-height)) / 2));
+  bottom: max(0px, calc((100vh - var(--page-height)) / 2));
+  right: 0;
+  width: max(0px, calc((100vw - var(--page-width)) / 2));
+}
+
+.chrome-root {
+  position: relative;
+  z-index: var(--z-header);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  pointer-events: none;
+}
+
+.chrome-header {
+  position: relative;
+  z-index: var(--z-header);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--h-header);
+  padding-inline: var(--px-header);
+  background-color: var(--chrome-bg);
+  color: var(--chrome-fg);
+  border-bottom: 1px solid var(--chrome-divider);
+  box-shadow: var(--chrome-shadow-sm);
+}
+
+.chrome-toolbar {
+  position: relative;
+  z-index: var(--z-toolbar);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: var(--h-top);
+  padding-inline: var(--px-toolbar);
+  padding-block: var(--py-toolbar);
+  background-color: var(--chrome-bg);
+  color: var(--chrome-fg);
+  border-bottom: 1px solid var(--chrome-divider);
+  box-shadow: var(--chrome-shadow-sm);
+  gap: var(--gap-toolgroup);
+}
+
+.chrome-header,
+.chrome-toolbar,
+.control-strip {
+  pointer-events: auto;
+}
+
+.page-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--page-width);
+  height: var(--page-height);
+  transform: translate(-50%, -50%);
+  background-color: #ffffff;
+  border: var(--page-border);
+  border-radius: var(--page-radius);
+  box-shadow: var(--page-shadow);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.tool-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--btn-radius);
+  border: 1px solid var(--chrome-divider);
+  background-color: transparent;
+  color: var(--chrome-fg);
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.tool-btn:hover {
+  background-color: rgba(55, 65, 81, 0.08);
+}
+
+.tool-btn:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.15);
+}
+
+.tool-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}

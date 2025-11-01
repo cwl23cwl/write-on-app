@@ -1,12 +1,7 @@
 "use client"
 
-import { Tldraw } from "@tldraw/tldraw"
-import "@tldraw/tldraw/tldraw.css"
+import { CanvasShell } from "./CanvasShell"
 
 export default function CanvasPage() {
-  return (
-    <div style={{ position: "fixed", inset: 0 }}>
-      <Tldraw />
-    </div>
-  )
+  return <CanvasShell />
 }
