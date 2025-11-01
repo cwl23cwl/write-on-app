@@ -1,6 +1,7 @@
 "use client"
 
 import { getApp } from "../shared/hooks/useTLApp"
+import { triggerAutoCenterResume } from "../app/canvas/autoCenterControl"
 
 const groupStyle = {
   backgroundColor: "var(--chrome-surface-muted)",
@@ -28,6 +29,10 @@ export function TopToolbar() {
     if (process.env.NODE_ENV !== "production") {
       console.log("[TopToolbar] Active tool:", editor.getCurrentToolId())
     }
+  }
+
+  const handleRecenter = () => {
+    triggerAutoCenterResume()
   }
 
   return (
@@ -59,6 +64,9 @@ export function TopToolbar() {
         </button>
         <button className="tool-btn" type="button">
           Share
+        </button>
+        <button className="tool-btn" type="button" onClick={handleRecenter}>
+          Recenter
         </button>
       </div>
     </nav>

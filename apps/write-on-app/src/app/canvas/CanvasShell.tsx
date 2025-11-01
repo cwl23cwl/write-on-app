@@ -1,64 +1,39 @@
 "use client"
 
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { Tldraw } from "@tldraw/tldraw"
 import "@tldraw/tldraw/tldraw.css"
 import type { Editor } from "@tldraw/editor"
 import { setApp } from "../../shared/hooks/useTLApp"
 import { PageContainer, PageHitMask, PAGE_HEIGHT, PAGE_WIDTH } from "./PageContainer"
+import { useCameraCentering } from "./hooks/useCameraCentering"
 
-const PAGE_VIEWPORT_PADDING = 96 // total inset (48px per side)
+const PAGE_FIT_PAD = 24
 const STROKE_TOOL_IDS = new Set(["draw", "highlight"])
-const PAGE_BOUNDS = {
-  x: -PAGE_WIDTH / 2,
-  y: -PAGE_HEIGHT / 2,
+const PAGE_CANONICAL_BOUNDS = {
+  x: 0,
+  y: 0,
   w: PAGE_WIDTH,
   h: PAGE_HEIGHT,
-}
+} as const
 
 export function CanvasShell() {
   const editorRef = useRef<Editor | null>(null)
-  const centerRaf = useRef<number | null>(null)
   const pageRef = useRef<HTMLDivElement | null>(null)
   const isTrackingStroke = useRef(false)
-
-  const centerOnPage = useCallback((editor: Editor) => {
-    if (centerRaf.current) {
-      cancelAnimationFrame(centerRaf.current)
-    }
-    centerRaf.current = requestAnimationFrame(() => {
-      centerRaf.current = null
-      editor.zoomToBounds(PAGE_BOUNDS, {
-        inset: PAGE_VIEWPORT_PADDING,
-        immediate: true,
-      })
-    })
-  }, [])
+  const [editorInstance, setEditorInstance] = useState<Editor | null>(null)
 
   const handleMount = useCallback(
     (app: Editor) => {
       editorRef.current = app
+      setEditorInstance(app)
       setApp(app)
-      centerOnPage(app)
       if (process.env.NODE_ENV !== "production") {
         console.log("[CanvasShell] TL app mounted:", app)
       }
     },
-    [centerOnPage],
+    [],
   )
-
-  useEffect(() => {
-    const handleResize = () => {
-      const editor = editorRef.current
-      if (!editor) return
-      centerOnPage(editor)
-    }
-
-    window.addEventListener("resize", handleResize)
-    return () => {
-      window.removeEventListener("resize", handleResize)
-    }
-  }, [centerOnPage])
 
   useEffect(() => {
     const isInsidePage = (event: PointerEvent) => {
@@ -116,13 +91,13 @@ export function CanvasShell() {
 
   useEffect(() => {
     return () => {
-      if (centerRaf.current) {
-        cancelAnimationFrame(centerRaf.current)
-      }
       editorRef.current = null
+      setEditorInstance(null)
       setApp(null)
     }
   }, [])
+
+  useCameraCentering(editorInstance, PAGE_CANONICAL_BOUNDS, PAGE_FIT_PAD)
 
   return (
     <div className="canvas-root">
