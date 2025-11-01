@@ -1,8 +1,8 @@
-cat > .gitignore <<'EOF'
-# Node / PNPM
+# Node & PNPM
 node_modules/
 .pnpm-store/
 .pnpm-debug.log
+pnpm-debug.log*
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -15,7 +15,7 @@ build/
 apps/**/.next/
 apps/**/.turbo/
 
-# Env / Config
+# Env
 .env*
 !.env.example
 
@@ -25,10 +25,9 @@ apps/**/.turbo/
 .DS_Store
 Thumbs.db
 
-# Dev Container / Docker
+# Dev Containers
 .devcontainer/*.log
 
 # Misc
 apps/**/cna-*/
 cna-*/
-EOF

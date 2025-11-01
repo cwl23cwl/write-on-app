@@ -1,0 +1,40 @@
+{
+  "name": "Write-On App Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20",
+      "pnpm": "true"
+    }
+  },
+
+  "workspaceFolder": "/workspaces/write-on-app",
+  "remoteUser": "node",
+
+  "postCreateCommand": "pnpm install",
+
+  "forwardPorts": [],
+  "portsAttributes": {
+    "3000": { "label": "Next.js", "onAutoForward": "ignore" },
+    "3001": { "onAutoForward": "ignore" },
+    "5173": { "onAutoForward": "ignore" }
+  },
+
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "files.autoSave": "onWindowChange",
+        "editor.formatOnSave": true,
+        "workbench.startupEditor": "none"
+      },
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "openai.codex"                // ✅ This is the Codex extension
+      ]
+    }
+  }
+}

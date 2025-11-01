@@ -1,0 +1,17 @@
+{
+  "name": "write-on-app",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.20.0",
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev": "pnpm --filter write-on-app dev",
+    "dev:turbo": "pnpm --filter write-on-app dev -- --turbopack",
+    "build": "pnpm --filter write-on-app build",
+    "start": "pnpm --filter write-on-app start",
+    "lint": "pnpm --filter write-on-app lint",
+    "clean": "rimraf node_modules .turbo **/.turbo **/.next && pnpm store prune"
+  },
+  "devDependencies": { "rimraf": "^6.0.0" },
+  "engines": { "node": ">=20.0.0", "pnpm": ">=10.0.0" }
+}
