@@ -16,7 +16,7 @@
 
   "forwardPorts": [],
   "portsAttributes": {
-    "3000": { "label": "Next.js", "onAutoForward": "ignore" },
+    "3000": { "label": "Next.js", "onAutoForward": "openPreview" },
     "3001": { "onAutoForward": "ignore" },
     "5173": { "onAutoForward": "ignore" }
   },
