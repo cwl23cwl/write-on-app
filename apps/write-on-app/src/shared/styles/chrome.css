@@ -112,6 +112,28 @@
   width: max(0px, calc((100vw - var(--page-width)) / 2));
 }
 
+.woe-viewport {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  touch-action: auto;
+  background: transparent;
+}
+
+.woe-scaler {
+  --woe-scale: 1;
+  --woe-offset-x: 0px;
+  --woe-offset-y: 0px;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  pointer-events: auto;
+  transform: translate3d(var(--woe-offset-x), var(--woe-offset-y), 0) scale(var(--woe-scale));
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
 .chrome-root {
   position: relative;
   z-index: var(--z-header);

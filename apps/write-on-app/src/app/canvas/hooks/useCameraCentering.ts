@@ -4,66 +4,37 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from "react"
 import type { Editor } from "@tldraw/editor"
 import { setAutoCenterResumeHandler } from "../autoCenterControl"
 
-type PageBounds = { x: number; y: number; w: number; h: number }
+const DEFAULT_CAMERA = { x: 0, y: 0, z: 1 }
+const EPSILON = 1e-5
 
-type CameraTarget = { x: number; y: number; z: number }
-
-function clampZoom(value: number) {
-  const minZoom = 0.0001
-  return Number.isFinite(value) ? Math.max(value, minZoom) : minZoom
+interface Options {
+  force?: boolean
+  animate?: boolean
+  tag?: string
 }
 
-export function useCameraCentering(editor: Editor | null, page: PageBounds, pad = 24) {
+function camerasDiffer(camera: { x: number; y: number; z: number }, target: typeof DEFAULT_CAMERA) {
+  return (
+    Math.abs(camera.x - target.x) > EPSILON ||
+    Math.abs(camera.y - target.y) > EPSILON ||
+    Math.abs(camera.z - target.z) > EPSILON
+  )
+}
+
+export function useCameraCentering(editor: Editor | null) {
   const appliedOnceRef = useRef(false)
-  const lockedXRef = useRef<number | null>(null)
-  const lockedYRef = useRef<number | null>(null)
-  const isInteractingRef = useRef(false)
+  const lastAppliedByHookRef = useRef(false)
   const suspendAutoCenterRef = useRef(false)
-  const lastAppliedFromHookRef = useRef(false)
-  const spacePanActiveRef = useRef(false)
-
-  const computeFit = useCallback(
-    (viewportW: number, viewportH: number) => {
-      const paddedW = Math.max(viewportW - pad * 2, 1)
-      const paddedH = Math.max(viewportH - pad * 2, 1)
-      const fitW = paddedW / page.w
-      const fitH = paddedH / page.h
-      const z = clampZoom(Math.min(fitW, fitH))
-      const pageCx = page.x + page.w / 2
-      const pageCy = page.y + page.h / 2
-      const camX = pageCx - viewportW / (2 * z)
-      const camY = pageCy - viewportH / (2 * z)
-      return { z, camX, camY, fitW, fitH }
-    },
-    [page.x, page.y, page.w, page.h, pad],
-  )
-
-  const getViewportPx = useCallback(() => {
-    const bounds = editor?.getViewportScreenBounds?.()
-    const viewportW = bounds?.width ?? bounds?.w ?? window.innerWidth
-    const viewportH = bounds?.height ?? bounds?.h ?? window.innerHeight
-    return { viewportW, viewportH }
-  }, [editor])
-
-  const suspendAutoCenter = useCallback(
-    (reason: string) => {
-      if (suspendAutoCenterRef.current) return
-      suspendAutoCenterRef.current = true
-      if (process.env.NODE_ENV !== "production") {
-        console.log("[center-pause]", { reason })
-      }
-    },
-    [],
-  )
+  const spaceKeyActiveRef = useRef(false)
 
   const applyCamera = useCallback(
-    (target: CameraTarget, logTag: string, { force = false, animate = true }: { force?: boolean; animate?: boolean } = {}) => {
+    ({ force = false, animate = false, tag = "[camera-apply]" }: Options = {}) => {
       if (!editor) return false
       if (!force && suspendAutoCenterRef.current) return false
 
-      lastAppliedFromHookRef.current = true
+      lastAppliedByHookRef.current = true
 
-      const animationOpts = animate
+      const animation = animate
         ? {
             animation: {
               duration: 200,
@@ -72,23 +43,17 @@ export function useCameraCentering(editor: Editor | null, page: PageBounds, pad 
           }
         : undefined
 
-      // Try animateCamera if available, otherwise fall back to setCamera with animation options.
-      const animateCamera = (editor as unknown as { animateCamera?: (camera: CameraTarget, opts?: { duration?: number; easing?: (t: number) => number }) => boolean }).animateCamera
-      const didAnimate = animate && typeof animateCamera === "function" ? Boolean(animateCamera(target, { duration: 200, easing: (t) => t * (2 - t) })) : false
-
-      if (!didAnimate) {
-        editor.setCamera(target, {
-          force: true,
-          ...(animationOpts ?? {}),
-        })
-      }
+      editor.setCamera(DEFAULT_CAMERA, {
+        force: true,
+        ...(animation ?? {}),
+      })
 
       if (process.env.NODE_ENV !== "production") {
-        console.log(logTag, target)
+        console.log(tag, DEFAULT_CAMERA)
       }
 
       requestAnimationFrame(() => {
-        lastAppliedFromHookRef.current = false
+        lastAppliedByHookRef.current = false
       })
 
       return true
@@ -96,184 +61,147 @@ export function useCameraCentering(editor: Editor | null, page: PageBounds, pad 
     [editor],
   )
 
-  const recenter = useCallback(
-    (logTag: string, { force = false, animate = true }: { force?: boolean; animate?: boolean } = {}) => {
-      const { viewportW, viewportH } = getViewportPx()
-      const { z, camX, camY } = computeFit(viewportW, viewportH)
-
-      if (lockedXRef.current === null || lockedYRef.current === null) {
-        lockedXRef.current = camX
-        lockedYRef.current = camY
-        if (process.env.NODE_ENV !== "production") {
-          console.log("[camera-lock]", { lockedX: camX, lockedY: camY })
-        }
-      }
-
-      const x = lockedXRef.current ?? camX
-      const y = lockedYRef.current ?? camY
-
-      return applyCamera({ x, y, z }, logTag, { force, animate })
-    },
-    [applyCamera, computeFit, getViewportPx],
-  )
-
+  // Apply once on mount.
   useLayoutEffect(() => {
     if (!editor || appliedOnceRef.current) return
-
-    const rafId = requestAnimationFrame(() => {
-      if (!editor || appliedOnceRef.current) return
-      const applied = recenter("[center-apply]", { force: true, animate: false })
-      if (applied) {
+    const id = requestAnimationFrame(() => {
+      if (applyCamera({ force: true, animate: false, tag: "[center-apply]" })) {
         appliedOnceRef.current = true
+        if (process.env.NODE_ENV !== "production") {
+          console.log("[camera-lock]", DEFAULT_CAMERA)
+        }
       }
     })
+    return () => cancelAnimationFrame(id)
+  }, [editor, applyCamera])
 
-    return () => cancelAnimationFrame(rafId)
-  }, [editor, recenter])
-
+  // Keep TL camera locked; reset immediately if TL changes it.
   useEffect(() => {
     if (!editor) return
 
-    let frameId: number | null = null
-    let timeoutId: number | null = null
+    const handleCameraChange = () => {
+      if (lastAppliedByHookRef.current) return
+      const camera = editor.getCamera()
+      if (camerasDiffer(camera, DEFAULT_CAMERA)) {
+        applyCamera({ force: true, animate: false, tag: "[camera-reset]" })
+      }
+    }
+
+    const off = typeof editor.on === "function" ? editor.on("camera", handleCameraChange) : undefined
+    return () => {
+      if (typeof off === "function") {
+        off()
+      }
+    }
+  }, [editor, applyCamera])
+
+  // Re-apply on resize when not suspended.
+  useEffect(() => {
+    if (!editor) return
+
+    let timer: number | null = null
+    let frame: number | null = null
 
     const handleResize = () => {
-      if (timeoutId) {
-        window.clearTimeout(timeoutId)
-      }
-
-      timeoutId = window.setTimeout(() => {
-        if (frameId) {
-          cancelAnimationFrame(frameId)
-        }
-
-        frameId = requestAnimationFrame(() => {
-          frameId = null
-          if (isInteractingRef.current) return
-          if (suspendAutoCenterRef.current) return
-          recenter("[center-resize-anim]", { animate: true })
+      if (timer) window.clearTimeout(timer)
+      timer = window.setTimeout(() => {
+        if (frame) cancelAnimationFrame(frame)
+        frame = requestAnimationFrame(() => {
+          frame = null
+          applyCamera({ animate: true, tag: "[center-resize-anim]" })
         })
       }, 120)
     }
 
     window.addEventListener("resize", handleResize)
-
     return () => {
       window.removeEventListener("resize", handleResize)
-      if (timeoutId) window.clearTimeout(timeoutId)
-      if (frameId) cancelAnimationFrame(frameId)
+      if (timer) window.clearTimeout(timer)
+      if (frame) cancelAnimationFrame(frame)
     }
-  }, [editor, recenter])
+  }, [editor, applyCamera])
 
+  // Prevent native zoom / pan gestures reaching TLDraw.
   useEffect(() => {
     if (!editor) return
-
     const container = editor.getContainer?.()
     if (!container) return
 
-    const preventPan = (event: WheelEvent) => {
-      if (event.ctrlKey) return
-      suspendAutoCenter("wheel:container")
-      event.preventDefault()
+    const handleWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.metaKey) return
+      suspendAutoCenterRef.current = true
       event.stopImmediatePropagation()
-    }
-
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!spacePanActiveRef.current) return
-      suspendAutoCenter("space-pan")
       event.preventDefault()
-      event.stopImmediatePropagation()
+      if (process.env.NODE_ENV !== "production") {
+        console.log("[center-pause]", { reason: "wheel" })
+      }
     }
 
-    const handlePointerMove = (event: PointerEvent) => {
-      if (!spacePanActiveRef.current) return
-      event.preventDefault()
-      event.stopImmediatePropagation()
+    const handleTouchMove = (event: TouchEvent) => {
+      if (event.touches.length > 1) {
+        suspendAutoCenterRef.current = true
+        event.stopImmediatePropagation()
+        event.preventDefault()
+      }
     }
 
-    const markSuspend = () => {
-      suspendAutoCenter("pointer:container")
-    }
-
-    container.addEventListener("wheel", preventPan, { passive: false })
-    container.addEventListener("wheel", markSuspend, { passive: true })
-    container.addEventListener("pointerdown", markSuspend, { passive: true })
-    container.addEventListener("pointerdown", handlePointerDown, { passive: false })
-    container.addEventListener("pointermove", handlePointerMove, { passive: false })
+    container.addEventListener("wheel", handleWheel, { passive: false })
+    container.addEventListener("touchmove", handleTouchMove, { passive: false })
 
     return () => {
-      container.removeEventListener("wheel", preventPan)
-      container.removeEventListener("wheel", markSuspend)
-      container.removeEventListener("pointerdown", markSuspend)
-      container.removeEventListener("pointerdown", handlePointerDown)
-      container.removeEventListener("pointermove", handlePointerMove)
+      container.removeEventListener("wheel", handleWheel)
+      container.removeEventListener("touchmove", handleTouchMove)
     }
   }, [editor])
 
+  // Global keyboard / wheel listeners to block camera changes and mark suspension.
   useEffect(() => {
     if (!editor) return
 
     const handlePointerDown = () => {
-      isInteractingRef.current = true
-    }
-
-    const handlePointerUp = () => {
-      isInteractingRef.current = false
-      spacePanActiveRef.current = false
+      suspendAutoCenterRef.current = true
     }
 
     const handleWheel = (event: WheelEvent) => {
-      if (!event.ctrlKey) {
-        suspendAutoCenter("wheel")
+      if (event.ctrlKey) {
+        event.preventDefault()
+        suspendAutoCenterRef.current = true
+        if (process.env.NODE_ENV !== "production") {
+          console.log("[center-pause]", { reason: "ctrl-wheel" })
+        }
       }
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.code === "Space") {
-        spacePanActiveRef.current = true
+        spaceKeyActiveRef.current = true
         event.preventDefault()
       }
       if (["Space", "Spacebar", "+", "=", "-", "_"].includes(event.key)) {
-        suspendAutoCenter(`key:${event.key}`)
+        suspendAutoCenterRef.current = true
       }
     }
 
     const handleKeyUp = (event: KeyboardEvent) => {
       if (event.code === "Space") {
-        spacePanActiveRef.current = false
+        spaceKeyActiveRef.current = false
       }
     }
 
-    const offCameraEvent =
-      typeof editor.on === "function"
-        ? editor.on("camera", () => {
-            if (lastAppliedFromHookRef.current) return
-            suspendAutoCenter("camera")
-          })
-        : undefined
-
     window.addEventListener("pointerdown", handlePointerDown, { passive: true })
-    window.addEventListener("pointerup", handlePointerUp, { passive: true })
-    window.addEventListener("pointercancel", handlePointerUp, { passive: true })
-    window.addEventListener("blur", handlePointerUp)
-    window.addEventListener("wheel", handleWheel, { passive: true })
+    window.addEventListener("wheel", handleWheel, { passive: false })
     window.addEventListener("keydown", handleKeyDown, { passive: false })
     window.addEventListener("keyup", handleKeyUp, { passive: true })
 
     return () => {
       window.removeEventListener("pointerdown", handlePointerDown)
-      window.removeEventListener("pointerup", handlePointerUp)
-      window.removeEventListener("pointercancel", handlePointerUp)
-      window.removeEventListener("blur", handlePointerUp)
       window.removeEventListener("wheel", handleWheel)
       window.removeEventListener("keydown", handleKeyDown)
       window.removeEventListener("keyup", handleKeyUp)
-      if (typeof offCameraEvent === "function") {
-        offCameraEvent()
-      }
     }
-  }, [editor, suspendAutoCenter])
+  }, [editor])
 
+  // Expose a resume handler for the toolbar.
   useEffect(() => {
     if (!editor) {
       setAutoCenterResumeHandler(null)
@@ -282,13 +210,10 @@ export function useCameraCentering(editor: Editor | null, page: PageBounds, pad 
 
     const resume = () => {
       suspendAutoCenterRef.current = false
-      recenter("[center-resume]", { force: true, animate: true })
+      applyCamera({ force: true, animate: true, tag: "[center-resume]" })
     }
 
     setAutoCenterResumeHandler(resume)
-
-    return () => {
-      setAutoCenterResumeHandler(null)
-    }
-  }, [editor, recenter])
+    return () => setAutoCenterResumeHandler(null)
+  }, [editor, applyCamera])
 }

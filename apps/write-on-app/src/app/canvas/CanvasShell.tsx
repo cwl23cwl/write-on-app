@@ -5,21 +5,16 @@ import { Tldraw } from "@tldraw/tldraw"
 import "@tldraw/tldraw/tldraw.css"
 import type { Editor } from "@tldraw/editor"
 import { setApp } from "../../shared/hooks/useTLApp"
-import { PageContainer, PageHitMask, PAGE_HEIGHT, PAGE_WIDTH } from "./PageContainer"
+import { PageContainer, PageHitMask } from "./PageContainer"
 import { useCameraCentering } from "./hooks/useCameraCentering"
+import { useViewportZoom } from "./hooks/useViewportZoom"
 
-const PAGE_FIT_PAD = 24
 const STROKE_TOOL_IDS = new Set(["draw", "highlight"])
-const PAGE_CANONICAL_BOUNDS = {
-  x: 0,
-  y: 0,
-  w: PAGE_WIDTH,
-  h: PAGE_HEIGHT,
-} as const
 
 export function CanvasShell() {
   const editorRef = useRef<Editor | null>(null)
   const pageRef = useRef<HTMLDivElement | null>(null)
+  const viewportRef = useRef<HTMLDivElement | null>(null)
   const isTrackingStroke = useRef(false)
   const [editorInstance, setEditorInstance] = useState<Editor | null>(null)
 
@@ -97,12 +92,17 @@ export function CanvasShell() {
     }
   }, [])
 
-  useCameraCentering(editorInstance, PAGE_CANONICAL_BOUNDS, PAGE_FIT_PAD)
+  useCameraCentering(editorInstance)
+  useViewportZoom(viewportRef)
 
   return (
     <div className="canvas-root">
-      <Tldraw hideUi onMount={handleMount} />
-      <PageContainer ref={pageRef} />
+      <div className="woe-viewport" ref={viewportRef}>
+        <div className="woe-scaler">
+          <PageContainer ref={pageRef} />
+          <Tldraw hideUi onMount={handleMount} />
+        </div>
+      </div>
       <PageHitMask />
     </div>
   )
